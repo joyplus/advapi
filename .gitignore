@@ -3,6 +3,8 @@ blib/
 _build/
 cover_db/
 inc/
+.idea/
+cache/
 Build
 !Build/
 Build.bat
