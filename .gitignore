@@ -16,5 +16,10 @@ META.yml
 MYMETA.yml
 nytprof.out
 pm_to_blib
+
 app/data/creative/
+
+
+*.log
+
 *.log
