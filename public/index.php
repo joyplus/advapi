@@ -10,7 +10,21 @@ error_reporting(E_ALL);
 
 try {
 
-	/**
+    define('MAD_MAXMIND_TYPE', 'PHPSOURCE'); // Change to 'NATIVE' if you installed the GeoIP PHP Module (http://www.php.net/manual/en/book.geoip.php) -> Faster! - Please note that mAdserve will crash if this option is enabled but not installed.
+    define('MAD_MAXMIND_DATAFILE_LOCATION', __DIR__ . '/../app/data/geotargeting/GeoLiteCity.dat');
+    define('MAD_IGNORE_DAILYLIMIT_NOCRON', false); // Ignore a campaign's daily impression limit when the mAdserve cron was not executed for more than 24 hours.
+
+    define('MAD_ADSERVING_PROTOCOL', 'http://');
+    define('MAD_CLICK_HANDLER', 'v1/mdclick');
+    define('MAD_SERVER_HOST', 'localhost/advapi');//adkey.joyplus.tv
+    define('MAD_TRACK_HANDLER', 'v1/mdtrack');
+    define('MAD_CLICK_ALWAYS_EXTERNAL', false);
+    define('MAD_TRACK_UNIQUE_CLICKS', false); // Track only unique clicks. Works only if a caching method is enabled.
+    define('MAD_CLICK_IMMEDIATE_REDIRECT', false); // Make the click handler redirect the end-user to the destination URL immediately and write the click to the statistic database in the background.
+
+
+
+    /**
 	 * Read the configuration
 	 */
 	$config = new Phalcon\Config\Adapter\Ini(__DIR__ . '/../app/config/config.ini');
@@ -151,6 +165,22 @@ try {
 		return $session;
 	});
 
+    $di->set('modelsCache', function() {
+
+        //Cache data for one day by default
+        $frontCache = new \Phalcon\Cache\Frontend\Data(array(
+            "lifetime" => 3600
+        ));
+
+        //Memcached connection settings
+        $cache = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
+            "host" => "localhost",
+            "port" => "11211"
+        ));
+
+        return $cache;
+    });
+
     /**
      * Configure cache
      */
@@ -168,6 +198,10 @@ try {
         ));
 
         return $cacheData;
+    });
+
+    $di->set('mdManager', function() use ($config) {
+        return new MDManager();
     });
 	/**
 	 * Register the flash service with custom CSS classes
@@ -234,45 +268,12 @@ try {
      */
     $app->after(function() use ($app) {
 
-        // OPTIONS have no body, send the headers, exit
-        if($app->request->getMethod() == 'OPTIONS'){
-            $app->response->setStatusCode('200', 'OK');
-            $app->response->send();
-            return;
-        }
+        $records = $app->getReturnedValue();
 
-        // Respond by default as JSON
-        if(!$app->request->get('type') || $app->request->get('type') == 'json'){
+        $response = new XMLResponse();
+        $response->send($records);
 
-            // Results returned from the route's controller.  All Controllers should return an array
-            $records = $app->getReturnedValue();
-
-            $response = new JSONResponse();
-            $response->useEnvelope(true) //this is default behavior
-                ->convertSnakeCase(true) //this is also default behavior
-                ->send($records);
-
-            return;
-        }
-        else if($app->request->get('type') == 'csv'){
-
-            $records = $app->getReturnedValue();
-            $response = new CSVResponse();
-            $response->useHeaderRow(true)->send($records);
-
-            return;
-        }
-        else {
-            throw new \PhalconRest\Exceptions\HTTPException(
-                'Could not return results in specified format',
-                403,
-                array(
-                    'dev' => 'Could not understand type specified by type paramter in query string.',
-                    'internalCode' => 'NF1000',
-                    'more' => 'Type may not be implemented. Choose either "csv" or "json"'
-                )
-            );
-        }
+        return;
     });
 
 
