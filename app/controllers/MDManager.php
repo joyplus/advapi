@@ -6,7 +6,13 @@
  * Time: 下午5:11
  */
 
-class MDManager {
+class MDManager extends \Phalcon\DI\Injectable {
+
+    public function __construct(){
+        //parent::__construct();
+        $di = \Phalcon\DI::getDefault();
+        $this->setDI($di);
+    }
 
     public function reporting_db_update(&$display_ad, &$request_settings, $publication_id,
                                         $zone_id, $campaign_id, $creative_id, $network_id,
@@ -57,20 +63,57 @@ class MDManager {
 //            "device_name = '".device_name."'"
 //        ));
 
-        $reporting = Reporting::findFirst(array(
-            "conditions" => "hours = ?1 and publication_id = ?2 and zone_id = ?3 and campaign_id=?4 and creative_id=?5 and network_id=?6 and date=?7 and device_name=?8",
-            "bind"       => array(1 =>$current_hours,
-                                  2 =>$publication_id,
-                                  //3 =>$geo_city,
-                                 3 =>$zone_id,
-                                4 =>$campaign_id,
-                                5 =>$creative_id,
-                                6 =>$network_id,
-                                7 =>$current_date,
-                                8 =>device_name
+//        $reporting = Reporting::findFirst(array(
+//            "conditions" => "hours = ?1 and publication_id = ?2 and zone_id = ?3 and campaign_id=?4 and creative_id=?5 and network_id=?6 and date=?7 and device_name=?8 and geo_city = ?9",
+//            "bind"       => array(1 =>$current_hours,
+//                                  2 =>$publication_id,
+//                                 3 =>$zone_id,
+//                                4 =>$campaign_id,
+//                                5 =>$creative_id,
+//                                6 =>$network_id,
+//                                7 =>$current_date,
+//                                8 =>device_name,
+//                                9 =>$geo_city
+//
+//            )
+//        ));
 
-            )
-        ));
+        //With bound parameters
+        $sql = "SELECT * FROM Reporting WHERE hours = :hours: AND publication_id = :publication_id: AND zone_id = :zone_id: AND campaign_id = :campaign_id: AND creative_id = :creative_id: AND date = :date: AND device_name = :device_name: ";
+        //$sql = "SELECT * FROM Reporting WHERE hours = :hours: ";
+        //$sql = "SELECT * FROM Reporting";
+        $param = array(
+            'hours' => $current_hours,
+            'publication_id' => $publication_id,
+            'zone_id' => $zone_id,
+            'campaign_id' => $campaign_id,
+            'creative_id' => $creative_id,
+            'date' => $current_date,
+            'device_name' => $device_name
+        );
+
+
+        if($geo_region!=''){
+            $sql .= "AND geo_region = :geo_region: ";
+            $param['geo_region'] = $geo_region;
+        }
+
+        if($geo_city!=''){
+            $sql .= "AND geo_city = :geo_city: ";
+            $param['geo_city'] = $geo_city;
+        }
+
+        if($network_id!=''){
+            $sql .= "AND network_id = :network_id:";
+            $param['network_id'] = $network_id;
+        }
+
+        $sql .= ' Limit 1';
+
+        $query = $this->getDi()->get('modelsManager')->createQuery($sql);
+        $resultSet = $query->execute($param);
+
+        $reporting = $resultSet->getFirst();
 
         $add_impression=0;
 
@@ -84,7 +127,7 @@ class MDManager {
             $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
             $reporting->total_impressions = $reporting->total_impressions + $add_impression;
             $reporting->total_clicks = $reporting->total_clicks + $add_click;
-            $reporting->update();
+            $result = $reporting->update();
         }
         else {
             $reporting = new Reporting();
@@ -111,10 +154,17 @@ class MDManager {
             //$reporting->entry_id=1100023;
 
 
-            $reporting->create();
+            $result = $reporting->create();
+        }
+        if ($result == false) {
 
+            foreach ($reporting->getMessages() as $message) {
 
-
+                $this->getDi()->get('logger')->error($message->getMessage());
+//                echo "Message: ", $message->getMessage();
+//                echo "Field: ", $message->getField();
+//                echo "Type: ", $message->getType();
+            }
         }
     }
 

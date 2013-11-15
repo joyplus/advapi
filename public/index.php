@@ -122,7 +122,7 @@ try {
 
         $eventsManager = new EventsManager();
 
-        $logger = new FileLogger("../app/logs/db.log");
+        $logger = new FileLogger("../app/logs/sql.log");
 
 //Listen all the database events
         $eventsManager->attach('db', function($event, $connection) use ($logger) {
@@ -143,6 +143,24 @@ try {
 
         return $connection;
     });
+
+    if ($config->logger->enabled) {
+        $di->set('logger', function () use ($config) {
+
+            $logger = new \Phalcon\Logger\Adapter\File($config->logger->path . "main.log");
+            $formatter = new \Phalcon\Logger\Formatter\Line($config->logger->format);
+            $logger->setFormatter($formatter);
+            return $logger;
+        });
+    } else {
+        $di->set('logger', function () use ($config) {
+            $logger = new \Phalcon\Logger\Adapter\Syslog("ADVAPI", array(
+                'option' => LOG_NDELAY,
+                'facility' => LOG_DAEMON
+            ));
+            return $logger;
+        });
+    }
 
 	/**
 	 * If the configuration specify the use of metadata adapter use it or use memory otherwise
@@ -309,7 +327,7 @@ try {
 
     $app->handle();
 } catch (Phalcon\Exception $e) {
-	echo $e->getMessage();
+	echo $logger->error($e->getMessage());
 } catch (PDOException $e){
-	echo $e->getMessage();
+    echo $logger->error($e->getMessage());
 }
