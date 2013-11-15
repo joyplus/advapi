@@ -147,7 +147,7 @@ try {
     if ($config->logger->enabled) {
         $di->set('logger', function () use ($config) {
 
-            $logger = new \Phalcon\Logger\Adapter\File($config->logger->path . "main.log");
+            $logger = new FileLogger("../app/logs/main.log");
             $formatter = new \Phalcon\Logger\Formatter\Line($config->logger->format);
             $logger->setFormatter($formatter);
             return $logger;

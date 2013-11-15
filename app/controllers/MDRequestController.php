@@ -75,7 +75,7 @@ class MDRequestController extends RESTController{
       return $this->respond($result);
     }
 
-    function handleAdRequest(){
+    private function handleAdRequest(){
         $request_settings = array();
         $request_data = array();
         $display_ad = array();
