@@ -95,9 +95,7 @@ class MDTrackController extends RESTController{
             $impression='1';
         }
 
-        $this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_detail->entry_id, $display_ad['campaign_id'], $display_ad['ad_id'], '', 1, 0, $impression, 0);
-//        reporting_db_update_impression($data['publication_id'], $data['zone_id'],
-//            $data['campaign_id'], $data['ad_id'], $data['impression'], $data['network_id']);
+
     }
 
 } 
