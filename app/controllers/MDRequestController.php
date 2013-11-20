@@ -207,10 +207,8 @@ class MDRequestController extends RESTController{
             //launch_backfill();
         }
 
-        $mDManager = $this->getDi()->get('mDManager');
-
         if (isset($display_ad['available']) && $display_ad['available']==1){
-            $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
+            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
             //display_ad();
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
@@ -263,85 +261,16 @@ class MDRequestController extends RESTController{
         return $results;
     }
 
-    /**
-     * MDRequest Functions
-     */
-
-    function prepare_r_hash(&$request_settings){
-
-        $request_settings["request_hash"]=md5(uniqid(microtime()));
-
-    }
-
-    function is_valid_ip($ip, $include_priv_res = true)
-    {
-        return $include_priv_res ?
-            filter_var($ip, FILTER_VALIDATE_IP) !== false :
-            filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
-    }
 
 
-    function check_forwarded_ip(){
-
-        if ($this->request->has("h[X-Forwarded-For]")){
-            $res_array = explode(",", $this->request->get("h[X-Forwarded-For]"));
-            return $res_array[0];
-        }
-
-        //TODO: Unchecked MD Functions
-        $server_xforworded = $this->request->getServer('HTTP_X_FORWARDED_FOR');
-        if (isset($server_xforworded) && !empty($server_xforworded)){
-            $res_array = explode(",", $server_xforworded);
-            return $res_array[0];
-        }
-        return false;
-    }
-
-    function prepare_ip(&$request_settings){
-
-        switch ($request_settings['ip_origin']){
-            case 'request':
-                if ($this->request->has('ip')){
-                    $request_settings['ip_address']=$this->request->get('ip');
-                }
-                break;
-
-            case 'fetch':
-
-                //TODO: Unchecked MD functions
-                $forwarded_ip = $this->check_forwarded_ip();
-
-                if ($forwarded_ip){
-                    $request_settings['ip_address']=$this->request->getClientAddress(TRUE);
-                }
-                else {
-                    $request_settings['ip_address']=$this->request->getClientAddress(FALSE);
-                }
-        }
-
-    }
-
-    function validate_md5($hash){
-        if(!empty($hash) && preg_match('/^[a-f0-9]{32}$/', $hash)){
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
 
 
-    function prepare_ua(&$request_settings){
-
-        if ($this->request->has('h[User-Agent]')){
-            $request_settings['user_agent']=$this->request->get('h[User-Agent]', null, '');
-        }
-        else if ($this->request->has('u')){
-            $request_settings['user_agent']=$this->request->get('u');
-        }
 
 
-    }
+
+
+
+
 
     function check_input(&$request_settings, &$errormessage){
 
@@ -437,111 +366,7 @@ class MDRequestController extends RESTController{
         return false;
     }
 
-    function getCacheData(){
-        $cacheData = $this->getDi()->get("cacheData");
-        //$cache = $cacheService->resolve();
-        return $cacheData;
-    }
 
-    function getCacheDataValue($cacheKey){
-
-        $cacheKey=md5($cacheKey);
-
-        $resultget = $this->getDi()->get("cacheData")->get($cacheKey);
-        if ($resultget){
-            return $resultget;
-        }
-        else {
-            return false;
-        }
-    }
-
-    function saveCacheDataValue($cacheKey, $cacheValue){
-        $cacheKey=md5($cacheKey);
-
-        $this->getDi()->get("cacheData")->save($cacheKey, $cacheValue);
-    }
-
-    function set_geo(&$request_settings){
-
-        $key='GEODATA_'.$request_settings['ip_address'].'';
-
-        $cache_result=$this->getCacheDataValue($key);
-
-        if ($cache_result){
-            $request_settings['geo_country']=$cache_result['geo_country'];
-            $request_settings['geo_region']=$cache_result['geo_region'];
-            return true;
-        }
-
-
-        switch (MAD_MAXMIND_TYPE){
-            case 'PHPSOURCE':
-
-                // This code demonstrates how to lookup the country, region, city,
-                // postal code, latitude, and longitude by IP Address.
-                // It is designed to work with GeoIP/GeoLite City
-
-                // Note that you must download the New Format of GeoIP City (GEO-133).
-                // The old format (GEO-132) will not work.
-
-                require_once( __DIR__ . "/../modules/maxmind_php/geoipcity.inc");
-                require_once(__DIR__ . "/../modules/maxmind_php/geoipregionvars.php");
-
-                // uncomment for Shared Memory support
-                // geoip_load_shared_mem("/usr/local/share/GeoIP/GeoIPCity.dat");
-                // $gi = geoip_open("/usr/local/share/GeoIP/GeoIPCity.dat",GEOIP_SHARED_MEMORY);
-
-                //var $maxmind_datafile = __DIR__ . '/../data/geotargeting/GeoLiteCity.dat');
-
-                if (!$gi = geoip_open(MAD_MAXMIND_DATAFILE_LOCATION,GEOIP_STANDARD)){
-                    print_error(1, 'Could not open GEOIP Database supplied in constants.php File. Please make sure that the file is present and that the directory has the necessary rights applied.', $request_settings['sdk'], 1);
-                    return false;
-                }
-
-                if (!$record = geoip_record_by_addr($gi,$ip_address)){
-                    $request_settings['geo_country']='';
-                    $request_settings['geo_region']='';
-                    $request_settings['geo_city']='';
-
-                    return false;
-                }
-
-                $geo_data=array();
-                $geo_data['geo_country']=$record->country_code;
-                $geo_data['geo_region']=$record->region;
-                $geo_data['geo_city']=$record->city;
-
-                geoip_close($gi);
-
-
-                break;
-
-            case 'NATIVE':
-
-                if (!$record = geoip_record_by_name($ip_address)){
-                    $request_settings['geo_country']='';
-                    $request_settings['geo_region']='';
-                    $request_settings['geo_city']='';
-                    return false;
-                }
-                $geo_data['geo_country']=$record['country_code'];
-                $geo_data['geo_region']=$record['region'];
-                $geo_data['geo_city']=$record['city'];
-
-                break;
-
-        }
-
-        $request_settings['geo_country']=$geo_data['geo_country'];
-        $request_settings['geo_region']=$geo_data['geo_region'];
-        $request_settings['geo_city']=$geo_data['geo_city'];
-
-        $this->saveCacheDataValue($key, $geo_data);
-
-        return true;
-
-    }
 
     function build_query(&$request_settings, $zone_detail){
 

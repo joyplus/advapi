@@ -252,18 +252,6 @@ try {
     $app = new Phalcon\Mvc\Micro();
     $app->setDI($di);
 
-
-    //Mount Example collection
-    $posts = new MicroCollection();
-    //Set the main handler. ie. a controller instance
-    $posts->setHandler(new ExampleController());
-    //Set a common prefix for all routes
-    $posts->setPrefix('/v1/example');
-    //Use the method 'indexAction' in ProductsController
-    $posts->get('/', 'get');
-    $posts->put('/', 'insert');
-    $app->mount($posts);
-
     //Mount MDRequest collection
     $mdrequest = new MicroCollection();
     //Set the main handler. ie. a controller instance
@@ -276,6 +264,16 @@ try {
     $mdrequest->put('/', 'put');
     $app->mount($mdrequest);
 
+    //Mount MDRequest collection
+    $mdtrack = new MicroCollection();
+    //Set the main handler. ie. a controller instance
+    $mdtrack->setHandler(new MDTrackController());
+    //Set a common prefix for all routes
+    $mdtrack->setPrefix('/v1/mdtrack');
+    //Use the method 'indexAction' in ProductsController
+    $mdtrack->get('/', 'get');
+
+    $app->mount($mdtrack);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.

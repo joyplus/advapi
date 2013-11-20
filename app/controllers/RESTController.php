@@ -16,168 +16,6 @@
  */
 class RESTController extends BaseController{
 
-	/**
-	 * If query string contains 'q' parameter.
-	 * This indicates the request is searching an entity
-	 * @var boolean
-	 */
-	protected $isSearch = false;
-
-	/**
-	 * If query contains 'fields' parameter.
-	 * This indicates the request wants back only certain fields from a record
-	 * @var boolean
-	 */
-	protected $isPartial = false;
-
-	/**
-	 * Set when there is a 'limit' query parameter
-	 * @var integer
-	 */
-	protected $limit = null;
-
-	/**
-	 * Set when there is an 'offset' query parameter
-	 * @var integer
-	 */
-	protected $offset = null;
-
-	/**
-	 * Array of fields requested to be searched against
-	 * @var array
-	 */
-	protected $searchFields = null;
-
-	/**
-	 * Array of fields requested to be returned
-	 * @var array
-	 */
-	protected $partialFields = null;
-
-	/**
-	 * Sets which fields may be searched against, and which fields are allowed to be returned in
-	 * partial responses.  This will be overridden in child Controllers that support searching
-	 * and partial responses.
-	 * @var array
-	 */
-	protected $allowedFields = array(
-		'search' => array(),
-		'partials' => array()
-	);
-
-
-	/**
-	 * Constructor, calls the parse method for the query string by default.
-	 * @param boolean $parseQueryString true Can be set to false if a controller needs to be called
-	 *        from a different controller, bypassing the $allowedFields parse
-	 * @return void
-	 */
-	public function __construct($parseQueryString = true){
-		parent::__construct();
-		if ($parseQueryString){
-			$this->parseRequest($this->allowedFields);
-		}
-
-		return;
-	}
-
-	/**
-	 * Parses out the search parameters from a request.
-	 * Unparsed, they will look like this:
-	 *    (name:Benjamin Framklin,location:Philadelphia)
-	 * Parsed:
-	 *     array('name'=>'Benjamin Franklin', 'location'=>'Philadelphia')
-	 * @param  string $unparsed Unparsed search string
-	 * @return array            An array of fieldname=>value search parameters
-	 */
-	protected function parseSearchParameters($unparsed){
-
-		// Strip parens that come with the request string
-		$unparsed = trim($unparsed, '()');
-
-		// Now we have an array of "key:value" strings.
-		$splitFields = explode(',', $unparsed);
-		$mapped = array();
-
-		// Split the strings at their colon, set left to key, and right to value.
-		foreach ($splitFields as $field) {
-			$splitField = explode(':', $field);
-			$mapped[$splitField[0]] = $splitField[1];
-		}
-
-		return $mapped;
-	}
-
-	/**
-	 * Parses out partial fields to return in the response.
-	 * Unparsed:
-	 *     (id,name,location)
-	 * Parsed:
-	 *     array('id', 'name', 'location')
-	 * @param  string $unparsed Unparsed string of fields to return in partial response
-	 * @return array            Array of fields to return in partial response
-	 */
-	protected function parsePartialFields($unparsed){
-		return explode(',', trim($unparsed, '()'));
-	}
-
-	/**
-	 * Main method for parsing a query string.
-	 * Finds search paramters, partial response fields, limits, and offsets.
-	 * Sets Controller fields for these variables.
-	 *
-	 * @param  array $allowedFields Allowed fields array for search and partials
-	 * @return boolean              Always true if no exception is thrown
-	 */
-	protected function parseRequest($allowedFields){
-		$request = $this->di->get('request');
-		$searchParams = $request->get('q', null, null);
-		$fields = $request->get('fields', null, null);
-
-		// Set limits and offset, elsewise allow them to have defaults set in the Controller
-		$this->limit = ($request->get('limit', null, null)) ?: $this->limit;
-		$this->offset = ($request->get('offset', null, null)) ?: $this->offset;
-
-		// If there's a 'q' parameter, parse the fields, then determine that all the fields in the search
-		// are allowed to be searched from $allowedFields['search']
-		if($searchParams){
-			$this->isSearch = true;
-			$this->searchFields = $this->parseSearchParameters($searchParams);
-
-			// This handly snippet determines if searchFields is a strict subset of allowedFields['search']
-			if(array_diff(array_keys($this->searchFields), $this->allowedFields['search'])){
-				throw new HTTPException(
-					"The fields you specified cannot be searched.",
-					401,
-					array(
-						'dev' => 'You requested to search fields that are not available to be searched.',
-						'internalCode' => 'S1000',
-						'more' => '' // Could have link to documentation here.
-				));
-			}
-		}
-
-		// If there's a 'fields' paramter, this is a partial request.  Ensures all the requested fields
-		// are allowed in partial responses.
-		if($fields){
-			$this->isPartial = true;
-			$this->partialFields = $this->parsePartialFields($fields);
-
-			// Determines if fields is a strict subset of allowed fields
-			if(array_diff($this->partialFields, $this->allowedFields['partials'])){
-				throw new HTTPException(
-					"The fields you asked for cannot be returned.",
-					401,
-					array(
-						'dev' => 'You requested to return fields that are not available to be returned in partial responses.',
-						'internalCode' => 'P1000',
-						'more' => '' // Could have link to documentation here.
-				));
-			}
-		}
-
-		return true;
-	}
 
 	/**
 	 * Provides a base CORS policy for routes like '/users' that represent a Resource's base url
@@ -243,5 +81,405 @@ class RESTController extends BaseController{
 
 	}
 
+    function check_forwarded_ip(){
 
+        if ($this->request->has("h[X-Forwarded-For]")){
+            $res_array = explode(",", $this->request->get("h[X-Forwarded-For]"));
+            return $res_array[0];
+        }
+
+        //TODO: Unchecked MD Functions
+        $server_xforworded = $this->request->getServer('HTTP_X_FORWARDED_FOR');
+        if (isset($server_xforworded) && !empty($server_xforworded)){
+            $res_array = explode(",", $server_xforworded);
+            return $res_array[0];
+        }
+        return false;
+    }
+
+    function is_valid_ip($ip, $include_priv_res = true)
+    {
+        return $include_priv_res ?
+            filter_var($ip, FILTER_VALIDATE_IP) !== false :
+            filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+    }
+
+    function prepare_ip(&$request_settings){
+
+        switch ($request_settings['ip_origin']){
+            case 'request':
+                if ($this->request->has('ip')){
+                    $request_settings['ip_address']=$this->request->get('ip');
+                }
+                break;
+
+            case 'fetch':
+
+                //TODO: Unchecked MD functions
+                $forwarded_ip = $this->check_forwarded_ip();
+
+                if ($forwarded_ip){
+                    $request_settings['ip_address']=$this->request->getClientAddress(TRUE);
+                }
+                else {
+                    $request_settings['ip_address']=$this->request->getClientAddress(FALSE);
+                }
+        }
+
+    }
+
+    function validate_md5($hash){
+        if(!empty($hash) && preg_match('/^[a-f0-9]{32}$/', $hash)){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * MDRequest Functions
+     */
+
+    function prepare_r_hash(&$request_settings){
+
+        $request_settings["request_hash"]=md5(uniqid(microtime()));
+
+    }
+
+    function prepare_ua(&$request_settings){
+
+        if ($this->request->has('h[User-Agent]')){
+            $request_settings['user_agent']=$this->request->get('h[User-Agent]', null, '');
+        }
+        else if ($this->request->has('u')){
+            $request_settings['user_agent']=$this->request->get('u');
+        }
+    }
+
+    function getCacheData(){
+        $cacheData = $this->getDi()->get("cacheData");
+        //$cache = $cacheService->resolve();
+        return $cacheData;
+    }
+
+    function getCacheDataValue($cacheKey){
+
+        $cacheKey=md5($cacheKey);
+
+        $resultget = $this->getDi()->get("cacheData")->get($cacheKey);
+        if ($resultget){
+            return $resultget;
+        }
+        else {
+            return false;
+        }
+    }
+
+    function saveCacheDataValue($cacheKey, $cacheValue){
+        $cacheKey=md5($cacheKey);
+
+        $this->getDi()->get("cacheData")->save($cacheKey, $cacheValue);
+    }
+
+    function set_geo(&$request_settings){
+
+        $ip_address = $request_settings['ip_address'];
+        $key='GEODATA_'.$ip_address.'';
+
+
+        $cache_result=$this->getCacheDataValue($key);
+
+        if ($cache_result){
+            $request_settings['geo_country']=$cache_result['geo_country'];
+            $request_settings['geo_region']=$cache_result['geo_region'];
+            return true;
+        }
+
+
+        switch (MAD_MAXMIND_TYPE){
+            case 'PHPSOURCE':
+
+                // This code demonstrates how to lookup the country, region, city,
+                // postal code, latitude, and longitude by IP Address.
+                // It is designed to work with GeoIP/GeoLite City
+
+                // Note that you must download the New Format of GeoIP City (GEO-133).
+                // The old format (GEO-132) will not work.
+
+                require_once( __DIR__ . "/../modules/maxmind_php/geoipcity.inc");
+                require_once(__DIR__ . "/../modules/maxmind_php/geoipregionvars.php");
+
+                // uncomment for Shared Memory support
+                // geoip_load_shared_mem("/usr/local/share/GeoIP/GeoIPCity.dat");
+                // $gi = geoip_open("/usr/local/share/GeoIP/GeoIPCity.dat",GEOIP_SHARED_MEMORY);
+
+                //var $maxmind_datafile = __DIR__ . '/../data/geotargeting/GeoLiteCity.dat');
+
+                if (!$gi = geoip_open(MAD_MAXMIND_DATAFILE_LOCATION,GEOIP_STANDARD)){
+                    print_error(1, 'Could not open GEOIP Database supplied in constants.php File. Please make sure that the file is present and that the directory has the necessary rights applied.', $request_settings['sdk'], 1);
+                    return false;
+                }
+
+                if (!$record = geoip_record_by_addr($gi,$ip_address)){
+                    $request_settings['geo_country']='';
+                    $request_settings['geo_region']='';
+                    $request_settings['geo_city']='';
+
+                    return false;
+                }
+
+                $geo_data=array();
+                $geo_data['geo_country']=$record->country_code;
+                $geo_data['geo_region']=$record->region;
+                $geo_data['geo_city']=$record->city;
+
+                geoip_close($gi);
+
+
+                break;
+
+            case 'NATIVE':
+
+                if (!$record = geoip_record_by_name($ip_address)){
+                    $request_settings['geo_country']='';
+                    $request_settings['geo_region']='';
+                    $request_settings['geo_city']='';
+                    return false;
+                }
+                $geo_data['geo_country']=$record['country_code'];
+                $geo_data['geo_region']=$record['region'];
+                $geo_data['geo_city']=$record['city'];
+
+                break;
+
+        }
+
+        $request_settings['geo_country']=$geo_data['geo_country'];
+        $request_settings['geo_region']=$geo_data['geo_region'];
+        $request_settings['geo_city']=$geo_data['geo_city'];
+
+        $this->saveCacheDataValue($key, $geo_data);
+
+        return true;
+
+    }
+
+    public function reporting_db_update(&$display_ad, &$request_settings, $publication_id,
+                                        $zone_id, $campaign_id, $creative_id, $network_id,
+                                        $add_request, $add_request_sec, $add_impression, $add_click){
+        if (!is_numeric($publication_id)){$publication_id='';}
+        if (!is_numeric($zone_id)){$zone_id='';}
+        if (!is_numeric($campaign_id)){$campaign_id='';}
+        if (!is_numeric($creative_id)){$creative_id='';}
+        if (!is_numeric($network_id)){$network_id='';}
+
+        if(is_null($request_settings['device_name']) || $request_settings['device_name'] ==''){
+            $device_name='';
+        }else {
+            $device_name=$request_settings['device_name'];
+        }
+
+        if(is_null($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
+            $geo_region='';
+        }else {
+            $geo_region=$request_settings['geo_region'];
+        }
+
+        if(is_null($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
+            $geo_city='';
+        }else {
+            $geo_city=$request_settings['geo_city'];
+        }
+
+        $current_date=date("Y-m-d");
+        $current_day=date("d");
+        $current_month=date("m");
+        $current_hours=date('H');
+        $current_year=date("Y");
+        $current_timestamp=time();
+
+        //$select_query="select entry_id from md_reporting where hours='".$current_hours."' AND geo_city='".$geo_city."' AND  publication_id='".$publication_id."' AND zone_id='".$zone_id."' AND campaign_id='".$campaign_id."' AND creative_id='".$creative_id."' AND network_id='".$network_id."' AND date='".$current_date."' AND device_name='".$device_name."' LIMIT 1";
+
+        //global $repdb_connected,$display_ad;
+//        $reporting = Reporting::findFirst(array(
+//            "hours = '".$current_hours."'",
+//            "geo_city = '".$geo_city."'",
+//            "publication_id = '".$publication_id."'",
+//            "zone_id = '".$zone_id."'",
+//            "campaign_id = '".$campaign_id."'",
+//            "creative_id = '".$creative_id."'",
+//            "network_id = '".$network_id."'",
+//            "date = '".$current_date."'",
+//            "device_name = '".device_name."'"
+//        ));
+
+//        $reporting = Reporting::findFirst(array(
+//            "conditions" => "hours = ?1 and publication_id = ?2 and zone_id = ?3 and campaign_id=?4 and creative_id=?5 and network_id=?6 and date=?7 and device_name=?8 and geo_city = ?9",
+//            "bind"       => array(1 =>$current_hours,
+//                                  2 =>$publication_id,
+//                                 3 =>$zone_id,
+//                                4 =>$campaign_id,
+//                                5 =>$creative_id,
+//                                6 =>$network_id,
+//                                7 =>$current_date,
+//                                8 =>device_name,
+//                                9 =>$geo_city
+//
+//            )
+//        ));
+
+        //With bound parameters
+        $sql = "SELECT * FROM Reporting WHERE hours = :hours: AND publication_id = :publication_id: AND zone_id = :zone_id: AND campaign_id = :campaign_id: AND creative_id = :creative_id: AND date = :date: AND device_name = :device_name: ";
+        //$sql = "SELECT * FROM Reporting WHERE hours = :hours: ";
+        //$sql = "SELECT * FROM Reporting";
+        $param = array(
+            'hours' => $current_hours,
+            'publication_id' => $publication_id,
+            'zone_id' => $zone_id,
+            'campaign_id' => $campaign_id,
+            'creative_id' => $creative_id,
+            'date' => $current_date,
+            'device_name' => $device_name
+        );
+
+
+        if($geo_region!=''){
+            $sql .= "AND geo_region = :geo_region: ";
+            $param['geo_region'] = $geo_region;
+        }
+
+        if($geo_city!=''){
+            $sql .= "AND geo_city = :geo_city: ";
+            $param['geo_city'] = $geo_city;
+        }
+
+        if($network_id!=''){
+            $sql .= "AND network_id = :network_id:";
+            $param['network_id'] = $network_id;
+        }
+
+        $sql .= ' Limit 1';
+
+        $query = $this->getDi()->get('modelsManager')->createQuery($sql);
+        $resultSet = $query->execute($param);
+
+        $reporting = $resultSet->getFirst();
+
+        $add_impression=0;
+
+        //TODO Moved to handler class
+//        $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST . rtrim(dirname($_SERVER['PHP_SELF']), '/')."/".MAD_TRACK_HANDLER."?publication_id=".$publication_id."&zone_id=".$zone_id."&network_id=".$network_id."&campaign_id=".$campaign_id."&ad_id=".$creative_id."&h=".$request_settings['request_hash']."";
+//        $display_ad['final_impression_url']=$base_ctr;
+
+
+        if ($reporting){
+            $reporting->total_requests = $reporting->total_requests + $add_request;
+            $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
+            $reporting->total_impressions = $reporting->total_impressions + $add_impression;
+            $reporting->total_clicks = $reporting->total_clicks + $add_click;
+            $reporting->total_impressions = $reporting->total_impressions + $add_impression;
+            $result = $reporting->update();
+        }
+        else {
+            $reporting = new Reporting();
+            $reporting->geo_city = $geo_city;
+            $reporting->hours = $current_hours;
+            $reporting->geo_region = $geo_region;
+            $reporting->device_name = $device_name;
+            $reporting->type = '1';
+            $reporting->date = $current_date;
+            $reporting->month = $current_date;
+            $reporting->day = $current_day;
+            $reporting->month = $current_month;
+            $reporting->year = $current_year;
+            $reporting->publication_id = $publication_id;
+            $reporting->zone_id = $zone_id;
+            $reporting->campaign_id = $campaign_id;
+
+            $reporting->creative_id = $creative_id;
+            $reporting->network_id = $network_id;
+            $reporting->total_requests = $add_request;
+            $reporting->total_requests_sec = $add_request_sec;
+            $reporting->total_impressions = $add_impression;
+            $reporting->total_clicks = $add_click;
+            $reporting->report_hash = md5(serialize($reporting));
+
+
+            $result = $reporting->create();
+        }
+        if ($result == false) {
+
+            foreach ($result->getMessages() as $message) {
+
+                $this->getDi()->get('logger')->error($message->getMessage());
+//                echo "Message: ", $message->getMessage();
+//                echo "Field: ", $message->getField();
+//                echo "Type: ", $message->getType();
+            }
+        }
+    }
+
+    function track_request(&$request_settings, $zone_detail, &$display_ad, $impression){
+
+        if (!isset($request_settings['active_campaign_type'])){$request_settings['active_campaign_type']='';}
+
+        switch ($request_settings['active_campaign_type']){
+            case 'normal':
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $display_ad['campaign_id'], $display_ad['ad_id'], '', 1, 0, $impression, 0);
+                break;
+
+            case 'network':
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail['entry_id'], $request_settings['active_campaign'], '', $request_settings['network_id'], 1, 0, $impression, 0);
+                break;
+
+            case 'backfill':
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail['entry_id'], '', '', $request_settings['network_id'], 1, 0, $impression, 0);
+                break;
+
+            default:
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail['entry_id'], '', '', '', 1, 0, $impression, 0);
+                break;
+        }
+
+        if ($impression>1){
+            /*Deduct Impression from Limit Card*/
+            switch ($request_settings['active_campaign_type']){
+
+                case 'normal':
+                    $this->deduct_impression_num($display_ad['campaign_id'], impression);
+                    break;
+
+                case 'network':
+                    $this->deduct_impression_num($request_settings['active_campaign'], impression);
+                    break;
+
+            }
+
+        }
+
+    }
+
+    function deduct_impression_num($campaign_id,$number){
+
+        $phql = "UPDATE CampaignLimit SET total_amount_left = total_amount_left- ?0 WHERE campaign_id = ?1 and total_amount>0";
+        $result = $this->getDi()->get('modelsManager')->executeQuery($phql, array(
+            0 => $number,
+            1 => $campaign_id
+        ));
+
+        $this->logoDBError($result);
+
+        return $result->success();
+
+        //mysql_query("UPDATE md_campaign_limit set total_amount_left=total_amount_left-".$number." WHERE campaign_id='".$campaign_id."' AND total_amount>0", $maindb);
+    }
+
+    function logoDBError($result){
+        if ($result->success() == false) {
+            foreach ($result->getMessages() as $message) {
+                $this->getDi()->get('logger')->error($message->getMessage());
+            }
+        }
+    }
 }
