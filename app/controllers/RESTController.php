@@ -14,6 +14,7 @@
  *     offset=20
  *
  */
+use Phalcon\Mvc\Model\Resultset\Simple as Resultset;
 class RESTController extends BaseController{
 
 
@@ -330,10 +331,10 @@ class RESTController extends BaseController{
 //        ));
 
         //With bound parameters
-        $sql = "SELECT * FROM Reporting WHERE hours = :hours: AND publication_id = :publication_id: AND zone_id = :zone_id: AND campaign_id = :campaign_id: AND creative_id = :creative_id: AND date = :date: AND device_name = :device_name: ";
+        $sql = "SELECT * FROM md_reporting WHERE hours = '".$current_hours."' AND publication_id = '".$publication_id."' AND zone_id = '".$zone_id."' AND campaign_id = '".$campaign_id."' AND creative_id = '".$creative_id."' AND date = '".$current_date."' AND device_name = '".$device_name."' ";
         //$sql = "SELECT * FROM Reporting WHERE hours = :hours: ";
         //$sql = "SELECT * FROM Reporting";
-        $param = array(
+        /* $param = array(
             'hours' => $current_hours,
             'publication_id' => $publication_id,
             'zone_id' => $zone_id,
@@ -341,30 +342,34 @@ class RESTController extends BaseController{
             'creative_id' => $creative_id,
             'date' => $current_date,
             'device_name' => $device_name
-        );
+        ); */
 
 
         if($geo_region!=''){
-            $sql .= "AND geo_region = :geo_region: ";
+            $sql .= "AND geo_region = '".$geo_region."' ";
             $param['geo_region'] = $geo_region;
         }
 
         if($geo_city!=''){
-            $sql .= "AND geo_city = :geo_city: ";
+            $sql .= "AND geo_city = '".$geo_city."' ";
             $param['geo_city'] = $geo_city;
         }
 
         if($network_id!=''){
-            $sql .= "AND network_id = :network_id:";
+            $sql .= "AND network_id = '".$network_id."'";
             $param['network_id'] = $network_id;
         }
 
         $sql .= ' Limit 1';
 
-        $query = $this->getDi()->get('modelsManager')->createQuery($sql);
-        $resultSet = $query->execute($param);
+        $report = new Reporting();
+        $resultSet = new ResultSet(null, $report, $report->getReadConnection()->query($sql));
 
-        $reporting = $resultSet->getFirst();
+        if($resultSet->valid()) {
+        	$reporting = $resultSet->getFirst();
+        }else{
+        	return ;
+        }
 
         $add_impression=0;
 
@@ -410,7 +415,7 @@ class RESTController extends BaseController{
         }
         if ($result == false) {
 
-            foreach ($result->getMessages() as $message) {
+            foreach ($reporting->getMessages() as $message) {
 
                 $this->getDi()->get('logger')->error($message->getMessage());
 //                echo "Message: ", $message->getMessage();
@@ -461,16 +466,21 @@ class RESTController extends BaseController{
     }
 
     function deduct_impression_num($campaign_id,$number){
+    	
+    	$sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - ".$number." WHERE campaign_id = '".$campaign_id."' and total_amount>0";
+    	
+    	$cam = new CampaignLimit();
+    	$resultSet = new ResultSet(null, $cam, $cam->getReadConnection()->query($sql));
 
-        $phql = "UPDATE CampaignLimit SET total_amount_left = total_amount_left- ?0 WHERE campaign_id = ?1 and total_amount>0";
+        /* $phql = "UPDATE CampaignLimit SET total_amount_left = total_amount_left - ?0 WHERE campaign_id = ?1 and total_amount>0";
         $result = $this->getDi()->get('modelsManager')->executeQuery($phql, array(
             0 => $number,
             1 => $campaign_id
         ));
 
-        $this->logoDBError($result);
+        $this->logoDBError($result); */
 
-        return $result->success();
+        return true;
 
         //mysql_query("UPDATE md_campaign_limit set total_amount_left=total_amount_left-".$number." WHERE campaign_id='".$campaign_id."' AND total_amount>0", $maindb);
     }
