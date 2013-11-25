@@ -274,6 +274,17 @@ try {
     $mdtrack->get('/', 'get');
 
     $app->mount($mdtrack);
+    
+    //Mount MDRequest collection
+    $mdclick = new MicroCollection();
+    //Set the main handler. ie. a controller instance
+    $mdclick->setHandler(new MDClickController());
+    //Set a common prefix for all routes
+    $mdclick->setPrefix('/v1/mdclick');
+    //Use the method 'indexAction' in ProductsController
+    $mdclick->get('/', 'get');
+    
+    $app->mount($mdclick);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
@@ -285,7 +296,8 @@ try {
     $app->after(function() use ($app) {
 
         $records = $app->getReturnedValue();
-
+		if(count($records)<1)
+			return ;
         $response = new XMLResponse();
         $response->send($records);
 

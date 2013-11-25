@@ -35,7 +35,6 @@ class XMLResponse extends Response{
     }
 
     private function print_ad($display_ad){
-
         $response="<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
         if ($display_ad['main_type']=='display'){
 
