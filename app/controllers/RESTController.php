@@ -462,15 +462,12 @@ class RESTController extends BaseController{
 
     function deduct_impression_num($campaign_id,$number){
 
-        $phql = "UPDATE CampaignLimit SET total_amount_left = total_amount_left- ?0 WHERE campaign_id = ?1 and total_amount>0";
-        $result = $this->getDi()->get('modelsManager')->executeQuery($phql, array(
-            0 => $number,
-            1 => $campaign_id
-        ));
+        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - ".$number." WHERE campaign_id = '".$campaign_id."' and total_amount>0";
+    	
+    	$cam = new CampaignLimit();
+    	$result = $cam->getWriteConnection()->execute($sql);
 
-        $this->logoDBError($result);
-
-        return $result->success();
+        return $result;
 
         //mysql_query("UPDATE md_campaign_limit set total_amount_left=total_amount_left-".$number." WHERE campaign_id='".$campaign_id."' AND total_amount>0", $maindb);
     }
