@@ -389,7 +389,6 @@ class RESTController extends BaseController{
             $reporting->device_name = $device_name;
             $reporting->type = '1';
             $reporting->date = $current_date;
-            $reporting->month = $current_date;
             $reporting->day = $current_day;
             $reporting->month = $current_month;
             $reporting->year = $current_year;
@@ -409,14 +408,7 @@ class RESTController extends BaseController{
             $result = $reporting->create();
         }
         if ($result == false) {
-
-            foreach ($result->getMessages() as $message) {
-
-                $this->getDi()->get('logger')->error($message->getMessage());
-//                echo "Message: ", $message->getMessage();
-//                echo "Field: ", $message->getField();
-//                echo "Type: ", $message->getType();
-            }
+			$this->logoDBError($reporting);
         }
     }
 
@@ -462,14 +454,18 @@ class RESTController extends BaseController{
 
     function deduct_impression_num($campaign_id,$number){
 
-        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - ".$number." WHERE campaign_id = '".$campaign_id."' and total_amount>0";
+        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount>0";
     	
     	$cam = new CampaignLimit();
-    	$result = $cam->getWriteConnection()->execute($sql);
+    	$result = $cam->getWriteConnection()->execute($sql, array(
+    		"number"=>$number,
+    		"campaign_id"=>$campaign_id
+    	));
 
-        return $result;
+       	if($result==false) {
+       		$this->logoDBError($cam);
+       	}
 
-        //mysql_query("UPDATE md_campaign_limit set total_amount_left=total_amount_left-".$number." WHERE campaign_id='".$campaign_id."' AND total_amount>0", $maindb);
     }
 
     function logoDBError($result){

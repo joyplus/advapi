@@ -179,14 +179,6 @@ class MDTrackController extends RESTController{
 		$current_year=date("Y");
 		$current_timestamp=time();
 
-//		$select_query="select entry_id from md_reporting where hours='".$current_hours."' AND geo_city='".$geo_city."' AND  network_id='".$network_id."'  AND  publication_id='".$publication_id."' AND zone_id='".$zone_id."' AND campaign_id='".$campaign_id."' AND creative_id='".$creative_id."' AND date='".$current_date."' AND device_name='".$device_name."' LIMIT 1";
-		
-// 	    $reporting = new Reporting();
-// 	    $resultSet = new ResultSet(null, $reporting, $reporting->getReadConnection()->query($select_query));    
-		
-// 	    if($resultSet->valid()) {
-// 	    	$repcard_detail = $resultSet->getFirst();
-// 	    }
 		$conditions = "";
 		$conditions .= "hours='".$current_hours."'";
 		$conditions .= " AND geo_city='".$geo_city."'";
@@ -197,26 +189,14 @@ class MDTrackController extends RESTController{
 		$conditions .= " AND creative_id='".$creative_id."'";
 		$conditions .= " AND date='".$current_date."'";
 		$conditions .= " AND device_name='".$device_name."'";
+		
 		$repcard_detail = Reporting::findFirst($conditions);
-		/* if ($exec=mysql_query($select_query, $maindb))
-		{
-			//yay
-			$repcard_detail = mysql_fetch_array($exec);
-			//set_cache($select_query, $repcard_detail, 1500);
-		}
-		else
-		{
-			//return false;
-		} */
-	
-	//	}
+		
 	    if($campaign_id !==''){
 	       $this->deduct_impression_num($campaign_id, $add_impression);
 	    }
 	    
 		if ($repcard_detail !=null && $repcard_detail->entry_id>0){ 
-			//writetofile("request.track.report.log", " campaign_id=".$campaign_id." track sql : UPDATE md_reporting set  total_impressions=total_impressions+".$add_impression." WHERE entry_id='".$repcard_detail['entry_id']."'");
-			//mysql_query("UPDATE md_reporting set  total_impressions=total_impressions+".$add_impression." WHERE entry_id='".$repcard_detail['entry_id']."'", $maindb);
 			$sql = "UPDATE md_reporting SET total_impressions=total_impressions+ :add_impression WHERE entry_id= :entry_id";
 			$reporting = new Reporting();
 			$result = $reporting->getWriteConnection()->execute($sql,array(
@@ -225,14 +205,6 @@ class MDTrackController extends RESTController{
 			));
 		}
 		else { 
-			//writetofile("request.track.report.log", '  campaign_id='.$campaign_id.' track sql : '."INSERT INTO md_reporting (network_id,geo_city,hours,geo_region,device_name,type, date, day, month, year, publication_id, zone_id, campaign_id, creative_id,  total_requests, total_requests_sec, total_impressions, total_clicks )  VALUES ('".$network_id."','".$geo_city."','".$current_hours."','".$geo_region."','".$device_name."', '1', '".$current_date."', '".$current_day."', '".$current_month."', '".$current_year."', '".$publication_id."', '".$zone_id."', '".$campaign_id."', '".$creative_id."',  '0', '0', '".$add_impression."', '0')");
-			//mysql_query("INSERT INTO md_reporting (network_id,geo_city,hours,geo_region,
-			//device_name,type, date, day, month, year, publication_id, zone_id, campaign_id, 
-			//creative_id,  total_requests, total_requests_sec, total_impressions, total_clicks )  VALUES 
-			//('".$network_id."','".$geo_city."','".$current_hours."','".$geo_region."','".$device_name
-			//."', '1', '".$current_date."', '".$current_day."', '".$current_month."', '".$current_year
-			//."', '".$publication_id."', '".$zone_id."', '".$campaign_id."', '".$creative_id."',  '0', '0', '"
-			//.$add_impression."', '0')", $maindb);	
 			$reporting = new Reporting();
 			$reporting->network_id = $network_id;
 			$reporting->geo_city = $geo_city;
@@ -255,9 +227,7 @@ class MDTrackController extends RESTController{
 			$reporting->report_hash = md5(serialize($reporting));
 			$result = $reporting->create();
 			if ($result == false) {
-				foreach ($reporting->getMessages() as $message) {
-					$this->getDi()->get('logger')->error($message->getMessage());
-				}
+				$this->logoDBError($reporting);
 			}
 		}
 	}
