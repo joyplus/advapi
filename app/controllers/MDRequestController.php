@@ -213,10 +213,7 @@ class MDRequestController extends RESTController{
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
             $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-                ."/".MAD_TRACK_HANDLER."?publication_id="
-                .$zone_detail->publication_id."&zone_id=".$zone_detail->entry_id."&network_id="
-                .$request_settings['network_id']."&campaign_id=".$display_ad['campaign_id']."&ad_id="
-                .$display_ad['ad_id']."&h=".$request_settings['request_hash']."";
+                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
 
             $display_ad['final_impression_url']=$base_ctr;
         }

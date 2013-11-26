@@ -20,9 +20,9 @@ class MDTrackController extends RESTController{
     private function handleImpression(){
 
         $request_settings = array();
-        $param_ds = $this->request->get("ds");
-        if (isset($param_ds)){
-            $request_settings['device_name']=$param_ds;
+        $param_rh = $this->request->get("rh");
+        if (!isset($param_rh)){
+            return array();
         }
         $param_rt = $this->request->get('rt');
         if (!isset($param_rt)){
@@ -85,24 +85,17 @@ class MDTrackController extends RESTController{
         $this->prepare_ip($request_settings);
         $this->set_geo($request_settings);
 
-        $zone_id = $this->request->get('zone_id');
-        if (!is_numeric($zone_id)){
-            return false;
-        }
-
         $impression = $this->request->get('impression');
         if ($impression ==null || !is_numeric($impression)){
             $impression='1';
         }
         
+        $reporting = new Reporting();
+        $report = Reporting::findFirst("report_hash='".$param_rh."'");
+        if($report==null)
+        	return ;
     
-		$this->reporting_db_update_impression($request_settings,
-        		$this->request->get('publication_id'), 
-        		$this->request->get('zone_id'), 
-        		$this->request->get('campaign_id'), 
-        		$this->request->get('ad_id'), 
-        		$impression,
-        		$this->request->get('network_id'));
+		$this->reporting_db_update_impression($request_settings, $report, $impression);
         
         //TODO:check this code
         /* if ($data['o'] !=null || trim($data['o']) !=''){
@@ -147,86 +140,20 @@ class MDTrackController extends RESTController{
         return array();
     }
     
-    private function reporting_db_update_impression(&$request_settings, $publication_id, $zone_id, $campaign_id, $creative_id,  $add_impression, $network_id){
-		if (!is_numeric($publication_id)){$publication_id='';}
-		if (!is_numeric($zone_id)){$zone_id='';}
-		if (!is_numeric($campaign_id)){$campaign_id='';}
-		if (!is_numeric($creative_id)){$creative_id='';}
-		if (!is_numeric($network_id)){$network_id='';}
-				
-		if(is_null($request_settings['device_name']) || $request_settings['device_name'] ==''){
-			$device_name=' ';
-		}else {
-			$device_name=$request_settings['device_name'];
-		}
+    private function reporting_db_update_impression(&$request_settings, &$report, $add_impression){
 		
-	    if(is_null($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
-			$geo_region='';
-		}else {
-			$geo_region=$request_settings['geo_region'];
-		}
-		
-	    if(is_null($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
-			$geo_city='';
-		}else {
-			$geo_city=$request_settings['geo_city'];
-		}
-	    
-		$current_date=date("Y-m-d");
-		$current_day=date("d");
-		$current_month=date("m");
-		$current_hours=date('H'); 
-		$current_year=date("Y");
-		$current_timestamp=time();
-
-		$conditions = "";
-		$conditions .= "hours='".$current_hours."'";
-		$conditions .= " AND geo_city='".$geo_city."'";
-		$conditions .= " AND network_id='".$network_id."'";
-		$conditions .= " AND publication_id='".$publication_id."'";
-		$conditions .= " AND zone_id='".$zone_id."'";
-		$conditions .= " AND campaign_id='".$campaign_id."'";
-		$conditions .= " AND creative_id='".$creative_id."'";
-		$conditions .= " AND date='".$current_date."'";
-		$conditions .= " AND device_name='".$device_name."'";
-		
-		$repcard_detail = Reporting::findFirst($conditions);
-		
-	    if($campaign_id !==''){
-	       $this->deduct_impression_num($campaign_id, $add_impression);
+	    if($report->campaign_id !==''){
+	       $this->deduct_impression_num($report->campaign_id, $add_impression);
 	    }
 	    
-		if ($repcard_detail !=null && $repcard_detail->entry_id>0){ 
+		if ($report->entry_id>0){ 
 			$sql = "UPDATE md_reporting SET total_impressions=total_impressions+ :add_impression WHERE entry_id= :entry_id";
 			$reporting = new Reporting();
 			$result = $reporting->getWriteConnection()->execute($sql,array(
 				"add_impression"=>$add_impression,
-				"entry_id"=>$repcard_detail->entry_id
+				"entry_id"=>$report->entry_id
 			));
-		}
-		else { 
-			$reporting = new Reporting();
-			$reporting->network_id = $network_id;
-			$reporting->geo_city = $geo_city;
-			$reporting->hours = $current_hours;
-			$reporting->geo_region = $geo_region;
-			$reporting->device_name = $device_name;
-			$reporting->type = 1;
-			$reporting->date = $current_date;
-			$reporting->day = $current_day;
-			$reporting->month = $current_month;
-			$reporting->year = $current_year;
-			$reporting->publication_id = $publication_id;
-			$reporting->zone_id = $zone_id;
-			$reporting->campaign_id = $campaign_id;
-			$reporting->creative_id = $creative_id;
-			$reporting->total_requests = 0;
-			$reporting->total_requests_sec = 0;
-			$reporting->total_impressions = $add_impression;
-			$reporting->total_clicks = 0;
-			$reporting->report_hash = md5(serialize($reporting));
-			$result = $reporting->create();
-			if ($result == false) {
+			if(!$result) {
 				$this->logoDBError($reporting);
 			}
 		}

@@ -410,6 +410,7 @@ class RESTController extends BaseController{
         if ($result == false) {
 			$this->logoDBError($reporting);
         }
+        $display_ad['rh'] = $reporting->report_hash;
     }
 
     function track_request(&$request_settings, $zone_detail, &$display_ad, $impression){
