@@ -674,40 +674,36 @@ class MDRequestController extends RESTController{
 
 
     private function select_adunit_query($zone_detail, $campaign_id){
-
-        $query_param = array(
-            "campaign_id = '".$campaign_id."'",
-            "adv_start<= = '".date("Y-m-d")."'",
-            "adv_end>= '".date("Y-m-d")."'",
-            "adv_status = 1'",
-            "order" => "adv_width DESC, adv_height DESC"
-        );
+    	$params = array();
+		$conditions = "campaign_id = :campaign_id:";
+		$params['campaign_id'] = $campaign_id;
+		
+		$conditions .= " AND adv_start<= :adv_start:";
+		$params['adv_start'] = date("Y-m-d");
+		
+		$conditions .= " AND adv_end>= :adv_end:";
+		$params['adv_end'] = date("Y-m-d");
+		
+		$conditions .= " AND adv_status = 1";
+		
+		if($zone_detail->zone_type=="mini_interstitial")
+			$zone_detail->zone_type="interstitial";
+		$conditions .= " AND creative_unit_type = :creative_unit_type:";
+		$params['creative_unit_type'] = $zone_detail->zone_type;
         switch ($zone_detail->zone_type){
             case 'banner':
-                $query_param[] = "creative_unit_type !='interstitial'";
-                $query_param[] = "adv_width = '".$zone_detail->zone_width."'";
-                $query_param[] = "adv_height = '".$zone_detail->zone_height."'";
-                break;
-
-            case 'interstitial':
-            case 'mini_interstitial':
-                $query_param[] = "creative_unit_type ='interstitial'";
-                break;
-            case 'open':
-            	$query_param[] = "creative_unit_type ='open'";
-            	break;
-            case 'previous':
-            	$query_param[] = "creative_unit_type ='previous'";
-            	break;
             case 'middle':
-            	$query_param[] = "creative_unit_type ='middle'";
-            	break;
-            case 'after':
-            	$query_param[] = "creative_unit_type ='after'";
-            	break;
-            	
-            
+                $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
+                $params['adv_width'] = $zone_detail->zone_width;
+                $params['adv_height'] = $zone_detail->zone_height;
+                break; 
         }
+        
+        $query_param = array(
+        		"conditions" => $conditions,
+        		"bind" => $params,
+        		"order" => "adv_width DESC, adv_height DESC"
+        );
 
         //global $repdb_connected,$display_ad;
         $adUnits = AdUnits::find($query_param);
