@@ -686,11 +686,13 @@ class MDRequestController extends RESTController{
 		
 		$conditions .= " AND adv_status = 1";
 		
-		if($zone_detail->zone_type=="mini_interstitial")
-			$zone_detail->zone_type="interstitial";
+		$zone_type = $zone_detail->zone_type;
+		if($zone_type=="mini_interstitial")
+			$zone_type="interstitial";
+		
 		$conditions .= " AND creative_unit_type = :creative_unit_type:";
-		$params['creative_unit_type'] = $zone_detail->zone_type;
-        switch ($zone_detail->zone_type){
+		$params['creative_unit_type'] = $zone_type;
+        switch ($zone_type){
             case 'banner':
             case 'middle':
                 $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
@@ -930,13 +932,10 @@ class MDRequestController extends RESTController{
                 	$display_ad['type']='open';
                 	$display_ad['animation']='none';
                 	
-                	$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
-                	$creative_res_url_2=$this->get_creative_url($adUnit,"_2",$adUnit->adv_creative_extension_2);
-                	$creative_res_url_3=$this->get_creative_url($adUnit,"_3",$adUnit->adv_creative_extension_3);
+                	$display_ad['creative-url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                	$display_ad['creative-url_2']=$this->get_creative_url($adUnit,"_2",$adUnit->adv_creative_extension_2);
+                	$display_ad['creative-url_3']=$this->get_creative_url($adUnit,"_3",$adUnit->adv_creative_extension_3);
                 	$display_ad['interstitial-creative_res_url']=$url;
-                	$display_ad['creative-url']=$creative_res_url;
-                	$display_ad['creative-url_2']=$creative_res_url_2;
-                	$display_ad['creative-url_3']=$creative_res_url_3;
                 	
                 	break;
             }
