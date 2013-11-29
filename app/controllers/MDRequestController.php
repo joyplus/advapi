@@ -505,7 +505,7 @@ class MDRequestController extends RESTController{
 
         switch ($zone_detail->zone_type){
             case 'banner':
-                $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.creative_unit_type !='interstitial' and md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and md_ad_units.adv_status=1 AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
+                $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='banner' AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
                 break;
 
             case 'interstitial':
@@ -519,7 +519,7 @@ class MDRequestController extends RESTController{
             	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='previous'))";
             	break;
             case 'middle':
-            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='middle'))";
+            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='middle' AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
             	break;
             case 'after':
             	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='after'))";

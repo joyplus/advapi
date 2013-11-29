@@ -124,31 +124,7 @@ class XMLResponse extends Response{
             	if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
             		$response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
             	}
-            	$response.= "<trackingurl><![CDATA[";
-            	$response.= "".$display_ad['trackingpixel']."";
-            	$response.= "]]></trackingurl>";
-            	$response.= '<duration>'.$display_ad['video-duration'].'</duration>';
-            	$response.= '<skipbutton show="'.$display_ad['video-skipbutton-show'].'" showafter="'.$display_ad['video-skipbutton-showafter'].'"></skipbutton>';
-            	$response.= '<navigation show="'.$display_ad['video-navigation-show'].'" allowtap="'.$display_ad['video-navigation-allowtap'].'">';
-            	$response.= '<topbar custombackgroundurl="'.$display_ad['video-navigation-topbar-custombg'].'" show="'.$display_ad['video-navigation-topbar-show'].'"></topbar>';
-            	$response.= '<bottombar custombackgroundurl="'.$display_ad['video-navigation-bottombar-custombg'].'" show="'.$display_ad['video-navigation-bottombar-show'].'" pausebutton="'.$display_ad['video-navigation-bottombar-pausebutton'].'" replaybutton="'.$display_ad['video-navigation-bottombar-replaybutton'].'" timer="'.$display_ad['video-navigation-bottombar-timer'].'">';
-            	$response.= '</bottombar>';
-            	$response.= '</navigation>';
-            	$response.= '<trackingevents>';
-            	foreach ($display_ad['video-trackers'] as $tracker){
-            		$response.= '<tracker type="'.$tracker[0].'"><![CDATA['.$tracker[1].']]></tracker>';
-            	}
             	
-            	$response.= '</trackingevents>';
-            	if ($display_ad['video-htmloverlay-show']==1){
-            		if ($display_ad['video-htmloverlay-type']=='markup'){$htmloverlay_urlcontent=''; } else {$htmloverlay_urlcontent='url="'.htmlspecialchars($display_ad['video-htmloverlay-content']).'"';}
-            		$response.= '<htmloverlay show="'.$display_ad['video-htmloverlay-show'].'" showafter="'.$display_ad['video-htmloverlay-showafter'].'" type="'.$display_ad['video-htmloverlay-type'].'" '.$htmloverlay_urlcontent.'>';
-            		if ($display_ad['video-htmloverlay-type']=='markup'){
-            			$response.= '<![CDATA['.$display_ad['video-htmloverlay-content'].']]>';
-            		}
-            	
-            		$response.= '</htmloverlay>';
-            	}
             	$response.= '</video>';
             }
 
