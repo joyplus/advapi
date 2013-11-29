@@ -93,6 +93,9 @@ class MDRequestController extends RESTController{
         $request_settings['longitude'] = $this->request->get("longitude", null, '');
         $request_settings['latitude'] = $this->request->get("latitude", null, '');
         $request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
+        
+        $request_settings['pattern'] = $this->request->get("up",null,'');
+        $request_settings['video_type'] = $this->request->get("vc",null,'');
 
         $param_sdk = $this->request->get("sdk");
         if (!isset($param_sdk) or ($param_sdk!='banner' && $param_sdk!='vad')){
@@ -171,6 +174,13 @@ class MDRequestController extends RESTController{
         }
 
         $request_data['ip']=$request_settings['ip_address'];
+        
+        $device_detail = $this->getDevice($request_settings['device_name']);
+        if($device_detail) {
+        	$request_settings['device_type'] = $device_detail->device_type;
+        	$request_settings['device_brand'] = $device_detail->device_brands;
+        	$request_settings['device_quality']= $device_detail->device_quality;
+        }
 
         $zone_detail=$this->get_placement($request_settings, $errormessage);
 
@@ -316,6 +326,19 @@ class MDRequestController extends RESTController{
         }
 
     }
+    
+    /**
+     * 获取设备信息
+     * @param unknown $device_name
+     * @return unknown
+     */
+    function getDevice($device_name) {
+    	$device = Devices::findFirst(array(
+    		"conditions"=>"device_name= ?1",
+    		"bind"=>array(1=>$device_name)
+    	));
+    	return $device;
+    }
 
 
     function get_publication_channel($publication_id){
@@ -386,6 +409,35 @@ class MDRequestController extends RESTController{
 
         $query_part['placement']="AND (md_campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code='".$zone_detail->entry_id."'))";
 
+        if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
+        	$query_part['pattern'] = "AND (md_campaigns.pattern_target=1 OR (c4.targeting_type='pattern' AND c4.targeting_code='".$request_settings['pattern']."'))";
+        }else{
+        	$query_part['pattern'] = '';
+        }
+        
+        if(isset($request_settings['device_type']) && is_numeric($request_settings['device_type'])) {
+        	$query_part['device_type'] = "AND (md_campaigns.device_type_target=1 OR (c5.targeting_type='device_type' AND c5.targeting_code='".$request_settings['device_type']."'))";
+        }else{
+        	$query_part['device_type'] = '';
+        }
+        
+        if(isset($request_settings['device_brand']) && is_numeric($request_settings['device_brand'])) {
+        	$query_part['device_brand'] = "AND (md_campaigns.brand_target=1 OR (c6.targeting_type='device_brand' AND c6.targeting_code='".$request_settings['device_brand']."'))";
+        }else{
+        	$query_part['device_brand'] = '';
+        }
+        
+        if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
+        	$query_part['device_quality'] = "AND (md_campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code='".$request_settings['device_quality']."'))";
+        }else{
+        	$query_part['device_quality'] = '';
+        }
+        
+        if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type'])) {
+        	$query_part['video_type'] = "AND (md_campaigns.video_target=1 OR (c8.targeting_type='video' AND c8.targeting_code='".$request_settings['video_type']."'))";
+        }else{
+        	$query_part['video_type'] = '';
+        }
         $query_part['misc']="AND md_campaigns.campaign_status=1 AND md_campaigns.campaign_start<='".date("Y-m-d")."' AND md_campaigns.campaign_end>='".date("Y-m-d")."'";
 
         //Only Serve TV
@@ -453,13 +505,25 @@ class MDRequestController extends RESTController{
 
         switch ($zone_detail->zone_type){
             case 'banner':
-                $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.creative_unit_type !='interstitial' and md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and md_ad_units.adv_status=1 AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
+                $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='banner' AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
                 break;
 
             case 'interstitial':
             case 'mini_interstitial':
                 $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='interstitial'))";
                 break;
+            case 'open':
+            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='open'))";
+            	break;
+            case 'previous':
+            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='previous'))";
+            	break;
+            case 'middle':
+            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='middle' AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
+            	break;
+            case 'after':
+            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='after'))";
+            	break;
         }
 
         $query_part['limit']="AND (md_campaign_limit.total_amount_left='' OR md_campaign_limit.total_amount_left>=1)";
@@ -468,7 +532,9 @@ class MDRequestController extends RESTController{
             $query_part['limit']="AND ((md_campaign_limit.total_amount_left='' OR md_campaign_limit.total_amount_left>=1) OR (md_campaign_limit.cap_type=1))";
         }
 
-        $request_settings['campaign_query']="select md_campaigns.creative_show_rule, md_campaigns.campaign_id, md_campaigns.campaign_priority, md_campaigns.campaign_type, md_campaigns.campaign_networkid from md_campaigns LEFT JOIN md_campaign_targeting c1 ON md_campaigns.campaign_id = c1.campaign_id LEFT JOIN md_campaign_targeting c2 ON md_campaigns.campaign_id = c2.campaign_id LEFT JOIN md_campaign_targeting c3 ON md_campaigns.campaign_id = c3.campaign_id LEFT JOIN md_ad_units ON md_campaigns.campaign_id = md_ad_units.campaign_id LEFT JOIN md_campaign_limit ON md_campaigns.campaign_id = md_campaign_limit.campaign_id where (md_campaigns.country_target=1".$query_part['geo']." ".$query_part['channel']." ".$query_part['placement']." ".$query_part['misc']." ".$query_part['device']." ".$query_part['device_name']." ".$query_part['osversion']." ".$query_part['adunit']." ".$query_part['limit']." group by md_campaigns.campaign_id";
+        $where = $query_part['geo']." ".$query_part['channel']." ".$query_part['placement']." ".$query_part['pattern']." ".$query_part['device_type']." ".$query_part['device_brand']." ".$query_part['device_quality']." ".$query_part['video_type']." ".$query_part['misc']." ".$query_part['device']." ".$query_part['device_name']." ".$query_part['osversion']." ".$query_part['adunit']." ".$query_part['limit']." group by md_campaigns.campaign_id";
+        $select_sql = "select md_campaigns.creative_show_rule, md_campaigns.campaign_id, md_campaigns.campaign_priority, md_campaigns.campaign_type, md_campaigns.campaign_networkid from md_campaigns LEFT JOIN md_campaign_targeting c1 ON md_campaigns.campaign_id = c1.campaign_id LEFT JOIN md_campaign_targeting c2 ON md_campaigns.campaign_id = c2.campaign_id LEFT JOIN md_campaign_targeting c3 ON md_campaigns.campaign_id = c3.campaign_id LEFT JOIN md_campaign_targeting c4 ON md_campaigns.campaign_id = c4.campaign_id LEFT JOIN md_campaign_targeting c5 ON md_campaigns.campaign_id = c5.campaign_id LEFT JOIN md_campaign_targeting c6 ON md_campaigns.campaign_id = c6.campaign_id LEFT JOIN md_campaign_targeting c7 ON md_campaigns.campaign_id = c7.campaign_id LEFT JOIN md_campaign_targeting c8 ON md_campaigns.campaign_id = c8.campaign_id LEFT JOIN md_ad_units ON md_campaigns.campaign_id = md_ad_units.campaign_id LEFT JOIN md_campaign_limit ON md_campaigns.campaign_id = md_campaign_limit.campaign_id where (md_campaigns.country_target=1";
+        $request_settings['campaign_query']=$select_sql.$where;
 
 
         return true;
@@ -608,26 +674,38 @@ class MDRequestController extends RESTController{
 
 
     private function select_adunit_query($zone_detail, $campaign_id){
-
-        $query_param = array(
-            "campaign_id = '".$campaign_id."'",
-            "adv_start<= = '".date("Y-m-d")."'",
-            "adv_end>= '".date("Y-m-d")."'",
-            "adv_status = 1'",
-            "order" => "adv_width DESC, adv_height DESC"
-        );
-        switch ($zone_detail->zone_type){
+    	$params = array();
+		$conditions = "campaign_id = :campaign_id:";
+		$params['campaign_id'] = $campaign_id;
+		
+		$conditions .= " AND adv_start<= :adv_start:";
+		$params['adv_start'] = date("Y-m-d");
+		
+		$conditions .= " AND adv_end>= :adv_end:";
+		$params['adv_end'] = date("Y-m-d");
+		
+		$conditions .= " AND adv_status = 1";
+		
+		$zone_type = $zone_detail->zone_type;
+		if($zone_type=="mini_interstitial")
+			$zone_type="interstitial";
+		
+		$conditions .= " AND creative_unit_type = :creative_unit_type:";
+		$params['creative_unit_type'] = $zone_type;
+        switch ($zone_type){
             case 'banner':
-                $query_param[] = "creative_unit_type !='interstitial'";
-                $query_param[] = "adv_width = '".$zone_detail->zone_width."'";
-                $query_param[] = "adv_height = '".$zone_detail->zone_height."'";
-                break;
-
-            case 'interstitial':
-            case 'mini_interstitial':
-                $query_param[] = "creative_unit_type ='interstitial'";
-                break;
+            case 'middle':
+                $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
+                $params['adv_width'] = $zone_detail->zone_width;
+                $params['adv_height'] = $zone_detail->zone_height;
+                break; 
         }
+        
+        $query_param = array(
+        		"conditions" => $conditions,
+        		"bind" => $params,
+        		"order" => "adv_width DESC, adv_height DESC"
+        );
 
         //global $repdb_connected,$display_ad;
         $adUnits = AdUnits::find($query_param);
@@ -755,7 +833,7 @@ class MDRequestController extends RESTController{
                             $display_ad['type']='hosted';
                             $display_ad['click_url']=$adUnit->adv_click_url;
 
-                            $display_ad['image_url']=$this->get_creative_url($adUnit);
+                            $display_ad['image_url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
                             $display_ad['interstitial-creative_res_url']=$display_ad['image_url'];
 
                             /*if ($content['creativeserver_id']==1){
@@ -832,7 +910,7 @@ class MDRequestController extends RESTController{
 
                     switch ($adUnit->adv_type){
                         case 1:
-                            $creative_res_url=$this->get_creative_url($adUnit); //<a href="mfox:external:'.$content['adv_click_url'].'">
+                            $creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension); //<a href="mfox:external:'.$content['adv_click_url'].'">
                             $display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
 <meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
                             break;
@@ -849,6 +927,17 @@ class MDRequestController extends RESTController{
                     }
 
                     break;
+                case 'open':
+                	$display_ad['main_type']='interstitial';
+                	$display_ad['type']='open';
+                	$display_ad['animation']='none';
+                	
+                	$display_ad['creative-url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                	$display_ad['creative-url_2']=$this->get_creative_url($adUnit,"_2",$adUnit->adv_creative_extension_2);
+                	$display_ad['creative-url_3']=$this->get_creative_url($adUnit,"_3",$adUnit->adv_creative_extension_3);
+                	$display_ad['interstitial-creative_res_url']=$url;
+                	
+                	break;
             }
 
             return true;
@@ -921,9 +1010,9 @@ class MDRequestController extends RESTController{
 
     }
 
-    private function get_creative_url($adUnit){
+    private function get_creative_url($adUnit, $type, $extension){
         $server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
-        $image_url="".$server_detail->server_default_url."".$adUnit->unit_hash.".".$adUnit->adv_creative_extension."";
+        $image_url="".$server_detail->server_default_url."".$adUnit->unit_hash.$type.".".$extension."";
 
         return $image_url;
     }

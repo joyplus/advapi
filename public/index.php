@@ -336,7 +336,9 @@ try {
 
     $app->handle();
 } catch (Phalcon\Exception $e) {
-	echo $logger->error($e->getMessage());
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
 } catch (PDOException $e){
-    echo $logger->error($e->getMessage());
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+} catch (Exception $e) {
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
 }

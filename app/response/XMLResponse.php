@@ -113,6 +113,20 @@ class XMLResponse extends Response{
                 $response.= '</navigation>';
                 $response.= '</interstitial>';
             }
+            if($display_ad['type']=='open') {
+            	$response.= '<video orientation="'.$display_ad['video-orientation'].'" expiration="'.$display_ad['video-expiration'].'">';
+            	$response.= '<creative display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'"><![CDATA['.$display_ad['creative-url'].']]></creative>';
+            	$response.= '<creative2 display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'"><![CDATA['.$display_ad['creative-url_2'].']]></creative2>';
+            	$response.= '<creative3 display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'"><![CDATA['.$display_ad['creative-url_3'].']]></creative3>';
+            	$response.= "<impressionurl><![CDATA[";
+            	$response.= "".$display_ad['final_impression_url']."";
+            	$response.= "]]></impressionurl>";
+            	if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
+            		$response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
+            	}
+            	
+            	$response.= '</video>';
+            }
 
             if ($display_ad['type']=='video' or $display_ad['type']=='video-interstitial' or $display_ad['type']=='interstitial-video'){
 
@@ -179,6 +193,10 @@ class XMLResponse extends Response{
             case 'video-interstitial':
                 return 'video-to-interstitial';
                 break;
+            case 'open':
+            	return 'open';
+            	break;
+            		
 
         }
     }
