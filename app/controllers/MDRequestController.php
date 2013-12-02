@@ -93,6 +93,7 @@ class MDRequestController extends RESTController{
         $request_settings['longitude'] = $this->request->get("longitude", null, '');
         $request_settings['latitude'] = $this->request->get("latitude", null, '');
         $request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
+        $request_settings['i'] = $this->request->get("i", null, '');
         
         $request_settings['pattern'] = $this->request->get("up",null,'');
         $request_settings['video_type'] = $this->request->get("vc",null,'');
@@ -200,37 +201,49 @@ class MDRequestController extends RESTController{
         $this->set_geo($request_settings);
 
 
-        $this->build_query($request_settings, $zone_detail);
-
-        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_query'])){
-
-            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
-
-            //TODO: Unchecked MD functions
-//            if (!$this->process_campaignquery_result($campaign_query_result, $zone_detail, $request_settings)){
-//
-//                launch_backfill();
-//            }
-        }
-        else {
-            //TODO: Unchecked MD functions
-            //launch_backfill();
-        }
-
-        if (isset($display_ad['available']) && $display_ad['available']==1){
-            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-            //display_ad();
-            $this->prepare_ad($display_ad, $request_settings, $zone_detail);
-            $display_ad['response_type'] = $request_settings['response_type'];
-            $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
-
-            $display_ad['final_impression_url']=$base_ctr;
-        }
-        else {
-           // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
-            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-            //noad();
+        //处理试投放
+        $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
+        $adv_id = $this->getCacheDataValue($cacheKey);
+        if($adv_id){
+        	if (!$final_ad = $this->get_ad_unit($adv_id)){
+        		return false;
+        	}
+        	if (!$this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
+        		return false;
+        	}
+        }else{
+	        $this->build_query($request_settings, $zone_detail);
+	
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_query'])){
+	
+	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
+	
+	            //TODO: Unchecked MD functions
+	//            if (!$this->process_campaignquery_result($campaign_query_result, $zone_detail, $request_settings)){
+	//
+	//                launch_backfill();
+	//            }
+	        }
+	        else {
+	            //TODO: Unchecked MD functions
+	            //launch_backfill();
+	        }
+	
+	        if (isset($display_ad['available']) && $display_ad['available']==1){
+	            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+	            //display_ad();
+	            $this->prepare_ad($display_ad, $request_settings, $zone_detail);
+	            $display_ad['response_type'] = $request_settings['response_type'];
+	            $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+	                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
+	
+	            $display_ad['final_impression_url']=$base_ctr;
+	        }
+	        else {
+	           // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
+	            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+	            //noad();
+	        }
         }
 
         //TODO It's not needed, xml response for all.

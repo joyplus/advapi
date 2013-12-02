@@ -204,9 +204,7 @@ try {
      */
     $di->set('cacheData', function() use ($config) {
         //Cache data for one hour
-        $frontCache = new \Phalcon\Cache\Frontend\Data(array(
-            "lifetime" => 3600
-        ));
+        $frontCache = new \Phalcon\Cache\Frontend\None();
 
         // Create the component that will cache "Data" to a "Memcached" backend
         // Memcached connection settings
