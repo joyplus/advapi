@@ -423,15 +423,15 @@ class RESTController extends BaseController{
                 break;
 
             case 'network':
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail['entry_id'], $request_settings['active_campaign'], '', $request_settings['network_id'], 1, 0, $impression, 0);
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $request_settings['active_campaign'], '', $request_settings['network_id'], 1, 0, $impression, 0);
                 break;
 
             case 'backfill':
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail['entry_id'], '', '', $request_settings['network_id'], 1, 0, $impression, 0);
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, '', '', $request_settings['network_id'], 1, 0, $impression, 0);
                 break;
 
             default:
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail['entry_id'], '', '', '', 1, 0, $impression, 0);
+                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, '', '', '', 1, 0, $impression, 0);
                 break;
         }
 

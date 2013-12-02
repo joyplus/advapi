@@ -171,6 +171,9 @@ class XMLResponse extends Response{
             $response.= "</ad>";
 
         }
+        else {
+        	$response.="<nodata></nodata>";
+        }
 
         return $response;
     }

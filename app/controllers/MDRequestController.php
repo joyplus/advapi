@@ -229,7 +229,7 @@ class MDRequestController extends RESTController{
         }
         else {
            // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
-            //track_request(0);
+            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
             //noad();
         }
 
