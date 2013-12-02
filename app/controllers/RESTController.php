@@ -114,16 +114,7 @@ class RESTController extends BaseController{
                 break;
 
             case 'fetch':
-
-                //TODO: Unchecked MD functions
-                $forwarded_ip = $this->check_forwarded_ip();
-
-                if ($forwarded_ip){
-                    $request_settings['ip_address']=$this->request->getClientAddress(TRUE);
-                }
-                else {
-                    $request_settings['ip_address']=$this->request->getClientAddress(FALSE);
-                }
+            	$request_settings['ip_address']=$this->request->getClientAddress(TRUE);
         }
 
     }
