@@ -173,6 +173,13 @@ class RESTController extends BaseController{
         $this->getDi()->get("cacheData")->save($cacheKey, $cacheValue);
     }
 
+    function setGeo(&$request_settings) {
+    	$ip = $request_settings['ip_address'];
+    	$codes = $this->getCodeFromIp($ip);
+    	$request_settings['province_code'] = $codes[0];
+    	$request_settings['city_code'] = $codes[1];
+    	
+    }
     function set_geo(&$request_settings){
 
         $ip_address = $request_settings['ip_address'];
@@ -466,5 +473,202 @@ class RESTController extends BaseController{
                 $this->getDi()->get('logger')->error($message->getMessage());
             }
         }
+    }
+    
+    function getCodeFromIp($ip) {
+    	$cities = array(
+	    		'CN_01'=>'北京市',
+	    		'CN_02'=>'天津市',
+	    		'CN_09'=>'上海市',
+	    		'CN_22'=>'重庆市',
+	    		'CN_32'=>'香港',
+	    		'CN_33'=>'澳门'
+    	);
+    	$regions = array(
+    			'CN_05'=>'内蒙古',
+    			'CN_20'=>'广西',
+    			'CN_26'=>'西藏',
+    			'CN_30'=>'宁夏',
+    			'CN_31'=>'新疆'
+    	);
+    	$address = $this->getAddressFromIp($ip);
+    	if(!empty($address)){
+    		foreach($cities as $key=>$value) {
+    			$pattern = "/^".$value."\.*/iu";
+    			if(preg_match($pattern, $address))
+    				return array($key);
+    		}
+    		
+    		foreach ($regions as $key=>$value) {
+    			$pattern = "/^".$value."([\x{4e00}-\x{9fa5}]*)/iu";
+    			if(preg_match($pattern, $address, $matchs)) {
+    				if(!empty($matchs[1])) {
+    					$code = $this->getCodeFromAddress($matchs[1]);
+    					return array($key, $code);
+    				}
+    			}
+    		}
+    		
+    		$pattern = "/([\x{4e00}-\x{9fa5}]+省)([\x{4e00}-\x{9fa5}]*)/iu";
+    		if(preg_match($pattern, $address, $matchs)) {
+    			$code1 = "";
+    			$code2 = "";
+    			if(!empty($matchs[1])) {
+    				$code1 = $this->getCodeFromAddress($matchs[1]);
+    			}
+    			if(!empty($matchs[2])) {
+    				$code2 = $this->getCodeFromAddress($matchs[2]);
+    			}
+    			return array($code1, $code2);
+    		}
+    	}
+    	return array();
+    }
+
+    function getCodeFromAddress($region_name) {
+    	$region = Regions::findFirst(array(
+    		"conditions"=>"region_name= ?1",
+    		"bind"=>array(1=>$region_name),
+    		"cache"=>array("key"=>md5($region_name),"lifetime"=>86400)
+    	));
+    	if($region){
+    		return $region->targeting_code;
+    	}
+    	return "";
+    }
+    
+    
+    function getAddressFromIp($ip) {
+    	$ip1num = 0;
+    	$ip2num = 0;
+    	$ipAddr1 = "";
+    	$ipAddr2 = "";
+    	$dat_path = __DIR__.'/../data/geotargeting/ip.dat';
+    	if (! preg_match ( "/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $ip )) {
+    		return 'IP Address Error';
+    	}
+    	if (! $fd = @fopen ( $dat_path, 'rb' )) {
+    		return 'IP date file not exists or access denied';
+    	}
+    	$ip = explode ( '.', $ip );
+    	$ipNum = $ip [0] * 16777216 + $ip [1] * 65536 + $ip [2] * 256 + $ip [3];
+    	$DataBegin = fread ( $fd, 4 );
+    	$DataEnd = fread ( $fd, 4 );
+    	$ipbegin = implode ( '', unpack ( 'L', $DataBegin ) );
+    	if ($ipbegin < 0)
+    		$ipbegin += pow ( 2, 32 );
+    	$ipend = implode ( '', unpack ( 'L', $DataEnd ) );
+    	if ($ipend < 0)
+    		$ipend += pow ( 2, 32 );
+    	$ipAllNum = ($ipend - $ipbegin) / 7 + 1;
+    	$BeginNum = 0;
+    	$EndNum = $ipAllNum;
+    	while ( $ip1num > $ipNum || $ip2num < $ipNum ) {
+    		$Middle = intval ( ($EndNum + $BeginNum) / 2 );
+    		fseek ( $fd, $ipbegin + 7 * $Middle );
+    		$ipData1 = fread ( $fd, 4 );
+    		if (strlen ( $ipData1 ) < 4) {
+    			fclose ( $fd );
+    			return 'System Error';
+    		}
+    		$ip1num = implode ( '', unpack ( 'L', $ipData1 ) );
+    		if ($ip1num < 0)
+    			$ip1num += pow ( 2, 32 );
+    	
+    		if ($ip1num > $ipNum) {
+    			$EndNum = $Middle;
+    			continue;
+    		}
+    		$DataSeek = fread ( $fd, 3 );
+    		if (strlen ( $DataSeek ) < 3) {
+    			fclose ( $fd );
+    			return 'System Error';
+    		}
+    		$DataSeek = implode ( '', unpack ( 'L', $DataSeek . chr ( 0 ) ) );
+    		fseek ( $fd, $DataSeek );
+    		$ipData2 = fread ( $fd, 4 );
+    		if (strlen ( $ipData2 ) < 4) {
+    			fclose ( $fd );
+    			return 'System Error';
+    		}
+    		$ip2num = implode ( '', unpack ( 'L', $ipData2 ) );
+    		if ($ip2num < 0)
+    			$ip2num += pow ( 2, 32 );
+    		if ($ip2num < $ipNum) {
+    			if ($Middle == $BeginNum) {
+    				fclose ( $fd );
+    				return 'Unknown';
+    			}
+    			$BeginNum = $Middle;
+    		}
+    	}
+    	$ipFlag = fread ( $fd, 1 );
+    	if ($ipFlag == chr ( 1 )) {
+    		$ipSeek = fread ( $fd, 3 );
+    		if (strlen ( $ipSeek ) < 3) {
+    			fclose ( $fd );
+    			return 'System Error';
+    		}
+    		$ipSeek = implode ( '', unpack ( 'L', $ipSeek . chr ( 0 ) ) );
+    		fseek ( $fd, $ipSeek );
+    		$ipFlag = fread ( $fd, 1 );
+    	}
+    	if ($ipFlag == chr ( 2 )) {
+    		$AddrSeek = fread ( $fd, 3 );
+    		if (strlen ( $AddrSeek ) < 3) {
+    			fclose ( $fd );
+    			return 'System Error';
+    		}
+    		$ipFlag = fread ( $fd, 1 );
+    		if ($ipFlag == chr ( 2 )) {
+    			$AddrSeek2 = fread ( $fd, 3 );
+    			if (strlen ( $AddrSeek2 ) < 3) {
+    				fclose ( $fd );
+    				return 'System Error';
+    			}
+    			$AddrSeek2 = implode ( '', unpack ( 'L', $AddrSeek2 . chr ( 0 ) ) );
+    			fseek ( $fd, $AddrSeek2 );
+    		} else {
+    			fseek ( $fd, - 1, SEEK_CUR );
+    		}
+    		while ( ($char = fread ( $fd, 1 )) != chr ( 0 ) )
+    			$ipAddr2 .= $char;
+    		$AddrSeek = implode ( '', unpack ( 'L', $AddrSeek . chr ( 0 ) ) );
+    		fseek ( $fd, $AddrSeek );
+    		while ( ($char = fread ( $fd, 1 )) != chr ( 0 ) )
+    			$ipAddr1 .= $char;
+    	} else {
+    		fseek ( $fd, - 1, SEEK_CUR );
+    		while ( ($char = fread ( $fd, 1 )) != chr ( 0 ) )
+    			$ipAddr1 .= $char;
+    		$ipFlag = fread ( $fd, 1 );
+    		if ($ipFlag == chr ( 2 )) {
+    			$AddrSeek2 = fread ( $fd, 3 );
+    			if (strlen ( $AddrSeek2 ) < 3) {
+    				fclose ( $fd );
+    				return 'System Error';
+    			}
+    			$AddrSeek2 = implode ( '', unpack ( 'L', $AddrSeek2 . chr ( 0 ) ) );
+    			fseek ( $fd, $AddrSeek2 );
+    		} else {
+    			fseek ( $fd, - 1, SEEK_CUR );
+    		}
+    		while ( ($char = fread ( $fd, 1 )) != chr ( 0 ) ) {
+    			$ipAddr2 .= $char;
+    		}
+    	}
+    	fclose ( $fd );
+    	if (preg_match ( '/http/i', $ipAddr1 )) {
+    		$ipAddr1 = '';
+    	}
+    	if (preg_match ( '/http/i', $ipAddr2 )) {
+    		$ipAddr2 = '';
+    	}
+    	
+    	$ipAddr1 = preg_replace ( '/CZ88.NET/is', '', $ipAddr1 );
+    	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
+    	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
+    	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
+    	return $ipAddr1;
     }
 }

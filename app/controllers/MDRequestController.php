@@ -198,6 +198,7 @@ class MDRequestController extends RESTController{
 
         $this->update_last_request($zone_detail);
 
+        $this->setGeo($request_settings);
         $this->set_geo($request_settings);
 
 
