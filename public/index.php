@@ -205,8 +205,10 @@ try {
      */
     $di->set('cacheData', function() use ($config) {
         //Cache data for one hour
-        $frontCache = new \Phalcon\Cache\Frontend\None();
-
+        //$frontCache = new \Phalcon\Cache\Frontend\None();
+    	$frontCache = new \Phalcon\Cache\Frontend\Data(array(
+    			"lifetime" => 3600
+    	));
         // Create the component that will cache "Data" to a "Memcached" backend
         // Memcached connection settings
         $cacheData = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
@@ -216,6 +218,16 @@ try {
 
         return $cacheData;
     });
+    
+	$di->set('cacheAdData', function() use ($config) {
+		$frontCache = new \Phalcon\Cache\Frontend\None();
+		$cacheData = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
+			"host" => $config->cache->memcachedServer,
+			"port" => $config->cache->memcachedPort
+		));
+    	
+		return $cacheData;
+	});
 
     $di->set('mdManager', function() use ($config) {
         return new MDManager();

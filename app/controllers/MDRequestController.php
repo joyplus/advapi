@@ -204,7 +204,7 @@ class MDRequestController extends RESTController{
 
         //处理试投放
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
-        $adv_id = $this->getCacheDataValue($cacheKey);
+        $adv_id = $this->getCacheAdData($cacheKey);
         if($adv_id){
         	if (!$final_ad = $this->get_ad_unit($adv_id)){
         		return false;
@@ -327,11 +327,15 @@ class MDRequestController extends RESTController{
         $sql="SELECT entry_id, publication_id, zone_type, zone_width, zone_height, zone_refresh, zone_channel, zone_lastrequest, mobfox_backfill_active, mobfox_min_cpc_active, min_cpc, min_cpm, backfill_alt_1, backfill_alt_2, backfill_alt_3 FROM md_zones WHERE zone_hash='".$request_settings['placement_hash']."'";
 
         $zones = new Zones();
-
+		$data = $this->getCacheDataValue($sql);
+		if($data) {
+			return $data;
+		}
         // Execute the query
         $resultSet = new Resultset(null, $zones, $zones->getReadConnection()->query($sql));
 
         if ($resultSet->valid()){
+        	$this->saveCacheDataValue($sql, $resultSet->getFirst());
             return $resultSet->getFirst();
         }
         else {
@@ -349,7 +353,8 @@ class MDRequestController extends RESTController{
     function getDevice($device_name) {
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_name= ?1",
-    		"bind"=>array(1=>$device_name)
+    		"bind"=>array(1=>$device_name),
+    		"cache"=>array("key"=>md5($device_name),"lifetime"=>3600)
     	));
     	return $device;
     }
@@ -357,7 +362,10 @@ class MDRequestController extends RESTController{
 
     function get_publication_channel($publication_id){
 
-        $publications = Publications::findFirst($publication_id);
+        $publications = Publications::findFirst(array(
+        		"inv_id='".$publication_id."'",
+        		"cache"=>array("key"=>md5($publication_id),"lifetime"=>3600)
+        ));
         if ($publications) {
             return $publications->inv_defaultchannel;
         } else {
@@ -603,8 +611,13 @@ class MDRequestController extends RESTController{
         $campaigns = new Campaigns();
 
         // Execute the query
-        $result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
-
+        $resultData = $this->getCacheDataValue($sql);
+        if($resultData){
+        	$result = $resultData;
+        }else{
+        	$result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
+        	$this->saveCacheDataValue($sql, $result);
+        }
         foreach ($result as $item) {
             $add = array(
                 'creative_show_rule'=>$item->creative_show_rule,

@@ -153,7 +153,18 @@ class RESTController extends BaseController{
         //$cache = $cacheService->resolve();
         return $cacheData;
     }
-
+    
+	function getCacheAdData() {
+		$cacheKey=md5($cacheKey);
+		
+		$resultget = $this->getDi()->get("cacheAdData")->get($cacheKey);
+		if ($resultget){
+			return $resultget;
+		}
+		else {
+			return false;
+		}
+	}
     function getCacheDataValue($cacheKey){
 
         $cacheKey=md5($cacheKey);
@@ -506,6 +517,7 @@ class RESTController extends BaseController{
     					$code = $this->getCodeFromAddress($matchs[1]);
     					return array($key, $code);
     				}
+    				return array($key);
     			}
     		}
     		
