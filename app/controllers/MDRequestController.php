@@ -93,6 +93,7 @@ class MDRequestController extends RESTController{
         $request_settings['longitude'] = $this->request->get("longitude", null, '');
         $request_settings['latitude'] = $this->request->get("latitude", null, '');
         $request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
+        $request_settings['i'] = $this->request->get("i", null, '');
         
         $request_settings['pattern'] = $this->request->get("up",null,'');
         $request_settings['video_type'] = $this->request->get("vc",null,'');
@@ -197,26 +198,36 @@ class MDRequestController extends RESTController{
 
         $this->update_last_request($zone_detail);
 
-        $this->set_geo($request_settings);
-
-
-        $this->build_query($request_settings, $zone_detail);
-
-        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_query'])){
-
-            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
-
-            //TODO: Unchecked MD functions
-//            if (!$this->process_campaignquery_result($campaign_query_result, $zone_detail, $request_settings)){
-//
-//                launch_backfill();
-//            }
+        $this->setGeo($request_settings);
+        
+        //处理试投放
+        $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
+        $adv_id = $this->getCacheAdData($cacheKey);
+        if($adv_id){
+        	if (!$final_ad = $this->get_ad_unit($adv_id)){
+        		return false;
+        	}
+        	if (!$this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
+        		return false;
+        	}
+        }else{
+	        $this->build_query($request_settings, $zone_detail);
+	
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_query'])){
+	
+	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
+	
+	            //TODO: Unchecked MD functions
+	//            if (!$this->process_campaignquery_result($campaign_query_result, $zone_detail, $request_settings)){
+	//
+	//                launch_backfill();
+	//            }
+	        }
+	        else {
+	            //TODO: Unchecked MD functions
+	            //launch_backfill();
+	        }
         }
-        else {
-            //TODO: Unchecked MD functions
-            //launch_backfill();
-        }
-
         if (isset($display_ad['available']) && $display_ad['available']==1){
             $this->track_request($request_settings, $zone_detail, $display_ad, 0);
             //display_ad();
@@ -229,7 +240,7 @@ class MDRequestController extends RESTController{
         }
         else {
            // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
-            //track_request(0);
+            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
             //noad();
         }
 
@@ -268,17 +279,6 @@ class MDRequestController extends RESTController{
         return $results;
     }
 
-
-
-
-
-
-
-
-
-
-
-
     function check_input(&$request_settings, &$errormessage){
 
 
@@ -313,11 +313,15 @@ class MDRequestController extends RESTController{
         $sql="SELECT entry_id, publication_id, zone_type, zone_width, zone_height, zone_refresh, zone_channel, zone_lastrequest, mobfox_backfill_active, mobfox_min_cpc_active, min_cpc, min_cpm, backfill_alt_1, backfill_alt_2, backfill_alt_3 FROM md_zones WHERE zone_hash='".$request_settings['placement_hash']."'";
 
         $zones = new Zones();
-
+		$data = $this->getCacheDataValue(CACHE_PREFIX.$sql);
+		if($data) {
+			return $data;
+		}
         // Execute the query
         $resultSet = new Resultset(null, $zones, $zones->getReadConnection()->query($sql));
 
         if ($resultSet->valid()){
+        	$this->saveCacheDataValue(CACHE_PREFIX.$sql, $resultSet->getFirst());
             return $resultSet->getFirst();
         }
         else {
@@ -335,7 +339,8 @@ class MDRequestController extends RESTController{
     function getDevice($device_name) {
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_name= ?1",
-    		"bind"=>array(1=>$device_name)
+    		"bind"=>array(1=>$device_name),
+    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_name),"lifetime"=>3600)
     	));
     	return $device;
     }
@@ -343,7 +348,10 @@ class MDRequestController extends RESTController{
 
     function get_publication_channel($publication_id){
 
-        $publications = Publications::findFirst($publication_id);
+        $publications = Publications::findFirst(array(
+        		"inv_id='".$publication_id."'",
+        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id),"lifetime"=>3600)
+        ));
         if ($publications) {
             return $publications->inv_defaultchannel;
         } else {
@@ -390,11 +398,11 @@ class MDRequestController extends RESTController{
 
     function build_query(&$request_settings, $zone_detail){
 
-        if (isset($request_settings['geo_country']) && !empty($request_settings['geo_country']) && isset($request_settings['geo_region']) && !empty($request_settings['geo_region'])){
-            $query_part['geo']=" OR (c1.targeting_type='geo' AND (c1.targeting_code='".$request_settings['geo_country']."' OR c1.targeting_code='".$request_settings['geo_country']."_".$request_settings['geo_region']."')))";
+        if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
+            $query_part['geo']=" OR (c1.targeting_type='geo' AND (c1.targeting_code='".$request_settings['province_code']."' OR c1.targeting_code='".$request_settings['city_code']."')))";
         }
-        else if (isset($request_settings['geo_country']) && !empty($request_settings['geo_country'])){
-            $query_part['geo']=" OR (c1.targeting_type='geo' AND c1.targeting_code='".$request_settings['geo_country']."'))";
+        else if (isset($request_settings['province_code']) && !empty($request_settings['province_code'])){
+            $query_part['geo']=" OR (c1.targeting_type='geo' AND c1.targeting_code='".$request_settings['province_code']."'))";
         }
         else {
             $query_part['geo']=')';
@@ -589,8 +597,13 @@ class MDRequestController extends RESTController{
         $campaigns = new Campaigns();
 
         // Execute the query
-        $result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
-
+        $resultData = $this->getCacheDataValue(CACHE_PREFIX.$sql);
+        if($resultData){
+        	$result = $resultData;
+        }else{
+        	$result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
+        	$this->saveCacheDataValue(CACHE_PREFIX.$sql, $result);
+        }
         foreach ($result as $item) {
             $add = array(
                 'creative_show_rule'=>$item->creative_show_rule,

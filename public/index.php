@@ -135,7 +135,8 @@ try {
             "host" => $config->database->host,
             "username" => $config->database->username,
             "password" => $config->database->password,
-            "dbname" => $config->database->name
+            "dbname" => $config->database->name,
+        	"charset" => $config->database->charset
         ));
 
         //Assign the eventsManager to the db adapter instance
@@ -204,10 +205,10 @@ try {
      */
     $di->set('cacheData', function() use ($config) {
         //Cache data for one hour
-        $frontCache = new \Phalcon\Cache\Frontend\Data(array(
-            "lifetime" => 3600
-        ));
-
+        //$frontCache = new \Phalcon\Cache\Frontend\None();
+    	$frontCache = new \Phalcon\Cache\Frontend\Data(array(
+    			"lifetime" => 3600
+    	));
         // Create the component that will cache "Data" to a "Memcached" backend
         // Memcached connection settings
         $cacheData = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
@@ -217,6 +218,16 @@ try {
 
         return $cacheData;
     });
+    
+	$di->set('cacheAdData', function() use ($config) {
+		$frontCache = new \Phalcon\Cache\Frontend\None();
+		$cacheData = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
+			"host" => $config->cache->memcachedServer,
+			"port" => $config->cache->memcachedPort
+		));
+    	
+		return $cacheData;
+	});
 
     $di->set('mdManager', function() use ($config) {
         return new MDManager();
@@ -296,7 +307,7 @@ try {
     $app->after(function() use ($app) {
 
         $records = $app->getReturnedValue();
-
+		
         $response = new XMLResponse();
         $response->send($records);
 
@@ -337,8 +348,17 @@ try {
     $app->handle();
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError();
 } catch (PDOException $e){
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError();
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError();
+}
+
+function sendError() {
+	$records = array("code"=>500);
+	$response = new XMLResponse();
+	$response->send($records);
 }
