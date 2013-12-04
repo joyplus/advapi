@@ -229,22 +229,21 @@ class MDRequestController extends RESTController{
 	            //TODO: Unchecked MD functions
 	            //launch_backfill();
 	        }
-	
-	        if (isset($display_ad['available']) && $display_ad['available']==1){
-	            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-	            //display_ad();
-	            $this->prepare_ad($display_ad, $request_settings, $zone_detail);
-	            $display_ad['response_type'] = $request_settings['response_type'];
-	            $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-	                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
-	
-	            $display_ad['final_impression_url']=$base_ctr;
-	        }
-	        else {
-	           // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
-	            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-	            //noad();
-	        }
+        }
+        if (isset($display_ad['available']) && $display_ad['available']==1){
+            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+            //display_ad();
+            $this->prepare_ad($display_ad, $request_settings, $zone_detail);
+            $display_ad['response_type'] = $request_settings['response_type'];
+            $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
+
+            $display_ad['final_impression_url']=$base_ctr;
+        }
+        else {
+           // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
+            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+            //noad();
         }
 
         //TODO It's not needed, xml response for all.

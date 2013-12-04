@@ -307,7 +307,7 @@ try {
     $app->after(function() use ($app) {
 
         $records = $app->getReturnedValue();
-
+		
         $response = new XMLResponse();
         $response->send($records);
 
@@ -348,8 +348,17 @@ try {
     $app->handle();
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError();
 } catch (PDOException $e){
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError();
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError();
+}
+
+function sendError() {
+	$records = array("code"=>500);
+	$response = new XMLResponse();
+	$response->send($records);
 }

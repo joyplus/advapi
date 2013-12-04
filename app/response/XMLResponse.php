@@ -172,7 +172,7 @@ class XMLResponse extends Response{
 
         }
         else {
-        	$response.="<nodata></nodata>";
+        	$response.="<code>".$display_ad['code']."</code>";
         }
 
         return $response;

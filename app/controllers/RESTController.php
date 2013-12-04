@@ -154,7 +154,7 @@ class RESTController extends BaseController{
         return $cacheData;
     }
     
-	function getCacheAdData() {
+	function getCacheAdData($cacheKey) {
 		$cacheKey=md5($cacheKey);
 		
 		$resultget = $this->getDi()->get("cacheAdData")->get($cacheKey);
@@ -300,6 +300,18 @@ class RESTController extends BaseController{
         }else {
             $geo_city=$request_settings['geo_city'];
         }
+        
+        if(is_null($request_settings['province_code']) || $request_settings['province_code'] ==''){
+        	$province_code='';
+        }else {
+        	$province_code=$request_settings['province_code'];
+        }
+        
+        if(is_null($request_settings['city_code']) || $request_settings['city_code'] ==''){
+        	$city_code='';
+        }else {
+        	$city_code=$request_settings['city_code'];
+        }
 
         $current_date=date("Y-m-d");
         $current_day=date("d");
@@ -392,6 +404,8 @@ class RESTController extends BaseController{
         }
         else {
             $reporting = new Reporting();
+            $reporting->province_code = $province_code;
+            $reporting->city_code = $city_code;
             $reporting->geo_city = $geo_city;
             $reporting->hours = $current_hours;
             $reporting->geo_region = $geo_region;
