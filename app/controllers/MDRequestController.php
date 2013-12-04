@@ -597,12 +597,12 @@ class MDRequestController extends RESTController{
         $campaigns = new Campaigns();
 
         // Execute the query
-        $resultData = $this->getCacheDataValue($sql);
+        $resultData = $this->getCacheDataValue(CACHE_PREFIX.$sql);
         if($resultData){
         	$result = $resultData;
         }else{
         	$result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
-        	$this->saveCacheDataValue($sql, $result);
+        	$this->saveCacheDataValue(CACHE_PREFIX.$sql, $result);
         }
         foreach ($result as $item) {
             $add = array(

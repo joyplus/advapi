@@ -284,12 +284,12 @@ class RESTController extends BaseController{
         );
 
 
-        if($geo_region!=''){
+        if($province_code!=''){
             $sql .= "AND province_code = :province_code: ";
             $param['$province_code'] = $province_code;
         }
 
-        if($geo_city!=''){
+        if($city_code!=''){
             $sql .= "AND city_code = :city_code: ";
             $param['city_code'] = $city_code;
         }
