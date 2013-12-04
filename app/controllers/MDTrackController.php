@@ -90,10 +90,9 @@ class MDTrackController extends RESTController{
             $impression='1';
         }
         
-        $reporting = new Reporting();
         $report = Reporting::findFirst("report_hash='".$param_rh."'");
         if($report==null)
-        	return ;
+        	return array();
     
 		$this->reporting_db_update_impression($request_settings, $report, $impression);
         

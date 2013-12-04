@@ -24,9 +24,9 @@ class XMLResponse extends Response{
         // If the query string 'envelope' is set to false, do not use the envelope.
         // Instead, return headers.
         $request = $this->di->get('request');
-        $etag = md5(serialize($records));
+        //$etag = md5(serialize($records));
         $response->setContentType('text/xml');
-        $response->setHeader('E-Tag', $etag);
+        //$response->setHeader('E-Tag', $etag);
 
         $response->setContent($this->print_ad($records));
         $response->send();
@@ -170,6 +170,9 @@ class XMLResponse extends Response{
 
             $response.= "</ad>";
 
+        }
+        else {
+        	$response.="<code>".$display_ad['code']."</code>";
         }
 
         return $response;
