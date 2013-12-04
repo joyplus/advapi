@@ -8,6 +8,13 @@
 
 class CampaignLimit extends \Phalcon\Mvc\Model
 {
+	public $entry_id;
+	public $campaign_id;
+	public $cap_type;
+	public $total_amount;
+	public $total_amount_left;
+	public $last_refresh;
+	
     public function getSource()
     {
         return "md_campaign_limit";

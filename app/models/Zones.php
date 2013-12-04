@@ -7,7 +7,25 @@
  */
 class Zones extends \Phalcon\Mvc\Model
 {
-
+	public $entry_id;
+	public $publication_id;
+	public $zone_hash;
+	public $zone_name;
+	public $zone_type;
+	public $zone_width;
+	public $zone_height;
+	public $zone_refresh;
+	public $zone_channel;
+	public $zone_lastrequest;
+	public $zone_description;
+	public $mobfox_backfill_active;
+	public $mobfox_min_cpc_active;
+	public $min_cpc;
+	public $min_cpm;
+	public $backfill_alt_1;
+	public $backfill_alt_2;
+	public $backfill_alt_3;
+	
     public function initialize() {
         $this->useDynamicUpdate(true);
     }

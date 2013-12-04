@@ -8,6 +8,9 @@
 
 class Configuration extends \Phalcon\Mvc\Model
 {
+	public $entry_id;
+	public $var_name;
+	public $var_value;
 
     public function initialize() {
         $this->useDynamicUpdate(true);
