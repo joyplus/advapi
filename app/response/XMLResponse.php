@@ -121,6 +121,9 @@ class XMLResponse extends Response{
             	$response.= "<impressionurl><![CDATA[";
             	$response.= "".$display_ad['final_impression_url']."";
             	$response.= "]]></impressionurl>";
+            	$response.= "<trackingurl><![CDATA[";
+            	$response.= "".$display_ad['trackingpixel']."";
+            	$response.= "]]></trackingurl>";
             	if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
             		$response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
             	}

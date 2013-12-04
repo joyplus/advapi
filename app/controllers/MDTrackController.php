@@ -83,12 +83,9 @@ class MDTrackController extends RESTController{
         }
 
         $this->prepare_ip($request_settings);
-        $this->set_geo($request_settings);
+        $this->setGeo($request_settings);
 
-        $impression = $this->request->get('impression');
-        if ($impression ==null || !is_numeric($impression)){
-            $impression='1';
-        }
+        $impression='1';
         
         $report = Reporting::findFirst("report_hash='".$param_rh."'");
         if($report==null)
