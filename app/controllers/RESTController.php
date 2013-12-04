@@ -283,7 +283,7 @@ class RESTController extends BaseController{
 
         if($province_code!=''){
             $conditions .= "AND province_code = :province_code: ";
-            $param['$province_code'] = $province_code;
+            $param['province_code'] = $province_code;
         }
 
         if($city_code!=''){
