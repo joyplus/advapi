@@ -191,88 +191,7 @@ class RESTController extends BaseController{
     	$request_settings['city_code'] = $codes[1];
     	
     }
-    function set_geo(&$request_settings){
-
-        $ip_address = $request_settings['ip_address'];
-        $key='GEODATA_'.$ip_address.'';
-
-
-        $cache_result=$this->getCacheDataValue($key);
-
-        if ($cache_result){
-            $request_settings['geo_country']=$cache_result['geo_country'];
-            $request_settings['geo_region']=$cache_result['geo_region'];
-            return true;
-        }
-
-
-        switch (MAD_MAXMIND_TYPE){
-            case 'PHPSOURCE':
-
-                // This code demonstrates how to lookup the country, region, city,
-                // postal code, latitude, and longitude by IP Address.
-                // It is designed to work with GeoIP/GeoLite City
-
-                // Note that you must download the New Format of GeoIP City (GEO-133).
-                // The old format (GEO-132) will not work.
-
-                require_once( __DIR__ . "/../modules/maxmind_php/geoipcity.inc");
-                require_once(__DIR__ . "/../modules/maxmind_php/geoipregionvars.php");
-
-                // uncomment for Shared Memory support
-                // geoip_load_shared_mem("/usr/local/share/GeoIP/GeoIPCity.dat");
-                // $gi = geoip_open("/usr/local/share/GeoIP/GeoIPCity.dat",GEOIP_SHARED_MEMORY);
-
-                //var $maxmind_datafile = __DIR__ . '/../data/geotargeting/GeoLiteCity.dat');
-
-                if (!$gi = geoip_open(MAD_MAXMIND_DATAFILE_LOCATION,GEOIP_STANDARD)){
-                    print_error(1, 'Could not open GEOIP Database supplied in constants.php File. Please make sure that the file is present and that the directory has the necessary rights applied.', $request_settings['sdk'], 1);
-                    return false;
-                }
-
-                if (!$record = geoip_record_by_addr($gi,$ip_address)){
-                    $request_settings['geo_country']='';
-                    $request_settings['geo_region']='';
-                    $request_settings['geo_city']='';
-
-                    return false;
-                }
-
-                $geo_data=array();
-                $geo_data['geo_country']=$record->country_code;
-                $geo_data['geo_region']=$record->region;
-                $geo_data['geo_city']=$record->city;
-
-                geoip_close($gi);
-
-
-                break;
-
-            case 'NATIVE':
-
-                if (!$record = geoip_record_by_name($ip_address)){
-                    $request_settings['geo_country']='';
-                    $request_settings['geo_region']='';
-                    $request_settings['geo_city']='';
-                    return false;
-                }
-                $geo_data['geo_country']=$record['country_code'];
-                $geo_data['geo_region']=$record['region'];
-                $geo_data['geo_city']=$record['city'];
-
-                break;
-
-        }
-
-        $request_settings['geo_country']=$geo_data['geo_country'];
-        $request_settings['geo_region']=$geo_data['geo_region'];
-        $request_settings['geo_city']=$geo_data['geo_city'];
-
-        $this->saveCacheDataValue($key, $geo_data);
-
-        return true;
-
-    }
+    
 
     public function reporting_db_update(&$display_ad, &$request_settings, $publication_id,
                                         $zone_id, $campaign_id, $creative_id, $network_id,
@@ -366,13 +285,13 @@ class RESTController extends BaseController{
 
 
         if($geo_region!=''){
-            $sql .= "AND geo_region = :geo_region: ";
-            $param['geo_region'] = $geo_region;
+            $sql .= "AND province_code = :province_code: ";
+            $param['$province_code'] = $province_code;
         }
 
         if($geo_city!=''){
-            $sql .= "AND geo_city = :geo_city: ";
-            $param['geo_city'] = $geo_city;
+            $sql .= "AND city_code = :city_code: ";
+            $param['city_code'] = $city_code;
         }
 
         if($network_id!=''){
@@ -555,7 +474,7 @@ class RESTController extends BaseController{
     	$region = Regions::findFirst(array(
     		"conditions"=>"region_name= ?1",
     		"bind"=>array(1=>$region_name),
-    		"cache"=>array("key"=>md5($region_name),"lifetime"=>86400)
+    		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
     	));
     	if($region){
     		return $region->targeting_code;

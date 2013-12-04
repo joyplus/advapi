@@ -199,9 +199,7 @@ class MDRequestController extends RESTController{
         $this->update_last_request($zone_detail);
 
         $this->setGeo($request_settings);
-        $this->set_geo($request_settings);
-
-
+        
         //处理试投放
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
         $adv_id = $this->getCacheAdData($cacheKey);
@@ -281,17 +279,6 @@ class MDRequestController extends RESTController{
         return $results;
     }
 
-
-
-
-
-
-
-
-
-
-
-
     function check_input(&$request_settings, &$errormessage){
 
 
@@ -326,7 +313,7 @@ class MDRequestController extends RESTController{
         $sql="SELECT entry_id, publication_id, zone_type, zone_width, zone_height, zone_refresh, zone_channel, zone_lastrequest, mobfox_backfill_active, mobfox_min_cpc_active, min_cpc, min_cpm, backfill_alt_1, backfill_alt_2, backfill_alt_3 FROM md_zones WHERE zone_hash='".$request_settings['placement_hash']."'";
 
         $zones = new Zones();
-		$data = $this->getCacheDataValue($sql);
+		$data = $this->getCacheDataValue(CACHE_PREFIX.$sql);
 		if($data) {
 			return $data;
 		}
@@ -334,7 +321,7 @@ class MDRequestController extends RESTController{
         $resultSet = new Resultset(null, $zones, $zones->getReadConnection()->query($sql));
 
         if ($resultSet->valid()){
-        	$this->saveCacheDataValue($sql, $resultSet->getFirst());
+        	$this->saveCacheDataValue(CACHE_PREFIX.$sql, $resultSet->getFirst());
             return $resultSet->getFirst();
         }
         else {
@@ -353,7 +340,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_name= ?1",
     		"bind"=>array(1=>$device_name),
-    		"cache"=>array("key"=>md5($device_name),"lifetime"=>3600)
+    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_name),"lifetime"=>3600)
     	));
     	return $device;
     }
@@ -363,7 +350,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5($publication_id),"lifetime"=>3600)
+        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id),"lifetime"=>3600)
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;
@@ -411,11 +398,11 @@ class MDRequestController extends RESTController{
 
     function build_query(&$request_settings, $zone_detail){
 
-        if (isset($request_settings['geo_country']) && !empty($request_settings['geo_country']) && isset($request_settings['geo_region']) && !empty($request_settings['geo_region'])){
-            $query_part['geo']=" OR (c1.targeting_type='geo' AND (c1.targeting_code='".$request_settings['geo_country']."' OR c1.targeting_code='".$request_settings['geo_country']."_".$request_settings['geo_region']."')))";
+        if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
+            $query_part['geo']=" OR (c1.targeting_type='geo' AND (c1.targeting_code='".$request_settings['province_code']."' OR c1.targeting_code='".$request_settings['city_code']."')))";
         }
-        else if (isset($request_settings['geo_country']) && !empty($request_settings['geo_country'])){
-            $query_part['geo']=" OR (c1.targeting_type='geo' AND c1.targeting_code='".$request_settings['geo_country']."'))";
+        else if (isset($request_settings['province_code']) && !empty($request_settings['province_code'])){
+            $query_part['geo']=" OR (c1.targeting_type='geo' AND c1.targeting_code='".$request_settings['province_code']."'))";
         }
         else {
             $query_part['geo']=')';
