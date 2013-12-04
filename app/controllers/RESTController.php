@@ -269,10 +269,7 @@ class RESTController extends BaseController{
 //            )
 //        ));
 
-        //With bound parameters
-        $sql = "SELECT * FROM Reporting WHERE hours = :hours: AND publication_id = :publication_id: AND zone_id = :zone_id: AND campaign_id = :campaign_id: AND creative_id = :creative_id: AND date = :date: AND device_name = :device_name: ";
-        //$sql = "SELECT * FROM Reporting WHERE hours = :hours: ";
-        //$sql = "SELECT * FROM Reporting";
+        $conditions = "hours = :hours: AND publication_id = :publication_id: AND zone_id = :zone_id: AND campaign_id = :campaign_id: AND creative_id = :creative_id: AND date = :date: AND device_name = :device_name: ";
         $param = array(
             'hours' => $current_hours,
             'publication_id' => $publication_id,
@@ -285,26 +282,27 @@ class RESTController extends BaseController{
 
 
         if($province_code!=''){
-            $sql .= "AND province_code = :province_code: ";
+            $conditions .= "AND province_code = :province_code: ";
             $param['$province_code'] = $province_code;
         }
 
         if($city_code!=''){
-            $sql .= "AND city_code = :city_code: ";
+            $conditions .= "AND city_code = :city_code: ";
             $param['city_code'] = $city_code;
         }
 
         if($network_id!=''){
-            $sql .= "AND network_id = :network_id:";
+            $conditions .= "AND network_id = :network_id:";
             $param['network_id'] = $network_id;
         }
 
-        $sql .= ' Limit 1';
 
-        $query = $this->getDi()->get('modelsManager')->createQuery($sql);
-        $resultSet = $query->execute($param);
+        $reporting = Reporting::findFirst(array(
+        	"conditions"=>$conditions,
+        	"bind"=>$param
+        ));
 
-        $reporting = $resultSet->getFirst();
+        //$reporting = $resultSet->getFirst();
 
         $add_impression=0;
 
@@ -412,7 +410,7 @@ class RESTController extends BaseController{
     }
 
     function logoDBError($result){
-        if ($result->success() == false) {
+        if ($result) {
             foreach ($result->getMessages() as $message) {
                 $this->getDi()->get('logger')->error($message->getMessage());
             }
