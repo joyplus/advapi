@@ -169,9 +169,7 @@ class MDRequestController extends RESTController{
             //global $errormessage;
             //print_error(1, $errormessage, $request_settings['sdk'], 1);
             //TODO: Unchecked MD Functions
-            $result = array();
-            $result[0] = $errormessage;
-            return $result;
+            return $this->codeInputError();
         }
 
         $request_data['ip']=$request_settings['ip_address'];
@@ -186,9 +184,7 @@ class MDRequestController extends RESTController{
         $zone_detail=$this->get_placement($request_settings, $errormessage);
 
         if (!$zone_detail){
-            $result = array();
-            $result[0] = $errormessage;
-            return $result;
+            return $this->codeInputError();
         }
 
         $request_settings['adspace_width']=$zone_detail->zone_width;
@@ -205,10 +201,10 @@ class MDRequestController extends RESTController{
         $adv_id = $this->getCacheAdData($cacheKey);
         if($adv_id){
         	if (!$final_ad = $this->get_ad_unit($adv_id)){
-        		return false;
+        		return $this->codeNoAds();
         	}
         	if (!$this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
-        		return false;
+        		return $this->codeNoAds();
         	}
         }else{
 	        $this->build_query($request_settings, $zone_detail);
@@ -241,6 +237,7 @@ class MDRequestController extends RESTController{
         else {
            // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
             $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+            $display_ad['code'] = 201;
             //noad();
         }
 

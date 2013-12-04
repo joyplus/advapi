@@ -614,4 +614,14 @@ class RESTController extends BaseController{
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
     	return $ipAddr1;
     }
+    
+    function codeSuccess() {
+    	return array("code"=>200);
+    }
+    function codeInputError() {
+    	return array("code"=>301);
+    }
+    function codeNoAds() {
+    	return array("code"=>201);
+    }
 }

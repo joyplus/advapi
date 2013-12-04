@@ -347,19 +347,25 @@ try {
     });
 
     $app->handle();
+} catch (PDOException $e){
+    $di->get("logger")->log($e->getMessage(), Logger::ERROR);
+    sendError(302);
+} catch (Phalcon\Db\Exception $e) {
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError(302);
+} catch (Phalcon\Mvc\Model\Exception $e) {
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError(302);
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError();
-} catch (PDOException $e){
-	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError();
+	sendError(500);
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError();
+	sendError(500);
 }
 
-function sendError() {
-	$records = array("code"=>500);
+function sendError($code) {
+	$records = array("code"=>$code);
 	$response = new XMLResponse();
 	$response->send($records);
 }

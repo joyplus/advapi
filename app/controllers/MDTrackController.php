@@ -14,7 +14,7 @@ class MDTrackController extends RESTController{
 
     public function get(){
         $result = $this->handleImpression();
-        return $this->respond($result);
+        return $result;
     }
 
     private function handleImpression(){
@@ -22,7 +22,7 @@ class MDTrackController extends RESTController{
         $request_settings = array();
         $param_rh = $this->request->get("rh");
         if (!isset($param_rh)){
-            return array();
+            return $this->codeInputError();
         }
         $param_rt = $this->request->get('rt');
         if (!isset($param_rt)){
@@ -89,7 +89,7 @@ class MDTrackController extends RESTController{
         
         $report = Reporting::findFirst("report_hash='".$param_rh."'");
         if($report==null)
-        	return array();
+        	return $this->codeInputError();
     
 		$this->reporting_db_update_impression($request_settings, $report, $impression);
         
@@ -133,7 +133,7 @@ class MDTrackController extends RESTController{
         
         	}
         } */
-        return array();
+        return $this->codeSuccess();
     }
     
     private function reporting_db_update_impression(&$request_settings, &$report, $add_impression){

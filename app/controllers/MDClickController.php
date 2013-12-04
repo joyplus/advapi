@@ -7,14 +7,14 @@ Phalcon\Cache\Backend\Memcache;
 class MDClickController extends RESTController {
 	public function get() {
 		$result = $this->handleClick();
-		return $this->respond($result);
+		return $result;
 	}
 	
 	public function handleClick() {
 		$data_c = $this->request->get("c");
 		$data_type = $this->request->get("type");
 		if(!isset($data_c) or empty($data_c) or !isset($data_type))
-			return array(); 
+			return $this->codeInputError(); 
 		
 		if (MAD_CLICK_IMMEDIATE_REDIRECT){
 			ob_start();
@@ -41,7 +41,7 @@ class MDClickController extends RESTController {
 			$this->redirect();
 		
 		}
-		return array();
+		return $this->codeSuccess();
 	}
 
 	private function track(){
@@ -54,7 +54,7 @@ class MDClickController extends RESTController {
 		}
 		$request_settings['ip_origin']='fetch';
 		$this->prepare_ip($request_settings);
-		$this->set_geo($request_settings);
+		$this->setGeo($request_settings);
 		
 		//TODO:MAD_TRACK_UNIQUE_CLICKS 缓存使用
 // 		$cache_key='click_'.$data['h'].'';
