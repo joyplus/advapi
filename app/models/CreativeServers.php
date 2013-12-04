@@ -8,6 +8,16 @@
 
 class CreativeServers extends \Phalcon\Mvc\Model
 {
+	public $entry_id;
+	public $server_type;
+	public $server_name;
+	public $remote_host;
+	public $remote_port;
+	public $remote_user;
+	public $remote_password;
+	public $remote_directory;
+	public $server_default_url;
+	public $server_status;
 
     public function initialize() {
         $this->useDynamicUpdate(true);
