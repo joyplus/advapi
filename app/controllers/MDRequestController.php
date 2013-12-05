@@ -1084,4 +1084,12 @@ class MDRequestController extends RESTController{
         }
         return $markup;
     }
+    
+    function get_destination_url(&$display_ad) {
+    	if (isset($display_ad['click_url'])){
+    		return $display_ad['click_url'];
+    	} else {
+    		return '';
+    	}
+    }
 }
