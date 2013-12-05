@@ -12,64 +12,6 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 
 class MDRequestController extends RESTController{
 
-
-    public function put(){
-
-//        $request_settings = array();
-//        $request_settings['geo_country']='sss';
-//        $request_settings['geo_region']='sss';
-//        $request_settings['geo_city']='sss';
-//
-//        $this->saveCacheDataValue("testkey", $request_settings);
-//
-//        $test=$this->getCacheDataValue("testkey");
-//
-//        print_r($test);
-
-//        $diTest = $this->getDi();
-//
-//        //Get the service
-//        $modelsManagerService = $diTest->getService('modelsManager');
-//        //Resolve the service (return a Phalcon\Http\Request instance)
-//        $modelsManager = $modelsManagerService->resolve();
-//
-//        $result = $this->modelsManager->executeQuery("SELECT * FROM Campaigns");
-//        $test = 'sss';
-
-          $test=$this->get_last_cron_exec();
-
-        print_r($test);
-
-    }
-    public function post(){
-
-        $request_settings = array();
-        $request_data = array();
-
-        $request_data = $this->dispatcher->getParams();
-
-
-
-        // A raw SQL statement
-        $sql = "select md_campaigns.creative_show_rule as showRule, md_campaigns.campaign_id as campaignId, md_campaigns.campaign_priority as campaignPriority, md_campaigns.campaign_type campaignType, md_campaigns.campaign_networkid as campaignNetworkid from md_campaigns LEFT JOIN md_campaign_targeting c1 ON md_campaigns.campaign_id = c1.campaign_id LEFT JOIN md_campaign_targeting c2 ON md_campaigns.campaign_id = c2.campaign_id LEFT JOIN md_campaign_targeting c3 ON md_campaigns.campaign_id = c3.campaign_id LEFT JOIN md_ad_units ON md_campaigns.campaign_id = md_ad_units.campaign_id LEFT JOIN md_campaign_limit ON md_campaigns.campaign_id = md_campaign_limit.campaign_id where (md_campaigns.country_target=1 OR (c1.targeting_type='geo' AND (c1.targeting_code='CN' OR c1.targeting_code='CN_23'))) AND (md_campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code='4')) AND (md_campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code='85')) AND md_campaigns.campaign_status=1 AND md_campaigns.campaign_start<='2013-09-25' AND md_campaigns.campaign_end>='2013-09-25' AND (md_campaigns.device_target=1 OR md_campaigns.target_android=1 OR md_campaigns.target_android_phone=1)  AND (md_campaigns.device_target=1 OR md_campaigns.target_devices_desc is null OR md_campaigns.target_devices_desc ='' OR md_campaigns.target_devices_desc like '%ShowKey%')  AND ( md_campaigns.device_target=1 OR ((md_campaigns.android_version_min<=4.1 OR md_campaigns.android_version_min='') AND (md_campaigns.android_version_max>=4.1 OR md_campaigns.android_version_max=''))) AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='2013-09-25' AND md_ad_units.adv_end>='2013-09-25' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='interstitial')) AND (md_campaign_limit.total_amount_left='' OR md_campaign_limit.total_amount_left>=1) group by md_campaigns.campaign_id";
-
-        // Base model
-        $campaigns = new Campaigns();
-
-        // Execute the query
-        $result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
-
-        $data = array();
-        foreach ($result as $item) {
-            $data[] = array(
-                'showRule' => $item->showRule,
-                'campaignId' => $item->campaignId
-            );
-        }
-
-        return $this->respond($data);
-    }
-
     public function get(){
       $result = $this->handleAdRequest();
       return $this->respond($result);
@@ -160,10 +102,9 @@ class MDRequestController extends RESTController{
 
         }
 
-        //TODO: Unchecked MD Functions
-//        if (MAD_MAINTENANCE  ){
-//            noad();
-//        }
+       if (MAD_MAINTENANCE){
+           return $this->codeNoAds();
+       }
 
         if (!$this->check_input($request_settings, $errormessage)){
             //global $errormessage;
@@ -198,7 +139,7 @@ class MDRequestController extends RESTController{
         
         //处理试投放
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
-        $adv_id = $this->getCacheAdData($cacheKey);
+        $adv_id = $thlocalhostis->getCacheAdData($cacheKey);
         if($adv_id){
         	if (!$final_ad = $this->get_ad_unit($adv_id)){
         		return $this->codeNoAds();

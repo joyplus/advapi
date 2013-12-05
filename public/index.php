@@ -22,6 +22,7 @@ try {
     define('MAD_TRACK_UNIQUE_CLICKS', false); // Track only unique clicks. Works only if a caching method is enabled.
     define('MAD_CLICK_IMMEDIATE_REDIRECT', false); // Make the click handler redirect the end-user to the destination URL immediately and write the click to the statistic database in the background.
     define('CACHE_PREFIX', 'ADV_ZH');
+    define('MAD_MAINTENANCE', false); //设置true停止广告投放
 
 
     /**
@@ -272,8 +273,6 @@ try {
     $mdrequest->setPrefix('/v1/mdrequest');
     //Use the method 'indexAction' in ProductsController
     $mdrequest->get('/', 'get');
-    $mdrequest->post('/', 'post');
-    $mdrequest->put('/', 'put');
     $app->mount($mdrequest);
 
     //Mount MDRequest collection
