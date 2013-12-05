@@ -348,19 +348,19 @@ try {
     $app->handle();
 } catch (PDOException $e){
     $di->get("logger")->log($e->getMessage(), Logger::ERROR);
-    sendError(302);
+    sendError("42000");
 } catch (Phalcon\Db\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError(302);
+	sendError("42000");
 } catch (Phalcon\Mvc\Model\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError(302);
+	sendError("42000");
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError(500);
+	sendError("41000");
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError(500);
+	sendError("41000");
 }
 
 function sendError($code) {

@@ -178,7 +178,7 @@ class MDRequestController extends RESTController{
         else {
            // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
             $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-            $display_ad['code'] = 201;
+            $display_ad['code'] = "20001";
             //noad();
         }
 
@@ -199,23 +199,6 @@ class MDRequestController extends RESTController{
         return $display_ad;
     }
 
-    public function respond($results){
-//        if($this->isPartial){
-//            $newResults = array();
-//            $remove = array_diff(array_keys($this->exampleRecords[0]), $this->partialFields);
-//            foreach($results as $record){
-//                $newResults[] = $this->array_remove_keys($record, $remove);
-//            }
-//            $results = $newResults;
-//        }
-//        if($this->offset){
-//            $results = array_slice($results, $this->offset);
-//        }
-//        if($this->limit){
-//            $results = array_slice($results, 0, $this->limit);
-//        }
-        return $results;
-    }
 
     function check_input(&$request_settings, &$errormessage){
 

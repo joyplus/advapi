@@ -59,25 +59,7 @@ class RESTController extends BaseController{
 	 */
 	protected function respond($recordsArray){
 
-		if(!is_array($recordsArray)){
-			// This is bad.  Throw a 500.  Responses should always be arrays.
-			throw new HTTPException(
-				"An error occured while retrieving records.",
-				500,
-				array(
-					'dev' => 'The records returned were malformed.',
-					'internalCode' => 'RESP1000',
-					'more' => ''
-				)
-			);
-		}
-
-		// No records returned, so return an empty array
-		if(count($recordsArray) < 1){
-			return array();
-		}
-
-		return array($recordsArray);
+		return $recordsArray;
 
 	}
 
@@ -616,12 +598,12 @@ class RESTController extends BaseController{
     }
     
     function codeSuccess() {
-    	return array("code"=>200);
+    	return array("code"=>"00000");
     }
     function codeInputError() {
-    	return array("code"=>301);
+    	return array("code"=>"30001");
     }
     function codeNoAds() {
-    	return array("code"=>201);
+    	return array("code"=>"20001");
     }
 }

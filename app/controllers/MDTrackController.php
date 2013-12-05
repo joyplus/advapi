@@ -14,7 +14,7 @@ class MDTrackController extends RESTController{
 
     public function get(){
         $result = $this->handleImpression();
-        return $result;
+        return $this->respond($result);
     }
 
     private function handleImpression(){

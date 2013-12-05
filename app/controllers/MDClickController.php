@@ -7,7 +7,7 @@ Phalcon\Cache\Backend\Memcache;
 class MDClickController extends RESTController {
 	public function get() {
 		$result = $this->handleClick();
-		return $result;
+		return $this->respond($result);
 	}
 	
 	public function handleClick() {
