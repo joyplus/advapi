@@ -139,7 +139,7 @@ class MDRequestController extends RESTController{
         
         //处理试投放
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
-        $adv_id = $thlocalhostis->getCacheAdData($cacheKey);
+        $adv_id = $this->getCacheAdData($cacheKey);
         if($adv_id){
         	if (!$final_ad = $this->get_ad_unit($adv_id)){
         		return $this->codeNoAds();
