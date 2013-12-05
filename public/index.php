@@ -22,6 +22,7 @@ try {
     define('MAD_TRACK_UNIQUE_CLICKS', false); // Track only unique clicks. Works only if a caching method is enabled.
     define('MAD_CLICK_IMMEDIATE_REDIRECT', false); // Make the click handler redirect the end-user to the destination URL immediately and write the click to the statistic database in the background.
     define('CACHE_PREFIX', 'ADV_ZH');
+    define('MAD_MAINTENANCE', false); //设置true停止广告投放
 
 
     /**
@@ -133,6 +134,7 @@ try {
 
         $connection = new \Phalcon\Db\Adapter\Pdo\Mysql(array(
             "host" => $config->database->host,
+        	"port" => $config->database->port,
             "username" => $config->database->username,
             "password" => $config->database->password,
             "dbname" => $config->database->name,
@@ -271,8 +273,6 @@ try {
     $mdrequest->setPrefix('/v1/mdrequest');
     //Use the method 'indexAction' in ProductsController
     $mdrequest->get('/', 'get');
-    $mdrequest->post('/', 'post');
-    $mdrequest->put('/', 'put');
     $app->mount($mdrequest);
 
     //Mount MDRequest collection
@@ -346,19 +346,25 @@ try {
     });
 
     $app->handle();
+} catch (PDOException $e){
+    $di->get("logger")->log($e->getMessage(), Logger::ERROR);
+    sendError("42000");
+} catch (Phalcon\Db\Exception $e) {
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError("42000");
+} catch (Phalcon\Mvc\Model\Exception $e) {
+	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
+	sendError("42000");
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError();
-} catch (PDOException $e){
-	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError();
+	sendError("41000");
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError();
+	sendError("41000");
 }
 
-function sendError() {
-	$records = array("code"=>500);
+function sendError($code) {
+	$records = array("code"=>$code);
 	$response = new XMLResponse();
 	$response->send($records);
 }

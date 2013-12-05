@@ -59,25 +59,7 @@ class RESTController extends BaseController{
 	 */
 	protected function respond($recordsArray){
 
-		if(!is_array($recordsArray)){
-			// This is bad.  Throw a 500.  Responses should always be arrays.
-			throw new HTTPException(
-				"An error occured while retrieving records.",
-				500,
-				array(
-					'dev' => 'The records returned were malformed.',
-					'internalCode' => 'RESP1000',
-					'more' => ''
-				)
-			);
-		}
-
-		// No records returned, so return an empty array
-		if(count($recordsArray) < 1){
-			return array();
-		}
-
-		return array($recordsArray);
+		return $recordsArray;
 
 	}
 
@@ -438,7 +420,7 @@ class RESTController extends BaseController{
     		foreach($cities as $key=>$value) {
     			$pattern = "/^".$value."\.*/iu";
     			if(preg_match($pattern, $address))
-    				return array($key);
+    				return array($key, $key);
     		}
     		
     		foreach ($regions as $key=>$value) {
@@ -613,5 +595,15 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
     	return $ipAddr1;
+    }
+    
+    function codeSuccess() {
+    	return array("code"=>"00000");
+    }
+    function codeInputError() {
+    	return array("code"=>"30001");
+    }
+    function codeNoAds() {
+    	return array("code"=>"20001");
     }
 }
