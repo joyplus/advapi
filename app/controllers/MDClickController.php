@@ -13,6 +13,7 @@ class MDClickController extends RESTController {
 	public function handleClick() {
 		$data_c = $this->request->get("c");
 		$data_type = $this->request->get("type");
+		$data_h = $this->request->get("h",null,"");
 		if(!isset($data_c) or empty($data_c) or !isset($data_type))
 			return $this->codeInputError(); 
 		
@@ -56,20 +57,19 @@ class MDClickController extends RESTController {
 		$this->prepare_ip($request_settings);
 		$this->setGeo($request_settings);
 		
-		//TODO:MAD_TRACK_UNIQUE_CLICKS 缓存使用
-// 		$cache_key='click_'.$data['h'].'';
-// 		 if (MAD_TRACK_UNIQUE_CLICKS){
+		$cache_key= CACHE_PREFIX.$data_h;
+		 if (MAD_TRACK_UNIQUE_CLICKS){
 		
-// 			$cache_result=$this->get_cache($cache_key);
+			$cache_result=$this->getCacheDataValue($cacheKey);
 		
-// 			if ($cache_result && $cache_result==1){
-// 				return false;
-// 			}
-// 			else {
-// 				set_cache($cache_key, 1, 500);
-// 			}
+			if ($cache_result && $cache_result==1){
+				return $this->codeSuccess();
+			}
+			else {
+				$this->saveCacheDataValue($cacheKey, 1);
+			}
 		
-// 		} 
+		} 
 		$zone_id = $req->get("zone_id");
 		if (!is_numeric($zone_id)){
 			return false;
