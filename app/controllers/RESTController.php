@@ -438,7 +438,7 @@ class RESTController extends BaseController{
     		foreach($cities as $key=>$value) {
     			$pattern = "/^".$value."\.*/iu";
     			if(preg_match($pattern, $address))
-    				return array($key);
+    				return array($key, $key);
     		}
     		
     		foreach ($regions as $key=>$value) {
