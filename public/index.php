@@ -30,6 +30,8 @@ try {
 	 */
 	$config = new Phalcon\Config\Adapter\Ini(__DIR__ . '/../app/config/config.ini');
 
+	define('MD_CACHE_ENABLE',$config->cache->cacheEnable);
+	
 	$loader = new \Phalcon\Loader();
 
 	/**

@@ -148,7 +148,9 @@ class RESTController extends BaseController{
 		}
 	}
     function getCacheDataValue($cacheKey){
-
+		if(!MD_CACHE_ENABLE)
+			return false;
+		
         $cacheKey=md5($cacheKey);
 
         $resultget = $this->getDi()->get("cacheData")->get($cacheKey);
@@ -161,6 +163,9 @@ class RESTController extends BaseController{
     }
 
     function saveCacheDataValue($cacheKey, $cacheValue){
+    	if(!MD_CACHE_ENABLE)
+    		return false;
+    	
         $cacheKey=md5($cacheKey);
 
         $this->getDi()->get("cacheData")->save($cacheKey, $cacheValue);
