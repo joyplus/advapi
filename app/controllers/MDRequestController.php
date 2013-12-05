@@ -866,9 +866,12 @@ class MDRequestController extends RESTController{
                 	$display_ad['type']='open';
                 	$display_ad['animation']='none';
                 	
-                	$display_ad['creative-url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
-                	$display_ad['creative-url_2']=$this->get_creative_url($adUnit,"_2",$adUnit->adv_creative_extension_2);
-                	$display_ad['creative-url_3']=$this->get_creative_url($adUnit,"_3",$adUnit->adv_creative_extension_3);
+                	$server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
+                	if($server_detail) {
+                		$display_ad['creative-url']="".$server_detail->server_default_url."".$adUnit->unit_hash.".".$adUnit->adv_creative_extension;
+                		$display_ad['creative-url_2']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_2;
+                		$display_ad['creative-url_3']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_3;
+                	}
                 	$display_ad['interstitial-creative_res_url']=$url;
                 	
                 	break;
