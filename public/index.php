@@ -14,10 +14,6 @@ try {
     define('MAD_MAXMIND_DATAFILE_LOCATION', __DIR__ . '/../app/data/geotargeting/GeoLiteCity.dat');
     define('MAD_IGNORE_DAILYLIMIT_NOCRON', false); // Ignore a campaign's daily impression limit when the mAdserve cron was not executed for more than 24 hours.
 
-    define('MAD_ADSERVING_PROTOCOL', 'http://');
-    define('MAD_CLICK_HANDLER', 'v1/mdclick');
-    define('MAD_SERVER_HOST', 'localhost/advapi');//adkey.joyplus.tv
-    define('MAD_TRACK_HANDLER', 'v1/mdtrack');
     define('MAD_CLICK_ALWAYS_EXTERNAL', false);
     define('MAD_TRACK_UNIQUE_CLICKS', false); // Track only unique clicks. Works only if a caching method is enabled.
     define('MAD_CLICK_IMMEDIATE_REDIRECT', false); // Make the click handler redirect the end-user to the destination URL immediately and write the click to the statistic database in the background.
@@ -31,6 +27,11 @@ try {
 	$config = new Phalcon\Config\Adapter\Ini(__DIR__ . '/../app/config/config.ini');
 
 	define('MD_CACHE_ENABLE',$config->cache->cacheEnable);
+	define('MAD_ADSERVING_PROTOCOL', $config->application->serverprefix);
+	define('MAD_SERVER_HOST', $config->application->serverhost);//adkey.joyplus.tv
+	define('MAD_CLICK_HANDLER', $config->application->mdclick);
+	define('MAD_TRACK_HANDLER', $config->application->mdtrack);
+	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
 	
 	$loader = new \Phalcon\Loader();
 
@@ -188,17 +189,17 @@ try {
 		return $session;
 	});
 
-    $di->set('modelsCache', function() {
+    $di->set('modelsCache', function() use ($config) {
 
         //Cache data for one day by default
         $frontCache = new \Phalcon\Cache\Frontend\Data(array(
-            "lifetime" => 3600
+            "lifetime" => $config->cache->modelsLifetime
         ));
 
         //Memcached connection settings
         $cache = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
-            "host" => "localhost",
-            "port" => "11211"
+            "host" => $config->cache->memcachedServer,
+            "port" => $config->cache->memcachedPort
         ));
 
         return $cache;
@@ -272,7 +273,7 @@ try {
     //Set the main handler. ie. a controller instance
     $mdrequest->setHandler(new MDRequestController());
     //Set a common prefix for all routes
-    $mdrequest->setPrefix('/v1/mdrequest');
+    $mdrequest->setPrefix('/'.MAD_REQUEST_HANDLER);
     //Use the method 'indexAction' in ProductsController
     $mdrequest->get('/', 'get');
     $app->mount($mdrequest);
@@ -282,7 +283,7 @@ try {
     //Set the main handler. ie. a controller instance
     $mdtrack->setHandler(new MDTrackController());
     //Set a common prefix for all routes
-    $mdtrack->setPrefix('/v1/mdtrack');
+    $mdtrack->setPrefix('/'.MAD_TRACK_HANDLER);
     //Use the method 'indexAction' in ProductsController
     $mdtrack->get('/', 'get');
 
@@ -293,7 +294,7 @@ try {
     //Set the main handler. ie. a controller instance
     $mdclick->setHandler(new MDClickController());
     //Set a common prefix for all routes
-    $mdclick->setPrefix('/v1/mdclick');
+    $mdclick->setPrefix('/'.MAD_CLICK_HANDLER);
     //Use the method 'indexAction' in ProductsController
     $mdclick->get('/', 'get');
     
