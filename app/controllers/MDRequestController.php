@@ -1032,8 +1032,7 @@ class MDRequestController extends RESTController{
                     $base_ctr=$base_ctr . "&type=backfill&network_id=".$request_settings['network_id']."";
                     break;
             }
-
-            $base_ctr=$base_ctr . "&c=".strtr(base64_encode($this->get_destination_url()), '+/=', '-_,')."";
+            $base_ctr=$base_ctr . "&c=".strtr(base64_encode($this->get_destination_url($display_ad)), '+/=', '-_,')."";
 
             $display_ad['final_click_url']=$base_ctr;
         }
