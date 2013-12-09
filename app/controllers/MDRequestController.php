@@ -806,6 +806,29 @@ class MDRequestController extends RESTController{
                             break;
                     }
                     break;
+                case 'middle' :
+                	$display_ad['main_type']='display';
+                	
+                	$display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
+                	$display_ad['refresh']=$zone_detail->zone_refresh;
+                	$display_ad['width']=$zone_detail->adv_width;
+                	$display_ad['height']=$zone_detail->adv_height;
+                	if (MAD_CLICK_ALWAYS_EXTERNAL or $adUnit->adv_click_opentype=='external'){
+                		$display_ad['clicktype']='safari';
+                		$display_ad['skipoverlay']=0;
+                		$display_ad['skippreflight']='yes';
+                	}
+                	else {
+                		$display_ad['clicktype']='inapp';
+                		$display_ad['skipoverlay']=0;
+                		$display_ad['skippreflight']='no';
+                	}
+                	
+                	$display_ad['click_url']=$adUnit->adv_click_url;
+                	
+                	$display_ad['image_url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                	$display_ad['interstitial-creative_res_url']=$display_ad['image_url'];
+                	break;
 
                 case 'interstitial':
                 case 'mini_interstitial':
@@ -876,7 +899,6 @@ class MDRequestController extends RESTController{
                 	
                 	break;
                 case 'previous':
-                case 'middle':
                 case 'after':
                 	$display_ad['main_type']='interstitial';
                 	$display_ad['type']=$zone_detail->zone_type;
@@ -906,24 +928,9 @@ class MDRequestController extends RESTController{
                 	else {
                 		$tracking_pixel_html='';
                 	}
-                	
-                	switch ($adUnit->adv_type){
-                		case 1:
-                			$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension); //<a href="mfox:external:'.$content['adv_click_url'].'">
-                			$display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
+                	$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension); //<a href="mfox:external:'.$content['adv_click_url'].'">
+                	$display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
 <meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
-                			break;
-                	
-                		case 2:
-                			$display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
-<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$adUnit->adv_bannerurl).'</a>' . $tracking_pixel_html . '</div>';
-                			break;
-                	
-                		case 3:
-                			$display_ad['interstitial-content']=$adUnit->adv_chtml . $tracking_pixel_html;
-                			break;
-                	
-                	}
                 	
                 	break;
             }
