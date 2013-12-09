@@ -745,6 +745,7 @@ class MDRequestController extends RESTController{
 
             switch ($zone_detail->zone_type){
                 case 'banner':
+                case 'middle':
                     $display_ad['main_type']='display';
 
                     $display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
@@ -806,15 +807,20 @@ class MDRequestController extends RESTController{
                             break;
                     }
                     break;
-
                 case 'interstitial':
                 case 'mini_interstitial':
-                    if('mini_interstitial' ===$zone_detail->zone_type){
+                case 'previous':
+                case 'after':
+                    if('mini_interstitial'===$zone_detail->zone_type){
                         $display_ad['video-creative-width']=$zone_detail->zone_width;
                         $display_ad['video-creative-height']=$zone_detail->zone_height;
                     }
                     $display_ad['main_type']='interstitial';
-                    $display_ad['type']='interstitial';
+                    if($zone_detail->zone_type=='interstitial' || $zone_detail->zone_type=='mini_interstitial'){
+                    	$display_ad['type']='interstitial';
+                    }else{
+                    	$display_ad['type']=$zone_detail->zone_type;
+                    }
                     $display_ad['animation']='none';
                     $display_ad['interstitial-orientation']='portrait';
                     $display_ad['interstitial-preload']=0;
@@ -875,6 +881,7 @@ class MDRequestController extends RESTController{
                 	$display_ad['interstitial-creative_res_url']=$url;
                 	
                 	break;
+                
             }
 
             return true;
