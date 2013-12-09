@@ -745,6 +745,7 @@ class MDRequestController extends RESTController{
 
             switch ($zone_detail->zone_type){
                 case 'banner':
+                case 'middle':
                     $display_ad['main_type']='display';
 
                     $display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
@@ -806,38 +807,20 @@ class MDRequestController extends RESTController{
                             break;
                     }
                     break;
-                case 'middle' :
-                	$display_ad['main_type']='display';
-                	$display_ad['type'] = 'middle';
-                	$display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
-                	$display_ad['refresh']=$zone_detail->zone_refresh;
-                	$display_ad['width']=$zone_detail->adv_width;
-                	$display_ad['height']=$zone_detail->adv_height;
-                	if (MAD_CLICK_ALWAYS_EXTERNAL or $adUnit->adv_click_opentype=='external'){
-                		$display_ad['clicktype']='safari';
-                		$display_ad['skipoverlay']=0;
-                		$display_ad['skippreflight']='yes';
-                	}
-                	else {
-                		$display_ad['clicktype']='inapp';
-                		$display_ad['skipoverlay']=0;
-                		$display_ad['skippreflight']='no';
-                	}
-                	
-                	$display_ad['click_url']=$adUnit->adv_click_url;
-                	
-                	$display_ad['image_url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
-                	$display_ad['interstitial-creative_res_url']=$display_ad['image_url'];
-                	break;
-
                 case 'interstitial':
                 case 'mini_interstitial':
-                    if('mini_interstitial' ===$zone_detail->zone_type){
+                case 'previous':
+                case 'after':
+                    if('mini_interstitial'===$zone_detail->zone_type){
                         $display_ad['video-creative-width']=$zone_detail->zone_width;
                         $display_ad['video-creative-height']=$zone_detail->zone_height;
                     }
                     $display_ad['main_type']='interstitial';
-                    $display_ad['type']='interstitial';
+                    if($zone_detail->zone_type=='interstitial' || $zone_detail->zone_type=='mini_interstitial'){
+                    	$display_ad['type']='interstitial';
+                    }else{
+                    	$display_ad['type']=$zone_detail->zone_type;
+                    }
                     $display_ad['animation']='none';
                     $display_ad['interstitial-orientation']='portrait';
                     $display_ad['interstitial-preload']=0;
@@ -898,41 +881,7 @@ class MDRequestController extends RESTController{
                 	$display_ad['interstitial-creative_res_url']=$url;
                 	
                 	break;
-                case 'previous':
-                case 'after':
-                	$display_ad['main_type']='interstitial';
-                	$display_ad['type']=$zone_detail->zone_type;
-                	$display_ad['animation']='none';
-                	$display_ad['interstitial-orientation']='portrait';
-                	$display_ad['interstitial-preload']=0;
-                	$display_ad['interstitial-autoclose']=0;
-                	$display_ad['interstitial-type']='markup';
-                	$display_ad['interstitial-skipbutton-show']=1;
-                	$display_ad['interstitial-skipbutton-showafter']=0;
-                	$display_ad['interstitial-navigation-show']=0;
-                	$display_ad['interstitial-navigation-topbar-show']=0;
-                	$display_ad['interstitial-navigation-bottombar-show']=0;
-                	$display_ad['interstitial-navigation-topbar-custombg']='';
-                	$display_ad['interstitial-navigation-bottombar-custombg']='';
-                	$display_ad['interstitial-navigation-topbar-titletype']='fixed';
-                	$display_ad['interstitial-navigation-topbar-titlecontent']='';
-                	$display_ad['interstitial-navigation-bottombar-backbutton']=0;
-                	$display_ad['interstitial-navigation-bottombar-forwardbutton']=0;
-                	$display_ad['interstitial-navigation-bottombar-reloadbutton']=0;
-                	$display_ad['interstitial-navigation-bottombar-externalbutton']=0;
-                	$display_ad['interstitial-navigation-bottombar-timer']=0;
-                	
-                	if (!empty($adUnit->adv_impression_tracking_url)){
-                		$tracking_pixel_html=$this->generate_trackingpixel($adUnit->adv_impression_tracking_url);
-                	}
-                	else {
-                		$tracking_pixel_html='';
-                	}
-                	$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension); //<a href="mfox:external:'.$content['adv_click_url'].'">
-                	$display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
-<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
-                	
-                	break;
+                
             }
 
             return true;

@@ -42,12 +42,10 @@ class XMLResponse extends Response{
             switch ($display_ad['response_type']){
 
                 case 'xml':
-                    if ($display_ad['type']=='mraid-markup'){
-                        $response.= "<request type=\"mraidAd\">";
-                    } else if($display_ad['type']=='mraid-markup') {
-                    	$response.= "<request type=\"middle\">";
-                    }else {
+                    if ($display_ad['type']!='mraid-markup'){
                         $response.="<request type=\"textAd\">";
+                    } else {
+                        $response.= "<request type=\"mraidAd\">";
                     }
                     $response.= "<htmlString skipoverlaybutton=\"".$display_ad['skipoverlay']."\"><![CDATA[";
                     $response.= $display_ad['final_markup'];
