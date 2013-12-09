@@ -89,7 +89,7 @@ class XMLResponse extends Response{
         else if ($display_ad['main_type']=='interstitial'){
             $response.= '<ad type="'.$this->convert_interstitial_name($display_ad['type']).'" animation="'.$display_ad['animation'].'">';
 
-            if ($display_ad['type']=='interstitial' or $display_ad['type']=='video-interstitial' or $display_ad['type']=='interstitial-video'){
+            if ($display_ad['type']=='interstitial' or $display_ad['type']=='video-interstitial' or $display_ad['type']=='interstitial-video' or $display_ad['type']=='previous' or $display_ad['type']=='middle' or $display_ad['type']=='after'){
                 if ($display_ad['interstitial-type']=='markup'){$interstitial_urlcontent=''; } else {$interstitial_urlcontent='url="'.htmlspecialchars($display_ad['interstitial-content']).'"';}
 
                 $response.= '<interstitial preload="'.$display_ad['interstitial-preload'].'" autoclose="'.$display_ad['interstitial-autoclose'].'" type="'.$display_ad['interstitial-type'].'" '.$interstitial_urlcontent.' orientation="'.$display_ad['interstitial-orientation'].'">';
@@ -170,6 +170,7 @@ class XMLResponse extends Response{
 
 
             }
+            
 
             $response.= "</ad>";
 
@@ -200,7 +201,10 @@ class XMLResponse extends Response{
                 return 'video-to-interstitial';
                 break;
             case 'open':
-            	return 'open';
+            case 'previous':
+            case 'middle':
+            case 'after':
+            	return $input;
             	break;
             		
 

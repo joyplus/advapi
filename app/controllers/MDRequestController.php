@@ -875,6 +875,57 @@ class MDRequestController extends RESTController{
                 	$display_ad['interstitial-creative_res_url']=$url;
                 	
                 	break;
+                case 'previous':
+                case 'middle':
+                case 'after':
+                	$display_ad['main_type']='interstitial';
+                	$display_ad['type']=$zone_detail->zone_type;
+                	$display_ad['animation']='none';
+                	$display_ad['interstitial-orientation']='portrait';
+                	$display_ad['interstitial-preload']=0;
+                	$display_ad['interstitial-autoclose']=0;
+                	$display_ad['interstitial-type']='markup';
+                	$display_ad['interstitial-skipbutton-show']=1;
+                	$display_ad['interstitial-skipbutton-showafter']=0;
+                	$display_ad['interstitial-navigation-show']=0;
+                	$display_ad['interstitial-navigation-topbar-show']=0;
+                	$display_ad['interstitial-navigation-bottombar-show']=0;
+                	$display_ad['interstitial-navigation-topbar-custombg']='';
+                	$display_ad['interstitial-navigation-bottombar-custombg']='';
+                	$display_ad['interstitial-navigation-topbar-titletype']='fixed';
+                	$display_ad['interstitial-navigation-topbar-titlecontent']='';
+                	$display_ad['interstitial-navigation-bottombar-backbutton']=0;
+                	$display_ad['interstitial-navigation-bottombar-forwardbutton']=0;
+                	$display_ad['interstitial-navigation-bottombar-reloadbutton']=0;
+                	$display_ad['interstitial-navigation-bottombar-externalbutton']=0;
+                	$display_ad['interstitial-navigation-bottombar-timer']=0;
+                	
+                	if (!empty($adUnit->adv_impression_tracking_url)){
+                		$tracking_pixel_html=$this->generate_trackingpixel($adUnit->adv_impression_tracking_url);
+                	}
+                	else {
+                		$tracking_pixel_html='';
+                	}
+                	
+                	switch ($adUnit->adv_type){
+                		case 1:
+                			$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension); //<a href="mfox:external:'.$content['adv_click_url'].'">
+                			$display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
+<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
+                			break;
+                	
+                		case 2:
+                			$display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
+<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$adUnit->adv_bannerurl).'</a>' . $tracking_pixel_html . '</div>';
+                			break;
+                	
+                		case 3:
+                			$display_ad['interstitial-content']=$adUnit->adv_chtml . $tracking_pixel_html;
+                			break;
+                	
+                	}
+                	
+                	break;
             }
 
             return true;
