@@ -808,7 +808,7 @@ class MDRequestController extends RESTController{
                     break;
                 case 'middle' :
                 	$display_ad['main_type']='display';
-                	
+                	$display_ad['type'] = 'middle';
                 	$display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
                 	$display_ad['refresh']=$zone_detail->zone_refresh;
                 	$display_ad['width']=$zone_detail->adv_width;
