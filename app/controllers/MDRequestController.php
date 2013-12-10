@@ -736,6 +736,11 @@ class MDRequestController extends RESTController{
     }
 
     private function build_ad(&$display_ad, $zone_detail, $type, $adUnit){
+    	if($adUnit->adv_type==3) {
+    		$display_ad['add_impression'] = true;
+    	} else {
+    		$display_ad['add_impression'] = false;
+    	}
 
         if ($type==1){
             $display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;

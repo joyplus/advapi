@@ -291,8 +291,6 @@ class RESTController extends BaseController{
 
         //$reporting = $resultSet->getFirst();
 
-        $add_impression=0;
-
         //TODO Moved to handler class
 //        $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST . rtrim(dirname($_SERVER['PHP_SELF']), '/')."/".MAD_TRACK_HANDLER."?publication_id=".$publication_id."&zone_id=".$zone_id."&network_id=".$network_id."&campaign_id=".$campaign_id."&ad_id=".$creative_id."&h=".$request_settings['request_hash']."";
 //        $display_ad['final_impression_url']=$base_ctr;
@@ -303,7 +301,6 @@ class RESTController extends BaseController{
             $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
             $reporting->total_impressions = $reporting->total_impressions + $add_impression;
             $reporting->total_clicks = $reporting->total_clicks + $add_click;
-            $reporting->total_impressions = $reporting->total_impressions + $add_impression;
             $result = $reporting->update();
         }
         else {
@@ -343,7 +340,9 @@ class RESTController extends BaseController{
     function track_request(&$request_settings, $zone_detail, &$display_ad, $impression){
 
         if (!isset($request_settings['active_campaign_type'])){$request_settings['active_campaign_type']='';}
-
+        if($display_ad['add_impression']){
+        	$impression = 1;
+        }
         switch ($request_settings['active_campaign_type']){
             case 'normal':
                 $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $display_ad['campaign_id'], $display_ad['ad_id'], '', 1, 0, $impression, 0);
@@ -362,16 +361,16 @@ class RESTController extends BaseController{
                 break;
         }
 
-        if ($impression>1){
+        if ($impression>0){
             /*Deduct Impression from Limit Card*/
             switch ($request_settings['active_campaign_type']){
 
                 case 'normal':
-                    $this->deduct_impression_num($display_ad['campaign_id'], impression);
+                    $this->deduct_impression_num($display_ad['campaign_id'], $impression);
                     break;
 
                 case 'network':
-                    $this->deduct_impression_num($request_settings['active_campaign'], impression);
+                    $this->deduct_impression_num($request_settings['active_campaign'], $impression);
                     break;
 
             }
