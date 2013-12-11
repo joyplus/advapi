@@ -176,25 +176,9 @@ class MDRequestController extends RESTController{
             $display_ad['final_impression_url']=$base_ctr;
         }
         else {
-           // $mDManager->track_request($request_settings, $zone_detail, $display_ad, 0);
             $this->track_request($request_settings, $zone_detail, $display_ad, 0);
             $display_ad['code'] = "20001";
-            //noad();
         }
-
-        //TODO It's not needed, xml response for all.
-        //force();
-
-        //TODO setup xml header, moved to response process
-        //prepare_response();
-        //TODO setup ad content, moved to response process
-        //print_ad();
-
-        //Final test need be removed
-//        $test_response = array();
-//        $test_response[0] = $request_data;
-//        $test_response[1] = $request_settings;
-//        $test_response[2] = $zone_detail;
 
         return $display_ad;
     }
@@ -595,7 +579,7 @@ class MDRequestController extends RESTController{
 //                }
             }
             else {
-                if ($this->select_ad_unit($display_ad, $zone_detail, $request_settings, $campaign_detail['campaign_id'])){
+                if ($this->select_ad_unit($display_ad, $zone_detail, $request_settings, $campaign_detail)){
                     $request_settings['active_campaign_type']='normal';
                     $request_settings['active_campaign']=$campaign_detail['campaign_id'];
                     return true;
@@ -637,8 +621,7 @@ class MDRequestController extends RESTController{
         
         $query_param = array(
         		"conditions" => $conditions,
-        		"bind" => $params,
-        		"order" => "adv_width DESC, adv_height DESC"
+        		"bind" => $params
         );
 
         //global $repdb_connected,$display_ad;
@@ -653,7 +636,8 @@ class MDRequestController extends RESTController{
         foreach ($adUnits as $item) {
             $add = array('ad_id'=>$item->adv_id,
                 'width'=>$item->adv_width,
-                'height'=>$item->adv_height
+                'height'=>$item->adv_height,
+            	'weight'=>$item->creative_weight
             );
             $adarray[] = $add;
         }
@@ -667,40 +651,33 @@ class MDRequestController extends RESTController{
             return false;
         }
 
-
-        /*foreach ($adarray as $key => $row) {
-         $ad_id[$key]  = $row['ad_id'];
-         $width[$key] = $row['width'];
-         $height[$key] = $row['height'];
-         }*/
-
-        // Sort the data with volume descending, edition ascending
-        // Add $data as the last parameter, to sort by the common key
-        //array_multisort($width, SORT_DESC, $adarray);
-
-//        $highest_height=$adarray[0]['height'];
-//        $highest_width=$adarray[0]['width'];
-
-
-//        $val = removeElementWithValue2($adarray, "height", $highest_height, "width", $highest_width);
-//
-//        set_cache($query, $val, 100);
-
         return $adarray;
 
     }
 
-    private function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_id){
+    private function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
 
-        if (!$ad_unit_array = $this->select_adunit_query($zone_detail, $campaign_id)){
+        if (!$ad_unit_array = $this->select_adunit_query($zone_detail, $campaign_detail['campaign_id'])){
             return false;
         }
 
-        shuffle($ad_unit_array);
+        if($campaign_detail['creative_show_rule']==1){ //创意随机排序
+        	shuffle($ad_unit_array);
+        	$ad_id = $ad_unit_array[0]['ad_id'];
+        }else if($campaign_detail['creative_show_rule']==2){ //创意顺序排序
+        	$ad_id = $ad_unit_array[0]['ad_id'];
+        }else if($campaign_detail['creative_show_rule']==3){ //创意权重排序
+        	foreach ($ad_unit_array as $key=>$value) {
+        		$ad_weight[$key] = $value['weight'];
+        	}
+        	array_multisort($ad_weight, SORT_DESC, $ad_unit_array);
+        	$ad_id = $ad_unit_array[0]['ad_id'];
+        }
+        
 
         //writetofile("request.log",'ad_unit_array result: '.json_encode($ad_unit_array));
 
-        if (!$final_ad = $this->get_ad_unit($ad_unit_array[0]['ad_id'])){
+        if (!$final_ad = $this->get_ad_unit($ad_id)){
             return false;
         }
         //writetofile("request.log",'final_ad  result: '.json_encode($final_ad));
