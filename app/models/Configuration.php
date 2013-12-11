@@ -6,7 +6,7 @@
  * Time: 下午4:33
  */
 
-class Configuration extends Base
+class Configuration extends BaseModel
 {
 	public $entry_id;
 	public $var_name;

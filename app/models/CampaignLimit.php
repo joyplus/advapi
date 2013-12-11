@@ -6,7 +6,7 @@
  * Time: 下午5:56
  */
 
-class CampaignLimit extends Base
+class CampaignLimit extends BaseModel
 {
 	public $entry_id;
 	public $campaign_id;

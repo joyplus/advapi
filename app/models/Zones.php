@@ -5,7 +5,7 @@
  * Date: 13-11-5
  * Time: 上午11:45
  */
-class Zones extends Base
+class Zones extends BaseModel
 {
 	public $entry_id;
 	public $publication_id;

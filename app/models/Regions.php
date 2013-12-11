@@ -1,6 +1,6 @@
 <?php
 
-class Regions extends Base
+class Regions extends BaseModel
 {
 	public $entry_id;
 	public $targeting_code;

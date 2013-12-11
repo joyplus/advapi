@@ -6,7 +6,7 @@
  * Time: 下午3:39
  */
 
-class CreativeServers extends Base
+class CreativeServers extends BaseModel
 {
 	public $entry_id;
 	public $server_type;

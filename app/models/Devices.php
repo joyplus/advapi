@@ -1,6 +1,6 @@
 <?php
 
-class Devices extends Base
+class Devices extends BaseModel
 {
 	public $device_id;
 	public $device_type;

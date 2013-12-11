@@ -591,10 +591,10 @@ class MDRequestController extends RESTController{
     }
 
 
-    private function select_adunit_query($zone_detail, $campaign_id){
+    private function select_adunit_query($zone_detail, $campaign_detail){
     	$params = array();
 		$conditions = "campaign_id = :campaign_id:";
-		$params['campaign_id'] = $campaign_id;
+		$params['campaign_id'] = $campaign_detail['campaign_id'];
 		
 		$conditions .= " AND adv_start<= :adv_start:";
 		$params['adv_start'] = date("Y-m-d");
@@ -618,10 +618,15 @@ class MDRequestController extends RESTController{
                 $params['adv_height'] = $zone_detail->zone_height;
                 break; 
         }
-        
+        //创意顺序排序
+        $order = "adv_id";
+        if($campaign_detail['creative_show_rule']==3){ //创意权重排序
+        	$order = "creative_weight DESC";
+        }
         $query_param = array(
         		"conditions" => $conditions,
-        		"bind" => $params
+        		"bind" => $params,
+        		"order"=>$order
         );
 
         //global $repdb_connected,$display_ad;
@@ -657,20 +662,14 @@ class MDRequestController extends RESTController{
 
     private function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
 
-        if (!$ad_unit_array = $this->select_adunit_query($zone_detail, $campaign_detail['campaign_id'])){
+        if (!$ad_unit_array = $this->select_adunit_query($zone_detail, $campaign_detail)){
             return false;
         }
 
         if($campaign_detail['creative_show_rule']==1){ //创意随机排序
         	shuffle($ad_unit_array);
         	$ad_id = $ad_unit_array[0]['ad_id'];
-        }else if($campaign_detail['creative_show_rule']==2){ //创意顺序排序
-        	$ad_id = $ad_unit_array[0]['ad_id'];
-        }else if($campaign_detail['creative_show_rule']==3){ //创意权重排序
-        	foreach ($ad_unit_array as $key=>$value) {
-        		$ad_weight[$key] = $value['weight'];
-        	}
-        	array_multisort($ad_weight, SORT_DESC, $ad_unit_array);
+        }else{
         	$ad_id = $ad_unit_array[0]['ad_id'];
         }
         

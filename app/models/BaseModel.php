@@ -1,5 +1,5 @@
 <?php
-class Base extends \Phalcon\Mvc\Model {
+class BaseModel extends \Phalcon\Mvc\Model {
 	
 	public function selectReadConnection($intermediate, $bindParams, $bindTypes) {
     	if(MD_SLAVE_NUM == 0)

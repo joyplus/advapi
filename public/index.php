@@ -93,7 +93,7 @@ try {
 				$logger->log($connection->getSQLStatement(), Logger::INFO);
 			}
 		});
-		$master =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
+		$slave =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
 				"host" => $config->slave->host,
 				"port" => $config->slave->port,
 				"username" => $config->slave->username,
@@ -101,8 +101,8 @@ try {
 				"dbname" => $config->slave->name,
 				"charset" => $config->slave->charset
 		));
-		$master->setEventsManager($eventsManager);
-		return $master;
+		$slave->setEventsManager($eventsManager);
+		return $slave;
 	});
 	for ($i=1; $i<=MD_SLAVE_NUM; $i++) {
 		$s = "slave$i";
@@ -144,9 +144,6 @@ try {
         });
     }
 
-    $di->set('modelsManager', function() {
-    	return new Phalcon\Mvc\Model\Manager();
-    });
 	/**
 	 * If the configuration specify the use of metadata adapter use it or use memory otherwise
 	 */

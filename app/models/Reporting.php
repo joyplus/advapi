@@ -6,7 +6,7 @@
  * Time: 下午5:32
  */
 
-class Reporting extends Base
+class Reporting extends BaseModel
 {
 	public $entry_id;
 	public $type;

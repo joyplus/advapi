@@ -6,7 +6,7 @@
  * Time: 下午1:58
  */
 
-class Publications extends Base
+class Publications extends BaseModel
 {
 	public $inv_id;
 	public $creator_id;

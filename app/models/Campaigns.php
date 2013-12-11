@@ -6,7 +6,7 @@
  * Time: 下午1:05
  */
 
-class Campaigns extends Base
+class Campaigns extends BaseModel
 {
 	public $campaign_id;
 	public $campaign_owner;

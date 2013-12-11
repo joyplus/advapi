@@ -6,7 +6,7 @@
  * Time: 上午11:20
  */
 
-class AdUnits extends Base
+class AdUnits extends BaseModel
 {
 	public $adv_id;
 	public $campaign_id;
