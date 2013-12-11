@@ -1,6 +1,6 @@
 <?php
 
-class Regions extends \Phalcon\Mvc\Model
+class Regions extends Base
 {
 	public $entry_id;
 	public $targeting_code;
@@ -19,6 +19,8 @@ class Regions extends \Phalcon\Mvc\Model
     }
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
 }

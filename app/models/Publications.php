@@ -6,7 +6,7 @@
  * Time: 下午1:58
  */
 
-class Publications extends \Phalcon\Mvc\Model
+class Publications extends Base
 {
 	public $inv_id;
 	public $creator_id;
@@ -19,6 +19,8 @@ class Publications extends \Phalcon\Mvc\Model
 	public $md_lastrequest;
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
 

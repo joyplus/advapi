@@ -5,7 +5,7 @@
  * Date: 13-11-5
  * Time: 上午11:45
  */
-class Zones extends \Phalcon\Mvc\Model
+class Zones extends Base
 {
 	public $entry_id;
 	public $publication_id;
@@ -27,6 +27,8 @@ class Zones extends \Phalcon\Mvc\Model
 	public $backfill_alt_3;
 	
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
 

@@ -6,7 +6,7 @@
  * Time: 下午5:56
  */
 
-class CampaignLimit extends \Phalcon\Mvc\Model
+class CampaignLimit extends Base
 {
 	public $entry_id;
 	public $campaign_id;
@@ -21,6 +21,8 @@ class CampaignLimit extends \Phalcon\Mvc\Model
     }
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
         $this->skipAttributes(array('campaign_id', 'cap_type', 'total_amount', 'last_refresh', 'date', 'hours'));
     }
