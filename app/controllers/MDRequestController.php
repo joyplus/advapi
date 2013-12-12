@@ -148,9 +148,9 @@ class MDRequestController extends RESTController{
         		return $this->codeNoAds();
         	}
         }else{
-	        $this->build_query($request_settings, $zone_detail);
+	        $this->buildQuery($request_settings, $zone_detail);
 	
-	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_query'])){
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_conditions'], $request_settings['campaign_params'])){
 	
 	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
 	
@@ -300,158 +300,106 @@ class MDRequestController extends RESTController{
     }
 
 
-
-    function build_query(&$request_settings, $zone_detail){
-
-        if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
-            $query_part['geo']=" OR (c1.targeting_type='geo' AND (c1.targeting_code='".$request_settings['province_code']."' OR c1.targeting_code='".$request_settings['city_code']."')))";
-        }
-        else if (isset($request_settings['province_code']) && !empty($request_settings['province_code'])){
-            $query_part['geo']=" OR (c1.targeting_type='geo' AND c1.targeting_code='".$request_settings['province_code']."'))";
-        }
-        else {
-            $query_part['geo']=')';
-        }
-
-        if (isset($request_settings['channel']) && is_numeric($request_settings['channel'])){
-            $query_part['channel']="AND (md_campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code='".$request_settings['channel']."'))";
-        }
-        else {
-            $query_part['channel']='';
-        }
-
-        $query_part['placement']="AND (md_campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code='".$zone_detail->entry_id."'))";
-
-        if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
-        	$query_part['pattern'] = "AND (md_campaigns.pattern_target=1 OR (c4.targeting_type='pattern' AND c4.targeting_code='".$request_settings['pattern']."'))";
-        }else{
-        	$query_part['pattern'] = '';
-        }
-        
-        if(isset($request_settings['device_type']) && is_numeric($request_settings['device_type'])) {
-        	$query_part['device_type'] = "AND (md_campaigns.device_type_target=1 OR (c5.targeting_type='device_type' AND c5.targeting_code='".$request_settings['device_type']."'))";
-        }else{
-        	$query_part['device_type'] = '';
-        }
-        
-        if(isset($request_settings['device_brand']) && is_numeric($request_settings['device_brand'])) {
-        	$query_part['device_brand'] = "AND (md_campaigns.brand_target=1 OR (c6.targeting_type='device_brand' AND c6.targeting_code='".$request_settings['device_brand']."'))";
-        }else{
-        	$query_part['device_brand'] = '';
-        }
-        
-        if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
-        	$query_part['device_quality'] = "AND (md_campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code='".$request_settings['device_quality']."'))";
-        }else{
-        	$query_part['device_quality'] = '';
-        }
-        
-        if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type'])) {
-        	$query_part['video_type'] = "AND (md_campaigns.video_target=1 OR (c8.targeting_type='video' AND c8.targeting_code='".$request_settings['video_type']."'))";
-        }else{
-        	$query_part['video_type'] = '';
-        }
-        $query_part['misc']="AND md_campaigns.campaign_status=1 AND md_campaigns.campaign_start<='".date("Y-m-d")."' AND md_campaigns.campaign_end>='".date("Y-m-d")."'";
-
-        //Only Serve TV
-//        switch ($request_settings['main_device']){
-//
-//            case 'IPHONE':
-//                $query_part['device']='AND (md_campaigns.device_target=1 OR md_campaigns.target_iphone=1)';
-//                break;
-//
-//            case 'IPOD':
-//                $query_part['device']='AND (md_campaigns.device_target=1 OR md_campaigns.target_ipod=1)';
-//                break;
-//
-//            case 'IPAD':
-//                $query_part['device']='AND (md_campaigns.device_target=1 OR md_campaigns.target_ipad=1)';
-//                break;
-//
-//            case 'ANDROID':
-//                $query_part['device']='AND (md_campaigns.device_target=1 OR md_campaigns.target_android=1 OR md_campaigns.target_android_phone=1)';
-//                break;
-//
-//            default:
-//                $query_part['device']='AND (md_campaigns.device_target=1 OR md_campaigns.target_other=1)';
-//                break;
-//        }
-        $query_part['device'] = '';
-
-//        if (isset($request_settings['device_name']) && !empty($request_settings['device_name'])){
-//            $query_part['device_name']=" AND (md_campaigns.device_target=1 OR md_campaigns.target_devices_desc is null OR md_campaigns.target_devices_desc = '' OR md_campaigns.target_devices_desc ＝ '".$request_settings['device_name']."'";
-//        }else {
-//            $query_part['device_name']='';
-//        }
-
-        $query_part['device_name']='';
-//        if ($request_settings['main_device']!='OTHER' && $request_settings['main_device']!='NOMOBILE'){
-//            switch ($request_settings['main_device']){
-//
-//                case 'IPHONE':
-//                case 'IPOD':
-//                case 'IPAD':
-//                    if (isset($request_settings['device_os']) && !empty($request_settings['device_os'])){
-//                        $query_part['osversion']="AND ( md_campaigns.device_target=1 OR ( (md_campaigns.ios_version_min<=".$request_settings['device_os']." OR md_campaigns.ios_version_min='') AND (md_campaigns.ios_version_max>=".$request_settings['device_os']." OR md_campaigns.ios_version_max='')))";
-//                    }
-//                    else {
-//                        $query_part['osversion']="AND ( md_campaigns.device_target=1 OR (md_campaigns.ios_version_min='' AND md_campaigns.ios_version_max=''))";
-//                    }
-//                    break;
-//
-//                case 'ANDROID':
-//                    if (isset($request_settings['device_os']) && !empty($request_settings['device_os'])){
-//                        $query_part['osversion']="AND ( md_campaigns.device_target=1 OR ((md_campaigns.android_version_min<=".$request_settings['device_os']." OR md_campaigns.android_version_min='') AND (md_campaigns.android_version_max>=".$request_settings['device_os']." OR md_campaigns.android_version_max='')))";
-//                    }
-//                    else {
-//                        $query_part['osversion']="AND (md_campaigns.device_target=1 OR  (md_campaigns.android_version_min='' AND md_campaigns.android_version_max=''))";
-//                    }
-//                    break;
-//
-//            }
-//        }
-//        else {
-//            $query_part['osversion']="";
-//        }
-
-        $query_part['osversion']="";
-
-        switch ($zone_detail->zone_type){
-            case 'banner':
-                $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='banner' AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
-                break;
-
-            case 'interstitial':
-            case 'mini_interstitial':
-                $query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='interstitial'))";
-                break;
-            case 'open':
-            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='open'))";
-            	break;
-            case 'previous':
-            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='previous'))";
-            	break;
-            case 'middle':
-            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='middle' AND md_ad_units.adv_width=".$zone_detail->zone_width." AND md_ad_units.adv_height=".$zone_detail->zone_height."))";
-            	break;
-            case 'after':
-            	$query_part['adunit']="AND (md_campaigns.campaign_type='network' OR (md_ad_units.adv_start<='".date("Y-m-d")."' AND md_ad_units.adv_end>='".date("Y-m-d")."' and  md_ad_units.adv_status=1 AND md_ad_units.creative_unit_type='after'))";
-            	break;
-        }
-
-        $query_part['limit']="AND (md_campaign_limit.total_amount_left='' OR md_campaign_limit.total_amount_left>=1)";
-
-        if (MAD_IGNORE_DAILYLIMIT_NOCRON && !$this->check_cron_active()){
-            $query_part['limit']="AND ((md_campaign_limit.total_amount_left='' OR md_campaign_limit.total_amount_left>=1) OR (md_campaign_limit.cap_type=1))";
-        }
-
-        $where = $query_part['geo']." ".$query_part['channel']." ".$query_part['placement']." ".$query_part['pattern']." ".$query_part['device_type']." ".$query_part['device_brand']." ".$query_part['device_quality']." ".$query_part['video_type']." ".$query_part['misc']." ".$query_part['device']." ".$query_part['device_name']." ".$query_part['osversion']." ".$query_part['adunit']." ".$query_part['limit']." group by md_campaigns.campaign_id";
-        $select_sql = "select md_campaigns.creative_show_rule, md_campaigns.campaign_id, md_campaigns.campaign_priority, md_campaigns.campaign_type, md_campaigns.campaign_networkid from md_campaigns LEFT JOIN md_campaign_targeting c1 ON md_campaigns.campaign_id = c1.campaign_id LEFT JOIN md_campaign_targeting c2 ON md_campaigns.campaign_id = c2.campaign_id LEFT JOIN md_campaign_targeting c3 ON md_campaigns.campaign_id = c3.campaign_id LEFT JOIN md_campaign_targeting c4 ON md_campaigns.campaign_id = c4.campaign_id LEFT JOIN md_campaign_targeting c5 ON md_campaigns.campaign_id = c5.campaign_id LEFT JOIN md_campaign_targeting c6 ON md_campaigns.campaign_id = c6.campaign_id LEFT JOIN md_campaign_targeting c7 ON md_campaigns.campaign_id = c7.campaign_id LEFT JOIN md_campaign_targeting c8 ON md_campaigns.campaign_id = c8.campaign_id LEFT JOIN md_ad_units ON md_campaigns.campaign_id = md_ad_units.campaign_id LEFT JOIN md_campaign_limit ON md_campaigns.campaign_id = md_campaign_limit.campaign_id where (md_campaigns.country_target=1";
-        $request_settings['campaign_query']=$select_sql.$where;
-
-
-        return true;
-
+    function buildQuery(&$request_settings, $zone_detail){
+    	$conditions = ' (Campaigns.country_target=1';
+    	$params = array();
+    	if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
+    		$conditions .= " OR (c1.targeting_type='geo' AND (c1.targeting_code=:province_code: OR c1.targeting_code=:city_code:)))";
+    		$params['province_code'] = $request_settings['province_code'];
+    		$params['city_code'] = $request_settings['city_code'];
+    	}
+    	else if (isset($request_settings['province_code']) && !empty($request_settings['province_code'])){
+    		$conditions .= " OR (c1.targeting_type='geo' AND c1.targeting_code=:province_code:))";
+    		$params['province_code'] = $request_settings['province_code'];
+    	}
+    	else {
+    		$conditions .= ')';
+    	}
+    
+    	if (isset($request_settings['channel']) && is_numeric($request_settings['channel'])){
+    		$conditions .= " AND (Campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code=:channel:))";
+    		$params['channel'] = $request_settings['channel'];
+    	}
+    
+    	$conditions .= " AND (Campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code=:entry_id:))";
+    	$params['entry_id'] = $zone_detail->entry_id;
+    
+    	if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
+    		$conditions .= " AND (Campaigns.pattern_target=1 OR (c4.targeting_type='pattern' AND c4.targeting_code=:pattern:))";
+    		$params['pattern'] = $request_settings['pattern'];
+    	}
+    
+    	if(isset($request_settings['device_type']) && is_numeric($request_settings['device_type'])) {
+    		$conditions .= " AND (Campaigns.device_type_target=1 OR (c5.targeting_type='device_type' AND c5.targeting_code=:device_type:))";
+    		$params['device_type'] = $request_settings['device_type'];
+    	}
+    
+    	if(isset($request_settings['device_brand']) && is_numeric($request_settings['device_brand'])) {
+    		$conditions .= " AND (Campaigns.brand_target=1 OR (c6.targeting_type='device_brand' AND c6.targeting_code=:device_brand:))";
+    		$params['device_brand'] = $request_settings['device_brand'];
+    	}
+    
+    	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
+    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code=:device_quality:))";
+    		$params['device_quality'] = $request_settings['device_quality'];
+    	}
+    
+    	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type'])) {
+    		$conditions .= " AND (Campaigns.video_target=1 OR (c8.targeting_type='video' AND c8.targeting_code=:video_type:))";
+    		$params['video_type'] = $request_settings['video_type'];
+    	}
+    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
+    	$params['campaign_start'] = date("Y-m-d");
+    	$params['campaign_end'] = date("Y-m-d");
+    
+    	switch ($zone_detail->zone_type){
+    		case 'banner':
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			$params['adv_width'] = $zone_detail->zone_width;
+    			$params['adv_height'] = $zone_detail->zone_height;
+    			break;
+    
+    		case 'interstitial':
+    		case 'mini_interstitial':
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='interstitial'))";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			break;
+    		case 'open':
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='open'))";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			break;
+    		case 'previous':
+    			$conditions .= "AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='previous'))";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			break;
+    		case 'middle':
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			$params['adv_width'] = $zone_detail->zone_width;
+    			$params['adv_height'] = $zone_detail->zone_height;
+    			break;
+    		case 'after':
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>='".date("Y-m-d")."' and  ad.adv_status=1 AND ad.creative_unit_type='after'))";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			break;
+    	}
+    
+    	if (MAD_IGNORE_DAILYLIMIT_NOCRON && !$this->check_cron_active()){
+    		$conditions .= " AND ((c_limit.total_amount_left='' OR c_limit.total_amount_left>=1) OR (c_limit.cap_type=1))";
+    	}else{
+    		$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
+    	}
+    
+    	$request_settings['campaign_conditions'] = $conditions;
+    	$request_settings['campaign_params'] = $params ;
+    
     }
 
     function get_last_cron_exec(){
@@ -485,30 +433,31 @@ class MDRequestController extends RESTController{
         }
     }
 
-    function launch_campaign_query($sql){
+    function launch_campaign_query($conditions, $params){
 
-//        if (MAD_CACHE_CAMPAIGN_QUERIES){
-//            $cache_result=get_cache($q);
-//
-//            if ($cache_result){
-//                return $cache_result;
-//            }
-//        }
-//
-//        global $maindb;
-
-        $campaignarray = array();
-
-        $campaigns = new Campaigns();
-
-        // Execute the query
-        $resultData = $this->getCacheDataValue(CACHE_PREFIX.$sql);
-        if($resultData){
-        	$result = $resultData;
-        }else{
-        	$result = new Resultset(null, $campaigns, $campaigns->getReadConnection()->query($sql));
-        	$this->saveCacheDataValue(CACHE_PREFIX.$sql, $result);
-        }
+    	$resultData = $this->getCacheDataValue(CACHE_PREFIX.md5(serialize($params)));
+    	if($resultData){
+    		return $resultData;
+    	}
+    	
+		$campaignarray = array();
+    	$result = $this->modelsManager->createBuilder()
+	    	->from('Campaigns')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c7.campaign_id', 'c7')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c8.campaign_id', 'c8')
+	    	->leftjoin('CampaignLimit', 'Campaigns.campaign_id = c_limit.campaign_id', 'c_limit')
+	    	->leftjoin('AdUnits', 'Campaigns.campaign_id = ad.campaign_id', 'ad')
+	    	->where($conditions, $params)
+	    	->groupBy(array('Campaigns.campaign_id'))
+	    	->getQuery()
+	    	->execute();
+        
         foreach ($result as $item) {
             $add = array(
                 'creative_show_rule'=>$item->creative_show_rule,
@@ -532,12 +481,9 @@ class MDRequestController extends RESTController{
             $network_id[$key] = $row['network_id'];
         }
 
-        // Sort the data with volume descending, edition ascending
-        // Add $data as the last parameter, to sort by the common key
         array_multisort($priority, SORT_DESC, $campaignarray);
 
         $highest_priority=$campaignarray[0]['priority'];
-
 
         $final_ads=array();
 
@@ -549,7 +495,7 @@ class MDRequestController extends RESTController{
                 array_push($final_ads, $value);
             }
         }
-
+        $this->saveCacheDataValue(CACHE_PREFIX.md5(serialize($params)), $final_ads);
         return $final_ads;
     }
 
