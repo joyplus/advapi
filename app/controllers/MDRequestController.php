@@ -214,26 +214,13 @@ class MDRequestController extends RESTController{
     }
 
     function get_placement(&$request_settings, &$errormessage){
-
-        $sql="SELECT entry_id, publication_id, zone_type, zone_width, zone_height, zone_refresh, zone_channel, zone_lastrequest, mobfox_backfill_active, mobfox_min_cpc_active, min_cpc, min_cpm, backfill_alt_1, backfill_alt_2, backfill_alt_3 FROM md_zones WHERE zone_hash='".$request_settings['placement_hash']."'";
-
-        $zones = new Zones();
-		$data = $this->getCacheDataValue(CACHE_PREFIX.$sql);
-		if($data) {
-			return $data;
-		}
-        // Execute the query
-        $resultSet = new Resultset(null, $zones, $zones->getReadConnection()->query($sql));
-
-        if ($resultSet->valid()){
-        	$this->saveCacheDataValue(CACHE_PREFIX.$sql, $resultSet->getFirst());
-            return $resultSet->getFirst();
-        }
-        else {
-            $errormessage='Placement not found. Please check your Placement Hash (Variable "s")';
-            return false;
-        }
-
+		$zone = Zones::findFirst(array(
+			"zone_hash = ?0",
+			"bind" => array(0=>$request_settings['placement_hash']),
+			"cache" => array("key"=>$request_settings['placement_hash'])
+		));
+    	
+        return $zone;
     }
     
     /**
@@ -245,7 +232,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_name= ?1",
     		"bind"=>array(1=>$device_name),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_name),"lifetime"=>3600)
+    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_name))
     	));
     	return $device;
     }
@@ -255,7 +242,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id),"lifetime"=>3600)
+        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id))
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;

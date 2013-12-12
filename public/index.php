@@ -33,6 +33,7 @@ try {
 	define('MAD_TRACK_HANDLER', $config->application->mdtrack);
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
+	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
 	$loader = new \Phalcon\Loader();
 
 	/**
@@ -169,7 +170,7 @@ try {
 
         //Cache data for one day by default
         $frontCache = new \Phalcon\Cache\Frontend\Data(array(
-            "lifetime" => $config->cache->modelsLifetime
+            "lifetime" => MD_CACHE_TIME
         ));
 
         //Memcached connection settings
@@ -188,7 +189,7 @@ try {
         //Cache data for one hour
         //$frontCache = new \Phalcon\Cache\Frontend\None();
     	$frontCache = new \Phalcon\Cache\Frontend\Data(array(
-    			"lifetime" => 3600
+    			"lifetime" => MD_CACHE_TIME
     	));
         // Create the component that will cache "Data" to a "Memcached" backend
         // Memcached connection settings
