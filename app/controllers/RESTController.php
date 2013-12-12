@@ -385,18 +385,22 @@ class RESTController extends BaseController{
     }
 
     function deduct_impression_num($campaign_id,$number){
-
-        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount>0";
+    	
+        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount_left>0";
     	
     	$cam = new CampaignLimit();
-    	$result = $cam->getWriteConnection()->execute($sql, array(
+    	$connection = $cam->getWriteConnection();
+    	$result = $connection->execute($sql, array(
     		"number"=>$number,
     		"campaign_id"=>$campaign_id
     	));
 
        	if($result==false) {
        		$this->logoDBError($cam);
+       		return false;
        	}
+       	$row = $connection->affectedRows();
+       	return $row>0;
 
     }
 
