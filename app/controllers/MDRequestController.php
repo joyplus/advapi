@@ -561,7 +561,8 @@ class MDRequestController extends RESTController{
         $query_param = array(
         		"conditions" => $conditions,
         		"bind" => $params,
-        		"order"=>$order
+        		"order"=>$order,
+        		"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($params)))
         );
 
         //global $repdb_connected,$display_ad;
@@ -628,7 +629,10 @@ class MDRequestController extends RESTController{
 
         //$ad_detail=simple_query_maindb($query, true, 250);
         //writetofile("request.log",'final_ad: '.$query);
-        $ad_detail = AdUnits::findFirst($id);
+        $ad_detail = AdUnits::findFirst(array(
+        	"adv_id = '".$id."'",
+        	"cache"=>array("key"=>CACHE_PREFIX.$id)
+        ));
         if (!$ad_detail){
             return false;
         }
