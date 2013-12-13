@@ -439,10 +439,10 @@ class MDRequestController extends RESTController{
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
     	
     	if($type) {
-    		$result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
+    		$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
     	}
 	    	
-	    	$result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
+	    	$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
 	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
 	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
 	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
