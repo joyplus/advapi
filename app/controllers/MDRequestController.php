@@ -217,7 +217,7 @@ class MDRequestController extends RESTController{
 		$zone = Zones::findFirst(array(
 			"zone_hash = ?0",
 			"bind" => array(0=>$request_settings['placement_hash']),
-			"cache" => array("key"=>$request_settings['placement_hash'])
+			"cache" => array("key"=>CACHE_PREFIX.$request_settings['placement_hash'])
 		));
     	
         return $zone;
