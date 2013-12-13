@@ -313,10 +313,10 @@ class MDRequestController extends RESTController{
     	$conditions .= " AND (Campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code=:entry_id:))";
     	$params['entry_id'] = $zone_detail->entry_id;
     
-    	if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
+    	/* if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
     		$conditions .= " AND (Campaigns.pattern_target=1 OR (c4.targeting_type='pattern' AND c4.targeting_code=:pattern:))";
     		$params['pattern'] = $request_settings['pattern'];
-    	}
+    	} 
     
     	if(isset($request_settings['device_type']) && is_numeric($request_settings['device_type'])) {
     		$conditions .= " AND (Campaigns.device_type_target=1 OR (c5.targeting_type='device_type' AND c5.targeting_code=:device_type:))";
@@ -331,7 +331,7 @@ class MDRequestController extends RESTController{
     	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
     		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code=:device_quality:))";
     		$params['device_quality'] = $request_settings['device_quality'];
-    	}
+    	}*/
     
     	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type'])) {
     		$conditions .= " AND (Campaigns.video_target=1 OR (c8.targeting_type='video' AND c8.targeting_code=:video_type:))";
@@ -435,10 +435,10 @@ class MDRequestController extends RESTController{
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c7.campaign_id', 'c7')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c7.campaign_id', 'c7')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c8.campaign_id', 'c8')
 	    	->leftjoin('CampaignLimit', 'Campaigns.campaign_id = c_limit.campaign_id', 'c_limit')
 	    	->leftjoin('AdUnits', 'Campaigns.campaign_id = ad.campaign_id', 'ad')
