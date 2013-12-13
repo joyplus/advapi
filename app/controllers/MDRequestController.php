@@ -132,7 +132,7 @@ class MDRequestController extends RESTController{
         $request_settings['adspace_width']=$zone_detail->zone_width;
         $request_settings['adspace_height']=$zone_detail->zone_height;
 
-        $request_settings['channel']=$this->getchannel($zone_detail);
+        //$request_settings['channel']=$this->getchannel($zone_detail);
 
         $this->update_last_request($zone_detail);
 
@@ -151,7 +151,7 @@ class MDRequestController extends RESTController{
         }else{
 	        $this->buildQuery($request_settings, $zone_detail);
 	
-	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_conditions'], $request_settings['campaign_params'])){
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['left-video'], $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
 	
 	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
 	
@@ -309,10 +309,14 @@ class MDRequestController extends RESTController{
     	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type']) && ($zone_detail->zone_type=='previous' || $zone_detail->zone_type=='middle' || $zone_detail->zone_type=='after')) {
     		$conditions .= " AND (Campaigns.video_target=1 OR (c2.targeting_type='video' AND c2.targeting_code=:video_type:))";
     		$params['video_type'] = $request_settings['video_type'];
-    	}else if (isset($request_settings['channel']) && is_numeric($request_settings['channel']) && ($zone_detail->zone_type=='interstitial' || $zone_detail->zone_type=='mini_interstitial' || $zone_detail->zone_type=='banner' || $zone_detail->zone_type=='open')){
-    		$conditions .= " AND (Campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code=:channel:))";
-    		$params['channel'] = $request_settings['channel'];
+    		$request_settings['left-video'] = true;
+    	}else{
+    		$request_settings['left-video'] = false;
     	}
+//     	else if (isset($request_settings['channel']) && is_numeric($request_settings['channel']) && ($zone_detail->zone_type=='interstitial' || $zone_detail->zone_type=='mini_interstitial' || $zone_detail->zone_type=='banner' || $zone_detail->zone_type=='open')){
+//     		$conditions .= " AND (Campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code=:channel:))";
+//     		$params['channel'] = $request_settings['channel'];
+//     	}
     
     	$conditions .= " AND (Campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code=:entry_id:))";
     	$params['entry_id'] = $zone_detail->entry_id;
@@ -422,7 +426,7 @@ class MDRequestController extends RESTController{
         }
     }
 
-    function launch_campaign_query($conditions, $params){
+    function launch_campaign_query($type, $conditions, $params){
 
     	$resultData = $this->getCacheDataValue(CACHE_PREFIX.md5(serialize($params)));
     	if($resultData){
@@ -432,9 +436,13 @@ class MDRequestController extends RESTController{
 		$campaignarray = array();
     	$result = $this->modelsManager->createBuilder()
 	    	->from('Campaigns')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
+    	
+    	if($type) {
+    		$result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
+    	}
+	    	
+	    	$result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
 	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
 	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
 	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
