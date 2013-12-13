@@ -116,7 +116,7 @@ class MDRequestController extends RESTController{
 
         $request_data['ip']=$request_settings['ip_address'];
         
-        $device_detail = $this->getDevice($request_settings['device_name'],$request_settings['device_movement']);
+        $device_detail = $this->getDevice($request_settings['device_movement']);
         if($device_detail) {
         	$request_settings['device_type'] = $device_detail->device_type;
         	$request_settings['device_brand'] = $device_detail->device_brands;
@@ -227,24 +227,14 @@ class MDRequestController extends RESTController{
     /**
      * 获取设备信息
      */
-    function getDevice($device_name, $device_movement) {
-    	if(empty($device_name) && empty($device_movement)) {
+    function getDevice($device_movement) {
+    	if(!isset($device_movement) || empty($device_movement)) {
     		return false;
     	}
-    	$conditions = " 1=1 ";
-    	$params = array();
-    	if(isset($device_name) && !empty($device_name)) {
-    		$conditions .= " AND device_name = ?1";
-    		$params[1] = $device_name;
-    	}
-    	if(isset($device_movement) && !empty($device_movement)) {
-    		$conditions .= " AND device_movement= ?2";
-    		$params[2] = $device_movement;
-    	}
     	$device = Devices::findFirst(array(
-    		"conditions"=>$conditions,
-    		"bind"=>$params,
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_name.$device_movement))
+    		"conditions"=>"device_movement= ?1",
+    		"bind"=>array(1=>$device_movement),
+    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_movement))
     	));
     	return $device;
     }
