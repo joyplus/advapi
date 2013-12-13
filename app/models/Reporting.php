@@ -6,7 +6,7 @@
  * Time: 下午5:32
  */
 
-class Reporting extends \Phalcon\Mvc\Model
+class Reporting extends BaseModel
 {
 	public $entry_id;
 	public $type;
@@ -34,6 +34,8 @@ class Reporting extends \Phalcon\Mvc\Model
 	public $report_hash;
 	
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
         //Skips fields/columns on both INSERT/UPDATE operations
         $this->skipAttributes(array('time_stamp', 'network_id', 'total_cost', 'geo_region', 'geo_city'));

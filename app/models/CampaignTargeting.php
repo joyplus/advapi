@@ -1,21 +1,15 @@
 <?php
 
-class Regions extends BaseModel
+class CampaignTargeting extends BaseModel
 {
 	public $entry_id;
-	public $targeting_code;
+	public $campaign_id;
 	public $targeting_type;
-	public $region_code;
-	public $region_name;
-	public $head_country;
-	public $head_region;
-	public $head_city;
-	public $entry_status;
-	public $region_name_zh;
+	public $targeting_code;
 	
     public function getSource()
     {
-        return "md_regional_targeting";
+        return "md_campaign_targeting";
     }
 
     public function initialize() {

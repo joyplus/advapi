@@ -297,11 +297,16 @@ class RESTController extends BaseController{
 
 
         if ($reporting){
-            $reporting->total_requests = $reporting->total_requests + $add_request;
-            $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
-            $reporting->total_impressions = $reporting->total_impressions + $add_impression;
-            $reporting->total_clicks = $reporting->total_clicks + $add_click;
-            $result = $reporting->update();
+//             $reporting->total_requests = $reporting->total_requests + $add_request;
+//             $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
+//             $reporting->total_impressions = $reporting->total_impressions + $add_impression;
+//             $reporting->total_clicks = $reporting->total_clicks + $add_click;
+//             $result = $reporting->update();
+        	$sql = "UPDATE md_reporting SET total_impressions=total_impressions+ ".$add_impression." ,total_requests=total_requests+ ".$add_request." ,total_requests_sec=total_requests_sec+ ".$add_request_sec." , total_clicks=total_clicks+ ".$add_click." WHERE entry_id= '".$reporting->entry_id."'";
+        	$result = $reporting->getWriteConnection()->execute($sql);
+        	if(!$result) {
+        		$this->logoDBError($reporting);
+        	}
         }
         else {
             $reporting = new Reporting();
@@ -380,18 +385,22 @@ class RESTController extends BaseController{
     }
 
     function deduct_impression_num($campaign_id,$number){
-
-        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount>0";
+    	
+        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount_left>0";
     	
     	$cam = new CampaignLimit();
-    	$result = $cam->getWriteConnection()->execute($sql, array(
+    	$connection = $cam->getWriteConnection();
+    	$result = $connection->execute($sql, array(
     		"number"=>$number,
     		"campaign_id"=>$campaign_id
     	));
 
        	if($result==false) {
        		$this->logoDBError($cam);
+       		return false;
        	}
+       	$row = $connection->affectedRows();
+       	return $row>0;
 
     }
 
