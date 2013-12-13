@@ -71,8 +71,8 @@ try {
 	 */
 	$di->set('dbMaster', function() use ($config, $logger) {
 		$eventsManager = new EventsManager();
-		$eventsManager->attach('db', function($event, $connection) use ($logger) {
-			if ($event->getType() == 'beforeQuery') {
+		$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
+			if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
 				$logger->log($connection->getSQLStatement(), Logger::INFO);
 			}
 		});
@@ -89,8 +89,8 @@ try {
 	});
 	$di->set('dbSlave', function() use ($config, $logger) {
 		$eventsManager = new EventsManager();
-		$eventsManager->attach('db', function($event, $connection) use ($logger) {
-			if ($event->getType() == 'beforeQuery') {
+		$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
+			if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
 				$logger->log($connection->getSQLStatement(), Logger::INFO);
 			}
 		});
@@ -109,8 +109,8 @@ try {
 		$s = "slave$i";
 		$di->set("dbSlave$i", function() use ($config, $logger, $s) {
 			$eventsManager = new EventsManager();
-			$eventsManager->attach('db', function($event, $connection) use ($logger) {
-				if ($event->getType() == 'beforeQuery') {
+			$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
+				if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
 					$logger->log($connection->getSQLStatement(), Logger::INFO);
 				}
 			});
