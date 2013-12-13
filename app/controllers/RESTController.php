@@ -286,7 +286,8 @@ class RESTController extends BaseController{
 
         $reporting = Reporting::findFirst(array(
         	"conditions"=>$conditions,
-        	"bind"=>$param
+        	"bind"=>$param,
+        	"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($param)))
         ));
 
         //$reporting = $resultSet->getFirst();

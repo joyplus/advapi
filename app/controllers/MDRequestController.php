@@ -132,7 +132,7 @@ class MDRequestController extends RESTController{
         $request_settings['adspace_width']=$zone_detail->zone_width;
         $request_settings['adspace_height']=$zone_detail->zone_height;
 
-        $request_settings['channel']=$this->getchannel($zone_detail);
+        //$request_settings['channel']=$this->getchannel($zone_detail);
 
         $this->update_last_request($zone_detail);
 
@@ -151,7 +151,7 @@ class MDRequestController extends RESTController{
         }else{
 	        $this->buildQuery($request_settings, $zone_detail);
 	
-	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['campaign_conditions'], $request_settings['campaign_params'])){
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['left-video'], $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
 	
 	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
 	
@@ -304,19 +304,27 @@ class MDRequestController extends RESTController{
     	else {
     		$conditions .= ')';
     	}
-    
-    	if (isset($request_settings['channel']) && is_numeric($request_settings['channel'])){
-    		$conditions .= " AND (Campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code=:channel:))";
-    		$params['channel'] = $request_settings['channel'];
+    	
+    	
+    	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type']) && ($zone_detail->zone_type=='previous' || $zone_detail->zone_type=='middle' || $zone_detail->zone_type=='after')) {
+    		$conditions .= " AND (Campaigns.video_target=1 OR (c2.targeting_type='video' AND c2.targeting_code=:video_type:))";
+    		$params['video_type'] = $request_settings['video_type'];
+    		$request_settings['left-video'] = true;
+    	}else{
+    		$request_settings['left-video'] = false;
     	}
+//     	else if (isset($request_settings['channel']) && is_numeric($request_settings['channel']) && ($zone_detail->zone_type=='interstitial' || $zone_detail->zone_type=='mini_interstitial' || $zone_detail->zone_type=='banner' || $zone_detail->zone_type=='open')){
+//     		$conditions .= " AND (Campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code=:channel:))";
+//     		$params['channel'] = $request_settings['channel'];
+//     	}
     
     	$conditions .= " AND (Campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code=:entry_id:))";
     	$params['entry_id'] = $zone_detail->entry_id;
     
-    	if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
+    	/* if(isset($request_settings['pattern']) && is_numeric($request_settings['pattern'])){
     		$conditions .= " AND (Campaigns.pattern_target=1 OR (c4.targeting_type='pattern' AND c4.targeting_code=:pattern:))";
     		$params['pattern'] = $request_settings['pattern'];
-    	}
+    	} 
     
     	if(isset($request_settings['device_type']) && is_numeric($request_settings['device_type'])) {
     		$conditions .= " AND (Campaigns.device_type_target=1 OR (c5.targeting_type='device_type' AND c5.targeting_code=:device_type:))";
@@ -326,17 +334,13 @@ class MDRequestController extends RESTController{
     	if(isset($request_settings['device_brand']) && is_numeric($request_settings['device_brand'])) {
     		$conditions .= " AND (Campaigns.brand_target=1 OR (c6.targeting_type='device_brand' AND c6.targeting_code=:device_brand:))";
     		$params['device_brand'] = $request_settings['device_brand'];
-    	}
+    	}*/
     
     	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
     		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code=:device_quality:))";
     		$params['device_quality'] = $request_settings['device_quality'];
     	}
     
-    	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type'])) {
-    		$conditions .= " AND (Campaigns.video_target=1 OR (c8.targeting_type='video' AND c8.targeting_code=:video_type:))";
-    		$params['video_type'] = $request_settings['video_type'];
-    	}
     	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
@@ -422,7 +426,7 @@ class MDRequestController extends RESTController{
         }
     }
 
-    function launch_campaign_query($conditions, $params){
+    function launch_campaign_query($type, $conditions, $params){
 
     	$resultData = $this->getCacheDataValue(CACHE_PREFIX.md5(serialize($params)));
     	if($resultData){
@@ -432,14 +436,17 @@ class MDRequestController extends RESTController{
 		$campaignarray = array();
     	$result = $this->modelsManager->createBuilder()
 	    	->from('Campaigns')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
+	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
+    	
+    	if($type) {
+    		$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
+    	}
+	    	
+	    	$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c4.campaign_id', 'c4')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c5.campaign_id', 'c5')
+	    	//->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c6.campaign_id', 'c6')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c7.campaign_id', 'c7')
-	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c8.campaign_id', 'c8')
 	    	->leftjoin('CampaignLimit', 'Campaigns.campaign_id = c_limit.campaign_id', 'c_limit')
 	    	->leftjoin('AdUnits', 'Campaigns.campaign_id = ad.campaign_id', 'ad')
 	    	->where($conditions, $params)
@@ -561,7 +568,8 @@ class MDRequestController extends RESTController{
         $query_param = array(
         		"conditions" => $conditions,
         		"bind" => $params,
-        		"order"=>$order
+        		"order"=>$order,
+        		"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($params)))
         );
 
         //global $repdb_connected,$display_ad;
@@ -628,7 +636,10 @@ class MDRequestController extends RESTController{
 
         //$ad_detail=simple_query_maindb($query, true, 250);
         //writetofile("request.log",'final_ad: '.$query);
-        $ad_detail = AdUnits::findFirst($id);
+        $ad_detail = AdUnits::findFirst(array(
+        	"adv_id = '".$id."'",
+        	"cache"=>array("key"=>CACHE_PREFIX.$id)
+        ));
         if (!$ad_detail){
             return false;
         }
