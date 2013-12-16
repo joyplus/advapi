@@ -189,31 +189,31 @@ class RESTController extends BaseController{
         if (!is_numeric($creative_id)){$creative_id='';}
         if (!is_numeric($network_id)){$network_id='';}
 
-        if(is_null($request_settings['device_name']) || $request_settings['device_name'] ==''){
+        if(!isset($request_settings['device_name']) || $request_settings['device_name'] ==''){
             $device_name='';
         }else {
             $device_name=$request_settings['device_name'];
         }
 
-        if(is_null($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
+        if(!isset($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
             $geo_region='';
         }else {
             $geo_region=$request_settings['geo_region'];
         }
 
-        if(is_null($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
+        if(!isset($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
             $geo_city='';
         }else {
             $geo_city=$request_settings['geo_city'];
         }
         
-        if(is_null($request_settings['province_code']) || $request_settings['province_code'] ==''){
+        if(!isset($request_settings['province_code']) || $request_settings['province_code'] ==''){
         	$province_code='';
         }else {
         	$province_code=$request_settings['province_code'];
         }
         
-        if(is_null($request_settings['city_code']) || $request_settings['city_code'] ==''){
+        if(!isset($request_settings['city_code']) || $request_settings['city_code'] ==''){
         	$city_code='';
         }else {
         	$city_code=$request_settings['city_code'];
@@ -286,8 +286,8 @@ class RESTController extends BaseController{
 
         $reporting = Reporting::findFirst(array(
         	"conditions"=>$conditions,
-        	"bind"=>$param,
-        	"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($param)))
+        	"bind"=>$param
+        	//"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($param)))
         ));
 
         //$reporting = $resultSet->getFirst();

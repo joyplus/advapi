@@ -337,7 +337,7 @@ class MDRequestController extends RESTController{
     	}*/
     
     	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
-    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code=:device_quality:))";
+    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code=:device_quality:))";
     		$params['device_quality'] = $request_settings['device_quality'];
     	}
     
@@ -801,9 +801,15 @@ class MDRequestController extends RESTController{
                 	
                 	$server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
                 	if($server_detail) {
-                		$display_ad['creative-url']="".$server_detail->server_default_url."".$adUnit->unit_hash.".".$adUnit->adv_creative_extension;
-                		$display_ad['creative-url_2']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_2;
-                		$display_ad['creative-url_3']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_3;
+                		if(isset($adUnit->adv_creative_extension) && !empty($adUnit->adv_creative_extension)){
+                			$display_ad['creative-url']="".$server_detail->server_default_url."".$adUnit->unit_hash.".".$adUnit->adv_creative_extension;
+                		}
+                		if(isset($adUnit->adv_creative_extension_2) && !empty($adUnit->adv_creative_extension_2)){
+                			$display_ad['creative-url_2']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_2;
+                		}
+                		if(isset($adUnit->adv_creative_extension_3) && !empty($adUnit->adv_creative_extension_3)){
+                			$display_ad['creative-url_3']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_3;
+                		}
                 	}
                 	$display_ad['interstitial-creative_res_url']=$url;
                 	
@@ -949,7 +955,7 @@ class MDRequestController extends RESTController{
     function prepare_ctr(&$display_ad, &$request_settings, $zone_detail){
 
         //$base_ctr="".MAD_ADSERVING_PROTOCOL . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF'])."/".MAD_CLICK_HANDLER."?zone_id=".$zone_detail['entry_id']."&h=".$request_settings['request_hash']."";
-        $base_ctr="".MAD_ADSERVING_PROTOCOL .MAD_SERVER_HOST . rtrim(dirname($this->request->getServer['PHP_SELF']), '/')."/".MAD_CLICK_HANDLER."?zone_id=".$zone_detail->entry_id."&h=".$request_settings['request_hash']."";
+        $base_ctr="".MAD_ADSERVING_PROTOCOL .MAD_SERVER_HOST ."/".MAD_CLICK_HANDLER."?zone_id=".$zone_detail->entry_id."&h=".$request_settings['request_hash']."";
 
         if ($display_ad['main_type']=='display'){
 
