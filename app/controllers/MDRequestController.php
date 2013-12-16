@@ -337,7 +337,7 @@ class MDRequestController extends RESTController{
     	}*/
     
     	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
-    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='device_quality' AND c7.targeting_code=:device_quality:))";
+    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code=:device_quality:))";
     		$params['device_quality'] = $request_settings['device_quality'];
     	}
     
