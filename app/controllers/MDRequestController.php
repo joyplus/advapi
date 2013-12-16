@@ -949,7 +949,7 @@ class MDRequestController extends RESTController{
     function prepare_ctr(&$display_ad, &$request_settings, $zone_detail){
 
         //$base_ctr="".MAD_ADSERVING_PROTOCOL . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF'])."/".MAD_CLICK_HANDLER."?zone_id=".$zone_detail['entry_id']."&h=".$request_settings['request_hash']."";
-        $base_ctr="".MAD_ADSERVING_PROTOCOL .MAD_SERVER_HOST . rtrim(dirname($this->request->getServer['PHP_SELF']), '/')."/".MAD_CLICK_HANDLER."?zone_id=".$zone_detail->entry_id."&h=".$request_settings['request_hash']."";
+        $base_ctr="".MAD_ADSERVING_PROTOCOL .MAD_SERVER_HOST ."/".MAD_CLICK_HANDLER."?zone_id=".$zone_detail->entry_id."&h=".$request_settings['request_hash']."";
 
         if ($display_ad['main_type']=='display'){
 
