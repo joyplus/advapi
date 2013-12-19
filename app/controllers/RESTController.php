@@ -611,8 +611,11 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/CZ88.NET/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
+    	$this->getDi()->get('logger')->log("before charset -> ".$ipAddr1);
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
+    	$this->getDi()->get('logger')->log("after charset  -> ".$ipAddr1);
     	$this->getDi()->get('logger')->log($ip_origin." -> ".$ipAddr1);
+    	
     	return $ipAddr1;
     }
     
