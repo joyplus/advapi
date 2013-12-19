@@ -176,7 +176,7 @@ class RESTController extends BaseController{
     	$codes = $this->getCodeFromIp($ip);
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
-    	
+    	$this->getDi()->get('logger')->log("search IP:".$codes[0]."--".$codes[1]);
     }
     
 
