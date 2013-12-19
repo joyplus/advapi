@@ -276,6 +276,16 @@ try {
     $mdclick->get('/', 'get');
     
     $app->mount($mdclick);
+    
+    $mdaddress = new MicroCollection();
+    //Set the main handler. ie. a controller instance
+    $mdaddress->setHandler(new MDAddressController());
+    //Set a common prefix for all routes
+    $mdaddress->setPrefix('/v1/mdaddress');
+    //Use the method 'indexAction' in ProductsController
+    $mdaddress->get('/', 'get');
+    
+    $app->mount($mdaddress);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.

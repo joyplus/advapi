@@ -478,6 +478,7 @@ class RESTController extends BaseController{
     
     
     function getAddressFromIp($ip) {
+    	$ip_origin = $ip;
     	$ip1num = 0;
     	$ip2num = 0;
     	$ipAddr1 = "";
@@ -608,6 +609,7 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
+    	$this->getDi()->get('logger')->log($ip_origin." -> ".$ipAddr1."\n");
     	return $ipAddr1;
     }
     
