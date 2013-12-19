@@ -173,7 +173,7 @@ class RESTController extends BaseController{
 
     function setGeo(&$request_settings) {
     	$ip = $request_settings['ip_address'];
-    	$codes = $this->getCodeFromIp($ip);
+    	$codes = $this->getCodeFromIp('180.96.20.14');
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
     	$this->getDi()->get('logger')->log("search IP:".$codes[0]."--".$codes[1]);
@@ -467,8 +467,7 @@ class RESTController extends BaseController{
 
     function getCodeFromAddress($region_name) {
     	$region = Regions::findFirst(array(
-    		"conditions"=>"region_name= ?1",
-    		"bind"=>array(1=>$region_name),
+    		"conditions"=>"region_name= '".$region_name."'",
     		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
     	));
     	if($region){
