@@ -73,7 +73,7 @@ try {
 		$eventsManager = new EventsManager();
 		$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
 			if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
-				$logger->log($connection->getSQLStatement(), Logger::INFO);
+				$logger->log($connection->getSQLStatement()."\n".implode(",",$connection->getSQLVariables()), Logger::INFO);
 			}
 		});
 		$master =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
@@ -91,7 +91,7 @@ try {
 		$eventsManager = new EventsManager();
 		$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
 			if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
-				$logger->log($connection->getSQLStatement(), Logger::INFO);
+				$logger->log($connection->getSQLStatement()."\n".implode(",",$connection->getSQLVariables()), Logger::INFO);
 			}
 		});
 		$slave =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
@@ -111,7 +111,7 @@ try {
 			$eventsManager = new EventsManager();
 			$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
 				if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
-					$logger->log($connection->getSQLStatement(), Logger::INFO);
+					$logger->log($connection->getSQLStatement()."\n".implode(",",$connection->getSQLVariables()), Logger::INFO);
 				}
 			});
 			$slave =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
