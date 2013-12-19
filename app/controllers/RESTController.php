@@ -466,12 +466,15 @@ class RESTController extends BaseController{
     }
 
     function getCodeFromAddress($region_name) {
-    	$region = Regions::findFirst(array(
-    		"conditions"=>"region_name= '".$region_name."'",
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
-    	));
+    	$sql = "select * from md_regional_targeting where region_name= '".$region_name."'";
+//     	$region = Regions::findFirst(array(
+//     		"conditions"=>"region_name= '".$region_name."'",
+//     		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
+//     	));
+		$r = new Regions();
+		$region = $r->getReadConnection()->fetchOne($sql);
     	if($region){
-    		return $region->targeting_code;
+    		return $region['targeting_code'];
     	}
     	return "";
     }
