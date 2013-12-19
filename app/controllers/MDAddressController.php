@@ -24,7 +24,7 @@ class MDAddressController extends RESTController{
         $request_settings['ip_origin']='fetch';
         $this->prepare_ip($request_settings);
         $address = $this->getAddressFromIp($request_settings['ip_address']);
-        $display_ad['code'] = $address;
+        $display_ad['code'] = $request_settings['ip_address']." ".$address;
         return $display_ad;
     }
 }
