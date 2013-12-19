@@ -82,7 +82,9 @@ try {
 			"username" => $config->master->username,
 			"password" => $config->master->password,
 			"dbname" => $config->master->name,
-			"charset" => $config->master->charset
+			"options" => array(
+					PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+			)
 		));
 		$master->setEventsManager($eventsManager);
 		return $master;
@@ -100,7 +102,9 @@ try {
 				"username" => $config->slave->username,
 				"password" => $config->slave->password,
 				"dbname" => $config->slave->name,
-				"charset" => $config->slave->charset
+				"options" => array(
+					PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+				)
 		));
 		$slave->setEventsManager($eventsManager);
 		return $slave;
@@ -120,7 +124,9 @@ try {
 					"username" => $config->$s->username,
 					"password" => $config->$s->password,
 					"dbname" => $config->$s->name,
-					"charset" => $config->$s->charset
+					"options" => array(
+						PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+					)
 			));
 			$slave->setEventsManager($eventsManager);
 		
