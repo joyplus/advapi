@@ -173,7 +173,7 @@ class RESTController extends BaseController{
 
     function setGeo(&$request_settings) {
     	$ip = $request_settings['ip_address'];
-    	$codes = $this->getCodeFromIp('180.96.20.14');
+    	$codes = $this->getCodeFromIp($ip);
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
     	$this->getDi()->get('logger')->log("search IP:".$codes[0]."--".$codes[1]);
