@@ -290,7 +290,7 @@ class MDRequestController extends RESTController{
 
 
     function buildQuery(&$request_settings, $zone_detail){
-    	$this->getDi()->get('logger')->log("Settings addr:".$request_settings['province_code']."--".$request_settings['city_code']);
+    	$this->getDi()->get('logger')->log("Settings addr:".$request_settings['province_code']."--".$request_settings['city_code']."\n");
     	$conditions = ' (Campaigns.country_target=1';
     	$params = array();
     	if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){

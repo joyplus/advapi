@@ -458,6 +458,7 @@ class RESTController extends BaseController{
     			if(!empty($matchs[2])) {
     				$code2 = $this->getCodeFromAddress($matchs[2]);
     			}
+    			$this->getDi()->get('logger')->log("match code:".$code1."--".$code2);
     			return array($code1, $code2);
     		}
     	}
@@ -609,7 +610,7 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
-    	$this->getDi()->get('logger')->log($ip_origin." -> ".$ipAddr1."\n");
+    	$this->getDi()->get('logger')->log($ip_origin." -> ".$ipAddr1);
     	return $ipAddr1;
     }
     
