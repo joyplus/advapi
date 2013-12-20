@@ -176,7 +176,7 @@ class RESTController extends BaseController{
     	$codes = $this->getCodeFromIp($ip);
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
-    	$this->debugLog("[setGeo] code1->".$codes[0]." code2->".$codes[1]);
+    	$this->debugLog("[setGeo] code1->".$codes[0].", code2->".$codes[1]);
     }
     
 
@@ -467,13 +467,13 @@ class RESTController extends BaseController{
     }
 
     function getCodeFromAddress($region_name) {
-    	$sql = "select * from md_regional_targeting where region_name= '".$region_name."'";
-//     	$region = Regions::findFirst(array(
-//     		"conditions"=>"region_name= '".$region_name."'",
-//     		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
-//     	));
-		$r = new Regions();
-		$region = $r->getReadConnection()->fetchOne($sql);
+    	//$sql = "select * from md_regional_targeting where region_name= '".$region_name."'";
+    	//$r = new Regions();
+		//$region = $r->getReadConnection()->fetchOne($sql);
+    	$region = Regions::findFirst(array(
+    		"conditions"=>"region_name= '".$region_name."'",
+    		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
+    	));
     	if($region){
     		return $region['targeting_code'];
     	}

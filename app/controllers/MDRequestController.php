@@ -130,7 +130,7 @@ class MDRequestController extends RESTController{
             return $this->codeInputError();
         }
 
-        $this->debugLog("[handleAdRequest] found zone");
+        $this->debugLog("[handleAdRequest] found zone, id->".$zone_detail->entry_id);
         
         $request_settings['adspace_width']=$zone_detail->zone_width;
         $request_settings['adspace_height']=$zone_detail->zone_height;
@@ -145,7 +145,7 @@ class MDRequestController extends RESTController{
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
         $adv_id = $this->getCacheAdData($cacheKey);
         if($adv_id){
-        	$this->debugLog("找到试投放：".$adv_id);
+        	$this->debugLog("[handleAdRequest] 找到试投放,key->".$cacheKey.", id->".$adv_id);
         	if (!$final_ad = $this->get_ad_unit($adv_id)){
         		return $this->codeNoAds();
         	}
@@ -538,6 +538,7 @@ class MDRequestController extends RESTController{
 
 
     private function select_adunit_query($zone_detail, $campaign_detail){
+    	$this->debugLog("[select_adunit_query] campaign_detail, id->".$campaign_detail['campaign_id']);
     	$params = array();
 		$conditions = "campaign_id = :campaign_id:";
 		$params['campaign_id'] = $campaign_detail['campaign_id'];
@@ -647,22 +648,42 @@ class MDRequestController extends RESTController{
         if (!$ad_detail){
             return false;
         }
-        else {
-            if (is_null($ad_detail->adv_creative_extension) || $ad_detail->adv_creative_extension==''){
-                $bannerUrl=$ad_detail->adv_bannerurl;
-                if(is_null($bannerUrl)){
-                    $bannerUrl='';
-                }
-                $tempArray= explode(".", $bannerUrl);
-                $ad_detail->adv_creative_extension=$tempArray[count($tempArray)-1];
+        
+        $this->debugLog("[get_ad_unit] found ad_unit, id->".$id);
+        if (is_null($ad_detail->adv_creative_extension) || $ad_detail->adv_creative_extension==''){
+            $bannerUrl=$ad_detail->adv_bannerurl;
+            if(is_null($bannerUrl)){
+                $bannerUrl='';
             }
-            return $ad_detail;
+            $tempArray= explode(".", $bannerUrl);
+            $ad_detail->adv_creative_extension=$tempArray[count($tempArray)-1];
         }
-
+        return $ad_detail;
     }
 
     private function build_ad(&$display_ad, $zone_detail, $type, $adUnit){
     	//素材类型 1普通上传 3富媒体
+    	$this->debugLog("[build_ad] adv_id->".$adUnit->adv_id
+    			.", campaign_id->".$adUnit->campaign_id
+    			.", unit_hash->".$adUnit->unit_hash 
+    			.", adv_type->".$adUnit->adv_type 
+    			.", adv_click_url->".$adUnit->adv_click_url 
+    			.", adv_chtml->".$adUnit->adv_chtml 
+    			.", adv_mraid->".$adUnit->adv_mraid 
+    			.", adv_impression_tracking_url->".$adUnit->adv_impression_tracking_url 
+    			.", adv_impression_tracking_url_iresearch->".$adUnit->adv_impression_tracking_url_iresearch 
+    			.", adv_impression_tracking_url_admaster->".$adUnit->adv_impression_tracking_url_admaster 
+    			.", adv_impression_tracking_url_nielsen->".$adUnit->adv_impression_tracking_url_nielsen 
+    			.", adv_creative_extension->".$adUnit->adv_creative_extension 
+    			.", adv_creative_extension_2->".$adUnit->adv_creative_extension_2 
+    			.", adv_creative_extension_3->".$adUnit->adv_creative_extension_3 
+    			.", adv_height->".$adUnit->adv_height 
+    			.", adv_width->".$adUnit->adv_width 
+    			.", creative_unit_type->".$adUnit->creative_unit_type 
+    			.", creative_weight->".$adUnit->creative_weight 
+    			.", adv_start->".$adUnit->adv_start 
+    			.", adv_end->".$adUnit->adv_end 
+    			);
     	if($adUnit->adv_type==3) {
     		$display_ad['add_impression'] = true;
     	} else {

@@ -135,23 +135,23 @@ try {
 			return $slave;
 		});
 	}
-    if ($config->logger->enabled) {
+//     if ($config->logger->enabled) {
         $di->set('logger', function () use ($config) {
 
-            $logger = new FileLogger("../app/logs/main.log");
+            $logger = new FileLogger(__DIR__."/../app/logs/main.log");
             $formatter = new \Phalcon\Logger\Formatter\Line($config->logger->format);
             $logger->setFormatter($formatter);
             return $logger;
         });
-    } else {
-        $di->set('logger', function () use ($config) {
-            $logger = new \Phalcon\Logger\Adapter\Syslog("ADVAPI", array(
-                'option' => LOG_NDELAY,
-                'facility' => LOG_DAEMON
-            ));
-            return $logger;
-        });
-    }
+//     } else {
+//         $di->set('logger', function () use ($config) {
+//             $logger = new \Phalcon\Logger\Adapter\Syslog("ADVAPI", array(
+//                 'option' => LOG_NDELAY,
+//                 'facility' => LOG_DAEMON
+//             ));
+//             return $logger;
+//         });
+//     }
 
     $di->set('debugLogger', function () use ($config) {
     	$logger = new FileLogger(__DIR__ ."/../app/logs/debug.log");
