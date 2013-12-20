@@ -121,6 +121,7 @@ class MDRequestController extends RESTController{
         	$request_settings['device_type'] = $device_detail->device_type;
         	$request_settings['device_brand'] = $device_detail->device_brands;
         	$request_settings['device_quality']= $device_detail->device_quality;
+        	$this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
         }
 
         $zone_detail=$this->get_placement($request_settings, $errormessage);
@@ -129,6 +130,8 @@ class MDRequestController extends RESTController{
             return $this->codeInputError();
         }
 
+        $this->debugLog("[handleAdRequest] found zone");
+        
         $request_settings['adspace_width']=$zone_detail->zone_width;
         $request_settings['adspace_height']=$zone_detail->zone_height;
 
@@ -142,6 +145,7 @@ class MDRequestController extends RESTController{
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
         $adv_id = $this->getCacheAdData($cacheKey);
         if($adv_id){
+        	$this->debugLog("找到试投放：".$adv_id);
         	if (!$final_ad = $this->get_ad_unit($adv_id)){
         		return $this->codeNoAds();
         	}
@@ -203,7 +207,7 @@ class MDRequestController extends RESTController{
         }
 
         $request_settings['placement_hash']=$param_s;
-
+		$this->debugLog("[check_input] s->".$param_s);
         $this->prepare_ua($request_settings);
 
         if (!isset($request_settings['user_agent']) or empty($request_settings['user_agent'])){
@@ -290,7 +294,6 @@ class MDRequestController extends RESTController{
 
 
     function buildQuery(&$request_settings, $zone_detail){
-    	$this->getDi()->get('logger')->log("Settings addr:".$request_settings['province_code']."--".$request_settings['city_code']."\n");
     	$conditions = ' (Campaigns.country_target=1';
     	$params = array();
     	if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
@@ -469,7 +472,7 @@ class MDRequestController extends RESTController{
         if (count($campaignarray)<1){
             return false;
         }
-
+		$this->debugLog("[launch_campaign_query] found campaigns, num->".count($campaignarray));
         foreach ($campaignarray as $key => $row) {
             $campaign_id[$key]  = $row['campaign_id'];
             $priority[$key] = $row['priority'];
@@ -599,7 +602,7 @@ class MDRequestController extends RESTController{
         if ($total_ads_inarray=count($adarray)<1){
             return false;
         }
-
+		$this->debugLog("[select_adunit_query] found ad_units, num->".count($adarray));
         return $adarray;
 
     }

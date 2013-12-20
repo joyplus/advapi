@@ -98,7 +98,7 @@ class RESTController extends BaseController{
             case 'fetch':
             	$request_settings['ip_address']=$this->request->getClientAddress(TRUE);
         }
-
+		$this->debugLog("[prepare_ip] ip address->".$request_settings['ip_address']);
     }
 
     function validate_md5($hash){
@@ -176,7 +176,7 @@ class RESTController extends BaseController{
     	$codes = $this->getCodeFromIp($ip);
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
-    	$this->getDi()->get('logger')->log("search IP:".$codes[0]."--".$codes[1]);
+    	$this->debugLog("[setGeo] code1->".$codes[0]." code2->".$codes[1]);
     }
     
 
@@ -430,6 +430,7 @@ class RESTController extends BaseController{
     			'CN_31'=>'新疆'
     	);
     	$address = $this->getAddressFromIp($ip);
+    	$this->debugLog("[getCodeFromIp] find address->".$address);
     	if(!empty($address)){
     		foreach($cities as $key=>$value) {
     			$pattern = "/^".$value."\.*/iu";
@@ -611,10 +612,7 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/CZ88.NET/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
-    	$this->getDi()->get('logger')->log("before charset -> ".$ipAddr1);
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
-    	$this->getDi()->get('logger')->log("after charset  -> ".$ipAddr1);
-    	$this->getDi()->get('logger')->log($ip_origin." -> ".$ipAddr1);
     	
     	return $ipAddr1;
     }
@@ -627,5 +625,10 @@ class RESTController extends BaseController{
     }
     function codeNoAds() {
     	return array("code"=>"20001");
+    }
+    function debugLog($log) {
+    	if(DEBUG_LOG_ENABLE) {
+    		$this->getDi()->get('debugLogger')->log($log);
+    	}
     }
 }

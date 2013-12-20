@@ -34,6 +34,8 @@ try {
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
 	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
+	define('DEBUG_LOG_ENABLE', $config->logger->enabled);
+	
 	$loader = new \Phalcon\Loader();
 
 	/**
@@ -151,6 +153,12 @@ try {
         });
     }
 
+    $di->set('debugLogger', function () use ($config) {
+    	$logger = new FileLogger(__DIR__ ."/../app/logs/debug.log");
+        $formatter = new \Phalcon\Logger\Formatter\Line($config->logger->format);
+        $logger->setFormatter($formatter);
+        return $logger;
+    });
 	/**
 	 * If the configuration specify the use of metadata adapter use it or use memory otherwise
 	 */
