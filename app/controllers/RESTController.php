@@ -98,7 +98,7 @@ class RESTController extends BaseController{
             case 'fetch':
             	$request_settings['ip_address']=$this->request->getClientAddress(TRUE);
         }
-
+		$this->debugLog("[prepare_ip] ip address->".$request_settings['ip_address']);
     }
 
     function validate_md5($hash){
@@ -176,7 +176,7 @@ class RESTController extends BaseController{
     	$codes = $this->getCodeFromIp($ip);
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
-    	
+    	$this->debugLog("[setGeo] code1->".$codes[0].", code2->".$codes[1]);
     }
     
 
@@ -430,6 +430,7 @@ class RESTController extends BaseController{
     			'CN_31'=>'新疆'
     	);
     	$address = $this->getAddressFromIp($ip);
+    	$this->debugLog("[getCodeFromIp] find address->".$address);
     	if(!empty($address)){
     		foreach($cities as $key=>$value) {
     			$pattern = "/^".$value."\.*/iu";
@@ -458,6 +459,7 @@ class RESTController extends BaseController{
     			if(!empty($matchs[2])) {
     				$code2 = $this->getCodeFromAddress($matchs[2]);
     			}
+    			$this->getDi()->get('logger')->log("match code:".$code1."--".$code2);
     			return array($code1, $code2);
     		}
     	}
@@ -465,9 +467,14 @@ class RESTController extends BaseController{
     }
 
     function getCodeFromAddress($region_name) {
+    	//$sql = "select * from md_regional_targeting where region_name= '".$region_name."'";
+    	//$r = new Regions();
+		//$region = $r->getReadConnection()->fetchOne($sql);
+    	//if($region){
+    	//	return $region['targeting_code'];
+    	//}
     	$region = Regions::findFirst(array(
-    		"conditions"=>"region_name= ?1",
-    		"bind"=>array(1=>$region_name),
+    		"conditions"=>"region_name= '".$region_name."'",
     		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
     	));
     	if($region){
@@ -478,6 +485,7 @@ class RESTController extends BaseController{
     
     
     function getAddressFromIp($ip) {
+    	$ip_origin = $ip;
     	$ip1num = 0;
     	$ip2num = 0;
     	$ipAddr1 = "";
@@ -608,6 +616,7 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
+    	
     	return $ipAddr1;
     }
     
@@ -619,5 +628,10 @@ class RESTController extends BaseController{
     }
     function codeNoAds() {
     	return array("code"=>"20001");
+    }
+    function debugLog($log) {
+    	if(DEBUG_LOG_ENABLE) {
+    		$this->getDi()->get('debugLogger')->log($log);
+    	}
     }
 }

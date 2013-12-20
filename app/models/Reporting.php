@@ -6,7 +6,7 @@
  * Time: 下午5:32
  */
 
-class Reporting extends BaseModel
+class Reporting extends \Phalcon\Mvc\Model
 {
 	public $entry_id;
 	public $type;
@@ -34,7 +34,7 @@ class Reporting extends BaseModel
 	public $report_hash;
 	
     public function initialize() {
-    	$this->setReadConnectionService('dbSlave');
+    	$this->setReadConnectionService('dbMaster');
     	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
         //Skips fields/columns on both INSERT/UPDATE operations

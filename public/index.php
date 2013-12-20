@@ -34,6 +34,8 @@ try {
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
 	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
+	define('DEBUG_LOG_ENABLE', $config->logger->enabled);
+	
 	$loader = new \Phalcon\Loader();
 
 	/**
@@ -73,7 +75,7 @@ try {
 		$eventsManager = new EventsManager();
 		$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
 			if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
-				$logger->log($connection->getSQLStatement(), Logger::INFO);
+				$logger->log($connection->getSQLStatement()."\n".implode(",",$connection->getSQLVariables()), Logger::INFO);
 			}
 		});
 		$master =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
@@ -82,7 +84,9 @@ try {
 			"username" => $config->master->username,
 			"password" => $config->master->password,
 			"dbname" => $config->master->name,
-			"charset" => $config->master->charset
+			"options" => array(
+					PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+			)
 		));
 		$master->setEventsManager($eventsManager);
 		return $master;
@@ -91,7 +95,7 @@ try {
 		$eventsManager = new EventsManager();
 		$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
 			if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
-				$logger->log($connection->getSQLStatement(), Logger::INFO);
+				$logger->log($connection->getSQLStatement()."\n".implode(",",$connection->getSQLVariables()), Logger::INFO);
 			}
 		});
 		$slave =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
@@ -100,7 +104,9 @@ try {
 				"username" => $config->slave->username,
 				"password" => $config->slave->password,
 				"dbname" => $config->slave->name,
-				"charset" => $config->slave->charset
+				"options" => array(
+					PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+				)
 		));
 		$slave->setEventsManager($eventsManager);
 		return $slave;
@@ -111,7 +117,7 @@ try {
 			$eventsManager = new EventsManager();
 			$eventsManager->attach('db', function($event, $connection) use ($config, $logger) {
 				if ($event->getType() == 'beforeQuery' && $config->logger->enabled) {
-					$logger->log($connection->getSQLStatement(), Logger::INFO);
+					$logger->log($connection->getSQLStatement()."\n".implode(",",$connection->getSQLVariables()), Logger::INFO);
 				}
 			});
 			$slave =  new \Phalcon\Db\Adapter\Pdo\Mysql(array(
@@ -120,31 +126,39 @@ try {
 					"username" => $config->$s->username,
 					"password" => $config->$s->password,
 					"dbname" => $config->$s->name,
-					"charset" => $config->$s->charset
+					"options" => array(
+						PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+					)
 			));
 			$slave->setEventsManager($eventsManager);
 		
 			return $slave;
 		});
 	}
-    if ($config->logger->enabled) {
+//     if ($config->logger->enabled) {
         $di->set('logger', function () use ($config) {
 
-            $logger = new FileLogger("../app/logs/main.log");
+            $logger = new FileLogger(__DIR__."/../app/logs/main.log");
             $formatter = new \Phalcon\Logger\Formatter\Line($config->logger->format);
             $logger->setFormatter($formatter);
             return $logger;
         });
-    } else {
-        $di->set('logger', function () use ($config) {
-            $logger = new \Phalcon\Logger\Adapter\Syslog("ADVAPI", array(
-                'option' => LOG_NDELAY,
-                'facility' => LOG_DAEMON
-            ));
-            return $logger;
-        });
-    }
+//     } else {
+//         $di->set('logger', function () use ($config) {
+//             $logger = new \Phalcon\Logger\Adapter\Syslog("ADVAPI", array(
+//                 'option' => LOG_NDELAY,
+//                 'facility' => LOG_DAEMON
+//             ));
+//             return $logger;
+//         });
+//     }
 
+    $di->set('debugLogger', function () use ($config) {
+    	$logger = new FileLogger(__DIR__ ."/../app/logs/debug.log");
+        $formatter = new \Phalcon\Logger\Formatter\Line($config->logger->format);
+        $logger->setFormatter($formatter);
+        return $logger;
+    });
 	/**
 	 * If the configuration specify the use of metadata adapter use it or use memory otherwise
 	 */
@@ -276,6 +290,16 @@ try {
     $mdclick->get('/', 'get');
     
     $app->mount($mdclick);
+    
+    $mdaddress = new MicroCollection();
+    //Set the main handler. ie. a controller instance
+    $mdaddress->setHandler(new MDAddressController());
+    //Set a common prefix for all routes
+    $mdaddress->setPrefix('/v1/mdaddress');
+    //Use the method 'indexAction' in ProductsController
+    $mdaddress->get('/', 'get');
+    
+    $app->mount($mdaddress);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
