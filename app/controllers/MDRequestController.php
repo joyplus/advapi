@@ -692,7 +692,7 @@ class MDRequestController extends RESTController{
 
         if ($type==1){
             $display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
-            $display_ad['tracking_iresearch']=$this->changeParams($adUnit->adv_impression_tracking_url_iresearch);
+            $display_ad['tracking_iresearch']=$adUnit->adv_impression_tracking_url_iresearch;
             $display_ad['tracking_admaster']=$this->changeParams($adUnit->adv_impression_tracking_url_admaster);
             $display_ad['tracking_nielsen']=$this->changeParams($adUnit->adv_impression_tracking_url_nielsen);
             $display_ad['available']=1;
