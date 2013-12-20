@@ -6,7 +6,7 @@
  * Time: 下午3:39
  */
 
-class CreativeServers extends \Phalcon\Mvc\Model
+class CreativeServers extends BaseModel
 {
 	public $entry_id;
 	public $server_type;
@@ -20,6 +20,8 @@ class CreativeServers extends \Phalcon\Mvc\Model
 	public $server_status;
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
 

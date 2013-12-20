@@ -34,6 +34,8 @@ class Reporting extends \Phalcon\Mvc\Model
 	public $report_hash;
 	
     public function initialize() {
+    	$this->setReadConnectionService('dbMaster');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
         //Skips fields/columns on both INSERT/UPDATE operations
         $this->skipAttributes(array('time_stamp', 'network_id', 'total_cost', 'geo_region', 'geo_city'));

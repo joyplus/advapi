@@ -62,9 +62,18 @@ class XMLResponse extends Response{
                     if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
                         $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
                     }
-                    $response.= "<trackingurl><![CDATA[";
+                    $response.= "<trackingurl_miaozhen><![CDATA[";
                     $response.= "".$display_ad['trackingpixel']."";
-                    $response.= "]]></trackingurl>";
+                    $response.= "]]></trackingurl_miaozhen>";
+                    $response.= "<trackingurl_iresearch><![CDATA[";
+                    $response.= "".$display_ad['tracking_iresearch']."";
+                    $response.= "]]></trackingurl_iresearch>";
+                    $response.= "<trackingurl_admaster><![CDATA[";
+                    $response.= "".$display_ad['tracking_admaster']."";
+                    $response.= "]]></trackingurl_admaster>";
+                    $response.= "<trackingurl_nielsen><![CDATA[";
+                    $response.= "".$display_ad['tracking_nielsen']."";
+                    $response.= "]]></trackingurl_nielsen>";
                     $response.= "<urltype>";
                     $response.= "link";
                     $response.= "</urltype>";
@@ -89,7 +98,7 @@ class XMLResponse extends Response{
         else if ($display_ad['main_type']=='interstitial'){
             $response.= '<ad type="'.$this->convert_interstitial_name($display_ad['type']).'" animation="'.$display_ad['animation'].'">';
 
-            if ($display_ad['type']=='interstitial' or $display_ad['type']=='video-interstitial' or $display_ad['type']=='interstitial-video'){
+            if ($display_ad['type']=='interstitial' or $display_ad['type']=='video-interstitial' or $display_ad['type']=='interstitial-video' or $display_ad['type']=='previous' or $display_ad['type']=='after'){
                 if ($display_ad['interstitial-type']=='markup'){$interstitial_urlcontent=''; } else {$interstitial_urlcontent='url="'.htmlspecialchars($display_ad['interstitial-content']).'"';}
 
                 $response.= '<interstitial preload="'.$display_ad['interstitial-preload'].'" autoclose="'.$display_ad['interstitial-autoclose'].'" type="'.$display_ad['interstitial-type'].'" '.$interstitial_urlcontent.' orientation="'.$display_ad['interstitial-orientation'].'">';
@@ -102,9 +111,18 @@ class XMLResponse extends Response{
                 $response.= "<impressionurl><![CDATA[";
                 $response.= "".$display_ad['final_impression_url']."";
                 $response.= "]]></impressionurl>";
-                $response.= "<trackingurl><![CDATA[";
+                $response.= "<trackingurl_miaozhen><![CDATA[";
                 $response.= "".$display_ad['trackingpixel']."";
-                $response.= "]]></trackingurl>";
+                $response.= "]]></trackingurl_miaozhen>";
+                $response.= "<trackingurl_iresearch><![CDATA[";
+                $response.= "".$display_ad['tracking_iresearch']."";
+                $response.= "]]></trackingurl_iresearch>";
+                $response.= "<trackingurl_admaster><![CDATA[";
+                $response.= "".$display_ad['tracking_admaster']."";
+                $response.= "]]></trackingurl_admaster>";
+                $response.= "<trackingurl_nielsen><![CDATA[";
+                $response.= "".$display_ad['tracking_nielsen']."";
+                $response.= "]]></trackingurl_nielsen>";
                 $response.= '<skipbutton show="'.$display_ad['interstitial-skipbutton-show'].'" showafter="'.$display_ad['interstitial-skipbutton-showafter'].'"></skipbutton>';
                 $response.= '<navigation show="'.$display_ad['interstitial-navigation-show'].'">';
                 $response.= '<topbar custombackgroundurl="'.$display_ad['interstitial-navigation-topbar-custombg'].'" show="'.$display_ad['interstitial-navigation-topbar-show'].'" title="'.$display_ad['interstitial-navigation-topbar-titletype'].'" titlecontent="'.$display_ad['interstitial-navigation-topbar-titlecontent'].'"></topbar>';
@@ -121,9 +139,18 @@ class XMLResponse extends Response{
             	$response.= "<impressionurl><![CDATA[";
             	$response.= "".$display_ad['final_impression_url']."";
             	$response.= "]]></impressionurl>";
-            	$response.= "<trackingurl><![CDATA[";
-            	$response.= "".$display_ad['trackingpixel']."";
-            	$response.= "]]></trackingurl>";
+            	$response.= "<trackingurl_miaozhen><![CDATA[";
+                $response.= "".$display_ad['trackingpixel']."";
+                $response.= "]]></trackingurl_miaozhen>";
+                $response.= "<trackingurl_iresearch><![CDATA[";
+                $response.= "".$display_ad['tracking_iresearch']."";
+                $response.= "]]></trackingurl_iresearch>";
+                $response.= "<trackingurl_admaster><![CDATA[";
+                $response.= "".$display_ad['tracking_admaster']."";
+                $response.= "]]></trackingurl_admaster>";
+                $response.= "<trackingurl_nielsen><![CDATA[";
+                $response.= "".$display_ad['tracking_nielsen']."";
+                $response.= "]]></trackingurl_nielsen>";
             	if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
             		$response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
             	}
@@ -141,9 +168,18 @@ class XMLResponse extends Response{
                 if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
                     $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
                 }
-                $response.= "<trackingurl><![CDATA[";
+                $response.= "<trackingurl_miaozhen><![CDATA[";
                 $response.= "".$display_ad['trackingpixel']."";
-                $response.= "]]></trackingurl>";
+                $response.= "]]></trackingurl_miaozhen>";
+                $response.= "<trackingurl_iresearch><![CDATA[";
+                $response.= "".$display_ad['tracking_iresearch']."";
+                $response.= "]]></trackingurl_iresearch>";
+                $response.= "<trackingurl_admaster><![CDATA[";
+                $response.= "".$display_ad['tracking_admaster']."";
+                $response.= "]]></trackingurl_admaster>";
+                $response.= "<trackingurl_nielsen><![CDATA[";
+                $response.= "".$display_ad['tracking_nielsen']."";
+                $response.= "]]></trackingurl_nielsen>";
                 $response.= '<duration>'.$display_ad['video-duration'].'</duration>';
                 $response.= '<skipbutton show="'.$display_ad['video-skipbutton-show'].'" showafter="'.$display_ad['video-skipbutton-showafter'].'"></skipbutton>';
                 $response.= '<navigation show="'.$display_ad['video-navigation-show'].'" allowtap="'.$display_ad['video-navigation-allowtap'].'">';
@@ -170,6 +206,7 @@ class XMLResponse extends Response{
 
 
             }
+            
 
             $response.= "</ad>";
 
@@ -200,7 +237,10 @@ class XMLResponse extends Response{
                 return 'video-to-interstitial';
                 break;
             case 'open':
-            	return 'open';
+            case 'previous':
+            case 'middle':
+            case 'after':
+            	return $input;
             	break;
             		
 

@@ -139,10 +139,10 @@ class MDTrackController extends RESTController{
     private function reporting_db_update_impression(&$request_settings, &$report, $add_impression){
 		
 	    if($report->campaign_id !==''){
-	       $this->deduct_impression_num($report->campaign_id, $add_impression);
+			$left = $this->deduct_impression_num($report->campaign_id, $add_impression);
 	    }
 	    
-		if ($report->entry_id>0){ 
+		if ($left && $report->entry_id>0){ 
 			$sql = "UPDATE md_reporting SET total_impressions=total_impressions+ :add_impression WHERE entry_id= :entry_id";
 			$reporting = new Reporting();
 			$result = $reporting->getWriteConnection()->execute($sql,array(

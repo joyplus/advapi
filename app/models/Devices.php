@@ -1,6 +1,6 @@
 <?php
 
-class Devices extends \Phalcon\Mvc\Model
+class Devices extends BaseModel
 {
 	public $device_id;
 	public $device_type;
@@ -15,6 +15,9 @@ class Devices extends \Phalcon\Mvc\Model
     }
 
     public function initialize() {
+        $this->setReadConnectionService('dbSlave');
+        $this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
+    
 }

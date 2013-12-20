@@ -6,7 +6,7 @@
  * Time: 上午11:20
  */
 
-class AdUnits extends \Phalcon\Mvc\Model
+class AdUnits extends BaseModel
 {
 	public $adv_id;
 	public $campaign_id;
@@ -38,6 +38,9 @@ class AdUnits extends \Phalcon\Mvc\Model
     }
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
+    
 }

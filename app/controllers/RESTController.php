@@ -98,7 +98,7 @@ class RESTController extends BaseController{
             case 'fetch':
             	$request_settings['ip_address']=$this->request->getClientAddress(TRUE);
         }
-
+		$this->debugLog("[prepare_ip] ip address->".$request_settings['ip_address']);
     }
 
     function validate_md5($hash){
@@ -176,7 +176,7 @@ class RESTController extends BaseController{
     	$codes = $this->getCodeFromIp($ip);
     	$request_settings['province_code'] = $codes[0];
     	$request_settings['city_code'] = $codes[1];
-    	
+    	$this->debugLog("[setGeo] code1->".$codes[0].", code2->".$codes[1]);
     }
     
 
@@ -189,31 +189,31 @@ class RESTController extends BaseController{
         if (!is_numeric($creative_id)){$creative_id='';}
         if (!is_numeric($network_id)){$network_id='';}
 
-        if(is_null($request_settings['device_name']) || $request_settings['device_name'] ==''){
+        if(!isset($request_settings['device_name']) || $request_settings['device_name'] ==''){
             $device_name='';
         }else {
             $device_name=$request_settings['device_name'];
         }
 
-        if(is_null($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
+        if(!isset($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
             $geo_region='';
         }else {
             $geo_region=$request_settings['geo_region'];
         }
 
-        if(is_null($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
+        if(!isset($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
             $geo_city='';
         }else {
             $geo_city=$request_settings['geo_city'];
         }
         
-        if(is_null($request_settings['province_code']) || $request_settings['province_code'] ==''){
+        if(!isset($request_settings['province_code']) || $request_settings['province_code'] ==''){
         	$province_code='';
         }else {
         	$province_code=$request_settings['province_code'];
         }
         
-        if(is_null($request_settings['city_code']) || $request_settings['city_code'] ==''){
+        if(!isset($request_settings['city_code']) || $request_settings['city_code'] ==''){
         	$city_code='';
         }else {
         	$city_code=$request_settings['city_code'];
@@ -287,11 +287,10 @@ class RESTController extends BaseController{
         $reporting = Reporting::findFirst(array(
         	"conditions"=>$conditions,
         	"bind"=>$param
+        	//"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($param)))
         ));
 
         //$reporting = $resultSet->getFirst();
-
-        $add_impression=0;
 
         //TODO Moved to handler class
 //        $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST . rtrim(dirname($_SERVER['PHP_SELF']), '/')."/".MAD_TRACK_HANDLER."?publication_id=".$publication_id."&zone_id=".$zone_id."&network_id=".$network_id."&campaign_id=".$campaign_id."&ad_id=".$creative_id."&h=".$request_settings['request_hash']."";
@@ -299,12 +298,16 @@ class RESTController extends BaseController{
 
 
         if ($reporting){
-            $reporting->total_requests = $reporting->total_requests + $add_request;
-            $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
-            $reporting->total_impressions = $reporting->total_impressions + $add_impression;
-            $reporting->total_clicks = $reporting->total_clicks + $add_click;
-            $reporting->total_impressions = $reporting->total_impressions + $add_impression;
-            $result = $reporting->update();
+//             $reporting->total_requests = $reporting->total_requests + $add_request;
+//             $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
+//             $reporting->total_impressions = $reporting->total_impressions + $add_impression;
+//             $reporting->total_clicks = $reporting->total_clicks + $add_click;
+//             $result = $reporting->update();
+        	$sql = "UPDATE md_reporting SET total_impressions=total_impressions+ ".$add_impression." ,total_requests=total_requests+ ".$add_request." ,total_requests_sec=total_requests_sec+ ".$add_request_sec." , total_clicks=total_clicks+ ".$add_click." WHERE entry_id= '".$reporting->entry_id."'";
+        	$result = $reporting->getWriteConnection()->execute($sql);
+        	if(!$result) {
+        		$this->logoDBError($reporting);
+        	}
         }
         else {
             $reporting = new Reporting();
@@ -343,7 +346,9 @@ class RESTController extends BaseController{
     function track_request(&$request_settings, $zone_detail, &$display_ad, $impression){
 
         if (!isset($request_settings['active_campaign_type'])){$request_settings['active_campaign_type']='';}
-
+        if($display_ad['add_impression']){
+        	$impression = 1;
+        }
         switch ($request_settings['active_campaign_type']){
             case 'normal':
                 $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $display_ad['campaign_id'], $display_ad['ad_id'], '', 1, 0, $impression, 0);
@@ -362,16 +367,16 @@ class RESTController extends BaseController{
                 break;
         }
 
-        if ($impression>1){
+        if ($impression>0){
             /*Deduct Impression from Limit Card*/
             switch ($request_settings['active_campaign_type']){
 
                 case 'normal':
-                    $this->deduct_impression_num($display_ad['campaign_id'], impression);
+                    $this->deduct_impression_num($display_ad['campaign_id'], $impression);
                     break;
 
                 case 'network':
-                    $this->deduct_impression_num($request_settings['active_campaign'], impression);
+                    $this->deduct_impression_num($request_settings['active_campaign'], $impression);
                     break;
 
             }
@@ -381,18 +386,22 @@ class RESTController extends BaseController{
     }
 
     function deduct_impression_num($campaign_id,$number){
-
-        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount>0";
+    	
+        $sql="UPDATE md_campaign_limit SET total_amount_left = total_amount_left - :number WHERE campaign_id = :campaign_id AND total_amount_left>0";
     	
     	$cam = new CampaignLimit();
-    	$result = $cam->getWriteConnection()->execute($sql, array(
+    	$connection = $cam->getWriteConnection();
+    	$result = $connection->execute($sql, array(
     		"number"=>$number,
     		"campaign_id"=>$campaign_id
     	));
 
        	if($result==false) {
        		$this->logoDBError($cam);
+       		return false;
        	}
+       	$row = $connection->affectedRows();
+       	return $row>0;
 
     }
 
@@ -421,6 +430,7 @@ class RESTController extends BaseController{
     			'CN_31'=>'新疆'
     	);
     	$address = $this->getAddressFromIp($ip);
+    	$this->debugLog("[getCodeFromIp] find address->".$address);
     	if(!empty($address)){
     		foreach($cities as $key=>$value) {
     			$pattern = "/^".$value."\.*/iu";
@@ -449,6 +459,7 @@ class RESTController extends BaseController{
     			if(!empty($matchs[2])) {
     				$code2 = $this->getCodeFromAddress($matchs[2]);
     			}
+    			$this->getDi()->get('logger')->log("match code:".$code1."--".$code2);
     			return array($code1, $code2);
     		}
     	}
@@ -456,9 +467,14 @@ class RESTController extends BaseController{
     }
 
     function getCodeFromAddress($region_name) {
+    	//$sql = "select * from md_regional_targeting where region_name= '".$region_name."'";
+    	//$r = new Regions();
+		//$region = $r->getReadConnection()->fetchOne($sql);
+    	//if($region){
+    	//	return $region['targeting_code'];
+    	//}
     	$region = Regions::findFirst(array(
-    		"conditions"=>"region_name= ?1",
-    		"bind"=>array(1=>$region_name),
+    		"conditions"=>"region_name= '".$region_name."'",
     		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
     	));
     	if($region){
@@ -469,6 +485,7 @@ class RESTController extends BaseController{
     
     
     function getAddressFromIp($ip) {
+    	$ip_origin = $ip;
     	$ip1num = 0;
     	$ip2num = 0;
     	$ipAddr1 = "";
@@ -599,6 +616,7 @@ class RESTController extends BaseController{
     	$ipAddr1 = preg_replace ( '/^s*/is', '', $ipAddr1 );
     	$ipAddr1 = preg_replace ( '/s*$/is', '', $ipAddr1 );
     	$ipAddr1 = iconv("GBK","UTF-8//IGNORE",$ipAddr1);
+    	
     	return $ipAddr1;
     }
     
@@ -610,5 +628,10 @@ class RESTController extends BaseController{
     }
     function codeNoAds() {
     	return array("code"=>"20001");
+    }
+    function debugLog($log) {
+    	if(DEBUG_LOG_ENABLE) {
+    		$this->getDi()->get('debugLogger')->log($log);
+    	}
     }
 }

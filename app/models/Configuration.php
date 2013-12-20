@@ -6,13 +6,15 @@
  * Time: 下午4:33
  */
 
-class Configuration extends \Phalcon\Mvc\Model
+class Configuration extends BaseModel
 {
 	public $entry_id;
 	public $var_name;
 	public $var_value;
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
 

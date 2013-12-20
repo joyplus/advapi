@@ -6,7 +6,7 @@
  * Time: 下午1:05
  */
 
-class Campaigns extends \Phalcon\Mvc\Model
+class Campaigns extends BaseModel
 {
 	public $campaign_id;
 	public $campaign_owner;
@@ -53,6 +53,8 @@ class Campaigns extends \Phalcon\Mvc\Model
     }
 
     public function initialize() {
+    	$this->setReadConnectionService('dbSlave');
+    	$this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
 }
