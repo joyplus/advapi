@@ -62,18 +62,18 @@ class XMLResponse extends Response{
                     if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
                         $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
                     }
-                    $response.= "<trackingurl type='miaozhen'><![CDATA[";
+                    $response.= "<trackingurl_miaozhen><![CDATA[";
                     $response.= "".$display_ad['trackingpixel']."";
-                    $response.= "]]></trackingurl>";
-                    $response.= "<trackingurl type='iresearch'><![CDATA[";
+                    $response.= "]]></trackingurl_miaozhen>";
+                    $response.= "<trackingurl_iresearch><![CDATA[";
                     $response.= "".$display_ad['tracking_iresearch']."";
-                    $response.= "]]></trackingurl>";
-                    $response.= "<trackingurl type='admaster'><![CDATA[";
+                    $response.= "]]></trackingurl_iresearch>";
+                    $response.= "<trackingurl_admaster><![CDATA[";
                     $response.= "".$display_ad['tracking_admaster']."";
-                    $response.= "]]></trackingurl>";
-                    $response.= "<trackingurl type='nielsen'><![CDATA[";
+                    $response.= "]]></trackingurl_admaster>";
+                    $response.= "<trackingurl_nielsen><![CDATA[";
                     $response.= "".$display_ad['tracking_nielsen']."";
-                    $response.= "]]></trackingurl>";
+                    $response.= "]]></trackingurl_nielsen>";
                     $response.= "<urltype>";
                     $response.= "link";
                     $response.= "</urltype>";
@@ -111,18 +111,18 @@ class XMLResponse extends Response{
                 $response.= "<impressionurl><![CDATA[";
                 $response.= "".$display_ad['final_impression_url']."";
                 $response.= "]]></impressionurl>";
-                $response.= "<trackingurl type='miaozhen'><![CDATA[";
+                $response.= "<trackingurl_miaozhen><![CDATA[";
                 $response.= "".$display_ad['trackingpixel']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='iresearch'><![CDATA[";
+                $response.= "]]></trackingurl_miaozhen>";
+                $response.= "<trackingurl_iresearch><![CDATA[";
                 $response.= "".$display_ad['tracking_iresearch']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='admaster'><![CDATA[";
+                $response.= "]]></trackingurl_iresearch>";
+                $response.= "<trackingurl_admaster><![CDATA[";
                 $response.= "".$display_ad['tracking_admaster']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='nielsen'><![CDATA[";
+                $response.= "]]></trackingurl_admaster>";
+                $response.= "<trackingurl_nielsen><![CDATA[";
                 $response.= "".$display_ad['tracking_nielsen']."";
-                $response.= "]]></trackingurl>";
+                $response.= "]]></trackingurl_nielsen>";
                 $response.= '<skipbutton show="'.$display_ad['interstitial-skipbutton-show'].'" showafter="'.$display_ad['interstitial-skipbutton-showafter'].'"></skipbutton>';
                 $response.= '<navigation show="'.$display_ad['interstitial-navigation-show'].'">';
                 $response.= '<topbar custombackgroundurl="'.$display_ad['interstitial-navigation-topbar-custombg'].'" show="'.$display_ad['interstitial-navigation-topbar-show'].'" title="'.$display_ad['interstitial-navigation-topbar-titletype'].'" titlecontent="'.$display_ad['interstitial-navigation-topbar-titlecontent'].'"></topbar>';
@@ -139,18 +139,18 @@ class XMLResponse extends Response{
             	$response.= "<impressionurl><![CDATA[";
             	$response.= "".$display_ad['final_impression_url']."";
             	$response.= "]]></impressionurl>";
-            	$response.= "<trackingurl type='miaozhen'><![CDATA[";
+            	$response.= "<trackingurl_miaozhen><![CDATA[";
                 $response.= "".$display_ad['trackingpixel']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='iresearch'><![CDATA[";
+                $response.= "]]></trackingurl_miaozhen>";
+                $response.= "<trackingurl_iresearch><![CDATA[";
                 $response.= "".$display_ad['tracking_iresearch']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='admaster'><![CDATA[";
+                $response.= "]]></trackingurl_iresearch>";
+                $response.= "<trackingurl_admaster><![CDATA[";
                 $response.= "".$display_ad['tracking_admaster']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='nielsen'><![CDATA[";
+                $response.= "]]></trackingurl_admaster>";
+                $response.= "<trackingurl_nielsen><![CDATA[";
                 $response.= "".$display_ad['tracking_nielsen']."";
-                $response.= "]]></trackingurl>";
+                $response.= "]]></trackingurl_nielsen>";
             	if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
             		$response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
             	}
@@ -168,18 +168,18 @@ class XMLResponse extends Response{
                 if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
                     $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
                 }
-                $response.= "<trackingurl type='miaozhen'><![CDATA[";
+                $response.= "<trackingurl_miaozhen><![CDATA[";
                 $response.= "".$display_ad['trackingpixel']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='iresearch'><![CDATA[";
+                $response.= "]]></trackingurl_miaozhen>";
+                $response.= "<trackingurl_iresearch><![CDATA[";
                 $response.= "".$display_ad['tracking_iresearch']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='admaster'><![CDATA[";
+                $response.= "]]></trackingurl_iresearch>";
+                $response.= "<trackingurl_admaster><![CDATA[";
                 $response.= "".$display_ad['tracking_admaster']."";
-                $response.= "]]></trackingurl>";
-                $response.= "<trackingurl type='nielsen'><![CDATA[";
+                $response.= "]]></trackingurl_admaster>";
+                $response.= "<trackingurl_nielsen><![CDATA[";
                 $response.= "".$display_ad['tracking_nielsen']."";
-                $response.= "]]></trackingurl>";
+                $response.= "]]></trackingurl_nielsen>";
                 $response.= '<duration>'.$display_ad['video-duration'].'</duration>';
                 $response.= '<skipbutton show="'.$display_ad['video-skipbutton-show'].'" showafter="'.$display_ad['video-skipbutton-showafter'].'"></skipbutton>';
                 $response.= '<navigation show="'.$display_ad['video-navigation-show'].'" allowtap="'.$display_ad['video-navigation-allowtap'].'">';
