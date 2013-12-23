@@ -382,7 +382,7 @@ class MDRequestController extends RESTController{
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
     		case 'after':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>='".date("Y-m-d")."' and  ad.adv_status=1 AND ad.creative_unit_type='after'))";
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='after'))";
     			$params['adv_start'] = date("Y-m-d");
     			$params['adv_end'] = date("Y-m-d");
     			break;
