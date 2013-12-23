@@ -393,7 +393,13 @@ class MDRequestController extends RESTController{
     	}else{
     		$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
     	}
-    
+    	
+    	//时段定向
+    	$current_hours=pow(2,date('H'));
+    	$conditions .= " AND (Campaigns.time_target=0 OR (Campaigns.time_target & :h1:)=:h2:)";
+    	$params['h1'] = $current_hours;
+    	$params['h2'] = $current_hours;
+    	
     	$request_settings['campaign_conditions'] = $conditions;
     	$request_settings['campaign_params'] = $params ;
     
