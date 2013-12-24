@@ -32,6 +32,9 @@ try {
 	define('MAD_CLICK_HANDLER', $config->application->mdclick);
 	define('MAD_TRACK_HANDLER', $config->application->mdtrack);
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
+	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
+    define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
+
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
 	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
 	define('DEBUG_LOG_ENABLE', $config->logger->enabled);
@@ -292,14 +295,17 @@ try {
     $app->mount($mdclick);
     
     $mdaddress = new MicroCollection();
-    //Set the main handler. ie. a controller instance
     $mdaddress->setHandler(new MDAddressController());
-    //Set a common prefix for all routes
     $mdaddress->setPrefix('/v1/mdaddress');
-    //Use the method 'indexAction' in ProductsController
     $mdaddress->get('/', 'get');
-    
     $app->mount($mdaddress);
+    
+    
+    $mdnetworkbatch = new MicroCollection();
+    $mdnetworkbatch->setHandler(new MDNetworkBatchController());
+    $mdnetworkbatch->setPrefix('/'.MAD_NETWORK_BATCH_HANDLER);
+    $mdnetworkbatch->get('/', 'get');
+    $app->mount($mdnetworkbatch);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
@@ -311,9 +317,21 @@ try {
     $app->after(function() use ($app) {
 
         $records = $app->getReturnedValue();
-		
-        $response = new XMLResponse();
-        $response->send($records);
+		if(!isset($records['return_type'])) {
+			$records['return_type'] = "xml";
+		}
+		switch($records['return_type']){
+			case 'json' :
+				$response = new JSONResponse();
+				$response->send($records['data']);
+				break;
+			case 'xml' :
+			default:
+				$response = new XMLResponse();
+				$response->send($records);
+				break;
+		}
+        
 
         return;
     });

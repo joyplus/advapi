@@ -41,9 +41,9 @@ class JSONResponse extends Response{
 			if($message['_meta']['count'] === 0){
 				// This is required to make the response JSON return an empty JS object.  Without
 				// this, the JSON return an empty array:  [] instead of {}
-				$message['records'] = new \stdClass();
+				$message['ads'] = new \stdClass();
 			} else {
-				$message['records'] = $records;
+				$message['ads'] = $records;
 			}
 
 		} else {
@@ -52,7 +52,7 @@ class JSONResponse extends Response{
 			$message = $records;
 		}
 
-		$response->setContentType('application/json');
+		$response->setContentType('application/json;charset=UTF-8');
 		$response->setHeader('E-Tag', $etag);
 
 		// HEAD requests are detected in the parent constructor. HEAD does everything exactly the

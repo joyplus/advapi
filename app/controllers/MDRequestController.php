@@ -124,7 +124,7 @@ class MDRequestController extends RESTController{
         	$this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
         }
 
-        $zone_detail=$this->get_placement($request_settings, $errormessage);
+        $zone_detail=$this->get_placement($request_settings['placement_hash']);
 
         if (!$zone_detail){
             return $this->codeInputError();
@@ -218,16 +218,6 @@ class MDRequestController extends RESTController{
         return true;
     }
 
-    function get_placement(&$request_settings, &$errormessage){
-		$zone = Zones::findFirst(array(
-			"zone_hash = ?0",
-			"bind" => array(0=>$request_settings['placement_hash']),
-			"cache" => array("key"=>CACHE_PREFIX.$request_settings['placement_hash'])
-		));
-    	
-        return $zone;
-    }
-    
     /**
      * 获取设备信息
      */
@@ -238,7 +228,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_movement= ?1",
     		"bind"=>array(1=>$device_movement),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_movement))
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."getDevice".$device_movement))
     	));
     	return $device;
     }
@@ -248,7 +238,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id))
+        		"cache"=>array("key"=>md5(CACHE_PREFIX."get_publication_channel".$publication_id))
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;
@@ -649,7 +639,7 @@ class MDRequestController extends RESTController{
         //writetofile("request.log",'final_ad: '.$query);
         $ad_detail = AdUnits::findFirst(array(
         	"adv_id = '".$id."'",
-        	"cache"=>array("key"=>CACHE_PREFIX.$id)
+        	"cache"=>array("key"=>CACHE_PREFIX."get_ad_unit".$id)
         ));
         if (!$ad_detail){
             return false;
@@ -920,25 +910,6 @@ class MDRequestController extends RESTController{
             return false;
         }
 
-    }
-
-    private function get_creative_url($adUnit, $type, $extension){
-        $server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
-        $image_url="".$server_detail->server_default_url."".$adUnit->unit_hash.$type.".".$extension."";
-
-        return $image_url;
-    }
-
-    private function get_creativeserver($id){
-
-        //$query="select server_default_url from md_creative_servers where entry_id='".$id."'";
-        $creativeServers = CreativeServers::findFirst($id);
-
-        if ($creativeServers){
-            return $creativeServers;
-        } else {
-            return false;
-        }
     }
 
     private function generate_trackingpixel($url){
