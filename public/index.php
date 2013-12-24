@@ -35,6 +35,9 @@ try {
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
     define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
 
+    //monitor接口是否检查ip来源
+    define('MAD_MONITOR_IP_CHECK', $config->application->md_monitor_ip_check);
+    
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
 	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
 	define('DEBUG_LOG_ENABLE', $config->logger->enabled);
@@ -306,6 +309,12 @@ try {
     $mdnetworkbatch->setPrefix('/'.MAD_NETWORK_BATCH_HANDLER);
     $mdnetworkbatch->get('/', 'get');
     $app->mount($mdnetworkbatch);
+    
+    $mdmonitor = new MicroCollection();
+    $mdmonitor->setHandler(new MDMonitorController());
+    $mdmonitor->setPrefix('/'.MAD_MONITOR_HANDLER);
+    $mdmonitor->get('/', 'get');
+    $app->mount($mdmonitor);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
