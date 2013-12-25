@@ -228,7 +228,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_movement= ?1",
     		"bind"=>array(1=>$device_movement),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX."getDevice".$device_movement))
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES".$device_movement))
     	));
     	return $device;
     }
@@ -238,7 +238,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5(CACHE_PREFIX."get_publication_channel".$publication_id))
+        		"cache"=>array("key"=>md5(CACHE_PREFIX."_PUBLICATIONS".$publication_id))
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;
@@ -428,7 +428,7 @@ class MDRequestController extends RESTController{
 
     function launch_campaign_query($type, $conditions, $params){
 
-    	$resultData = $this->getCacheDataValue(CACHE_PREFIX.md5(serialize($params)));
+    	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS".md5(serialize($params)));
     	if($resultData){
     		return $resultData;
     	}
@@ -491,7 +491,7 @@ class MDRequestController extends RESTController{
                 array_push($final_ads, $value);
             }
         }
-        $this->saveCacheDataValue(CACHE_PREFIX.md5(serialize($params)), $final_ads);
+        $this->saveCacheDataValue(CACHE_PREFIX."_CAMPAIGNS".md5(serialize($params)), $final_ads);
         return $final_ads;
     }
 
@@ -570,7 +570,7 @@ class MDRequestController extends RESTController{
         		"conditions" => $conditions,
         		"bind" => $params,
         		"order"=>$order,
-        		"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($params)))
+        		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS".md5(serialize($params)))
         );
 
         //global $repdb_connected,$display_ad;
@@ -639,7 +639,7 @@ class MDRequestController extends RESTController{
         //writetofile("request.log",'final_ad: '.$query);
         $ad_detail = AdUnits::findFirst(array(
         	"adv_id = '".$id."'",
-        	"cache"=>array("key"=>CACHE_PREFIX."get_ad_unit".$id)
+        	"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS".$id)
         ));
         if (!$ad_detail){
             return false;

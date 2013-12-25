@@ -53,7 +53,7 @@ class JSONResponse extends Response{
 		}
 
 		$response->setContentType('application/json;charset=UTF-8');
-		$response->setHeader('E-Tag', $etag);
+		//$response->setHeader('E-Tag', $etag);
 
 		// HEAD requests are detected in the parent constructor. HEAD does everything exactly the
 		// same as GET, but contains no body.

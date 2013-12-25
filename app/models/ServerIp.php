@@ -5,7 +5,7 @@ class ServerIp extends BaseModel
 	public $id;
 	public $campaign_name;
 	public $ip;
-	public $date_flag;
+	public $del_flag;
 
 	
     public function getSource()

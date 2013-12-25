@@ -53,7 +53,7 @@ class MDMonitorController extends RESTController{
     	$s = ServerIp::findFirst(array(
     		"ip= ?0",
     		"bind"=>array(0=>$ip),
-    		"cache"=>array("key"=>CACHE_PREFIX."existIp".$ip)
+    		"cache"=>array("key"=>CACHE_PREFIX."_SERVERIP".$ip)
     	));
     	if($s)
     		return true;
@@ -66,7 +66,7 @@ class MDMonitorController extends RESTController{
     	$ad = AdUnits::findFirst(array(
     		"unit_hash= ?0",
     		"bind"=>array(0=>$hash),
-    		"cache"=>array("key"=>CACHE_PREFIX."getAdFromHash".$hash)
+    		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS".$hash)
     	));
     	if($ad)
     		return $ad;
@@ -77,7 +77,7 @@ class MDMonitorController extends RESTController{
     	$c = Campaigns::findFirst(array(
     		"campaign_id= ?0",
     		"bind"=>array(0=>$id),
-    		"cache"=>array("key"=>CACHE_PREFIX."getCampaign".$id)
+    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNS".$id)
     	));
     	if($c)
     		return $c;
