@@ -17,7 +17,7 @@ try {
     define('MAD_CLICK_ALWAYS_EXTERNAL', false);
     define('MAD_TRACK_UNIQUE_CLICKS', false); // Track only unique clicks. Works only if a caching method is enabled.
     define('MAD_CLICK_IMMEDIATE_REDIRECT', false); // Make the click handler redirect the end-user to the destination URL immediately and write the click to the statistic database in the background.
-    define('CACHE_PREFIX', 'ADV_ZH');
+    
     define('MAD_MAINTENANCE', false); //设置true停止广告投放
 
 
@@ -34,6 +34,9 @@ try {
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
     define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
+    
+    //缓存前缀
+    define('CACHE_PREFIX', $config->application->cache_prefix);
 
     //monitor接口是否检查ip来源
     define('MAD_MONITOR_IP_CHECK', $config->application->md_monitor_ip_check);
