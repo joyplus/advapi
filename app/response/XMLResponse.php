@@ -25,7 +25,7 @@ class XMLResponse extends Response{
         // Instead, return headers.
         $request = $this->di->get('request');
         //$etag = md5(serialize($records));
-        $response->setContentType('text/xml');
+        $response->setContentType('text/xml;charset=UTF-8');
         //$response->setHeader('E-Tag', $etag);
 
         $response->setContent($this->print_ad($records));
