@@ -300,13 +300,6 @@ try {
     
     $app->mount($mdclick);
     
-    $mdaddress = new MicroCollection();
-    $mdaddress->setHandler(new MDAddressController());
-    $mdaddress->setPrefix('/v1/mdaddress');
-    $mdaddress->get('/', 'get');
-    $app->mount($mdaddress);
-    
-    
     $mdnetworkbatch = new MicroCollection();
     $mdnetworkbatch->setHandler(new MDNetworkBatchController());
     $mdnetworkbatch->setPrefix('/'.MAD_NETWORK_BATCH_HANDLER);
