@@ -190,7 +190,7 @@ class RESTController extends BaseController{
         if (!is_numeric($network_id)){$network_id='';}
 
         if(!isset($request_settings['device_name']) || $request_settings['device_name'] ==''){
-            $device_name='';
+            $device_name=$request_settings['device_movement'];
         }else {
             $device_name=$request_settings['device_name'];
         }
