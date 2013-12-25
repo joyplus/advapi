@@ -192,7 +192,7 @@ class MDNetworkBatchController extends RESTController{
      * @param $time
      */
     public function getTimeTarget($time) {
-    	if($time<1 || $time>pow(2,23))
+    	if($time<1 || $time>=(pow(2,24)-1))
     		return array();
     	for($i=0; $i<24; $i++) {
     		if(($time>>$i) & 1 == 1) {
