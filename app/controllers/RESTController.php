@@ -475,7 +475,7 @@ class RESTController extends BaseController{
     	//}
     	$region = Regions::findFirst(array(
     		"conditions"=>"region_name= '".$region_name."'",
-    		"cache"=>array("key"=>md5(CACHE_PREFIX."_REGIONS".$region_name),"lifetime"=>86400)
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_REGIONS_".$region_name),"lifetime"=>86400)
     	));
     	if($region){
     		return $region->targeting_code;
@@ -639,7 +639,7 @@ class RESTController extends BaseController{
     	$zone = Zones::findFirst(array(
     			"zone_hash = ?0",
     			"bind" => array(0=>$placement_hash),
-    			"cache" => array("key"=>CACHE_PREFIX."_ZONES".$placement_hash)
+    			"cache" => array("key"=>CACHE_PREFIX."_ZONES_".$placement_hash)
     	));
     	return $zone;
     }

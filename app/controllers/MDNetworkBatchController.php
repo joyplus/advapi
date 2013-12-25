@@ -83,7 +83,7 @@ class MDNetworkBatchController extends RESTController{
     			"conditions" => $conditions,
     			"bind" => $params,
     			"order"=>$order,
-    			"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS".md5(serialize($params)))
+    			"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)))
     	);
     	
     	$adUnits = AdUnits::find($query_param);
@@ -121,7 +121,7 @@ class MDNetworkBatchController extends RESTController{
     			$ad['adv_impression_tracking_url_admaster'] = $a->adv_impression_tracking_url_admaster;
     		if(isset($a->adv_impression_tracking_url_nielsen) && !empty($a->adv_impression_tracking_url_nielsen))
     			$ad['adv_impression_tracking_url_nielsen'] = $a->adv_impression_tracking_url_nielsen;
-    		$params = "ad=".$a->unit_hash."&zone=".$zone->zone_hash."&dm=%dm%&i=%i%&ip=%ip%&ex=%ex%";
+    		$params = "ad=".$a->unit_hash."&zone=".$zone->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
     		$ad['adv_impression_tracking_url'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;
     		
     		$ads[] = $ad;
@@ -168,7 +168,7 @@ class MDNetworkBatchController extends RESTController{
     public function getAddressTarget($id) {
     	$targetings = CampaignTargeting::find(array(
     		"campaign_id = '".$id."' AND targeting_type='geo'",
-    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING".$id)
+    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_".$id)
     	));
     	
     	if($targetings) {
@@ -176,7 +176,7 @@ class MDNetworkBatchController extends RESTController{
     		foreach($targetings as $t) {
     			$r = Regions::findFirst(array(
     				"targeting_code='".$t->targeting_code."'",
-    				"cache"=>array("key"=>CACHE_PREFIX."_REGIONS".$t->targeting_code)
+    				"cache"=>array("key"=>CACHE_PREFIX."_REGIONS_".$t->targeting_code)
     			));
     			if($r){
     				$this->log("[getAddressTarget] region id->".entry_id);
