@@ -170,7 +170,7 @@ class MDNetworkBatchController extends RESTController{
     		"campaign_id = '".$id."' AND targeting_type='geo'",
     		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_".$id)
     	));
-    	
+    	$rs = array();
     	if($targetings) {
     		$this->log("[getAddressTarget] geo target num->".count($targetings));
     		foreach($targetings as $t) {
