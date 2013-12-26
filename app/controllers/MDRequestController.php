@@ -124,7 +124,7 @@ class MDRequestController extends RESTController{
         	$this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
         }
 
-        $zone_detail=$this->get_placement($request_settings, $errormessage);
+        $zone_detail=$this->get_placement($request_settings['placement_hash']);
 
         if (!$zone_detail){
             return $this->codeInputError();
@@ -176,7 +176,7 @@ class MDRequestController extends RESTController{
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
             $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
+                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh']."&i=".$request_settings['i'];
 
             $display_ad['final_impression_url']=$base_ctr;
         }
@@ -218,16 +218,6 @@ class MDRequestController extends RESTController{
         return true;
     }
 
-    function get_placement(&$request_settings, &$errormessage){
-		$zone = Zones::findFirst(array(
-			"zone_hash = ?0",
-			"bind" => array(0=>$request_settings['placement_hash']),
-			"cache" => array("key"=>CACHE_PREFIX.$request_settings['placement_hash'])
-		));
-    	
-        return $zone;
-    }
-    
     /**
      * 获取设备信息
      */
@@ -238,7 +228,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_movement= ?1",
     		"bind"=>array(1=>$device_movement),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_movement))
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement))
     	));
     	return $device;
     }
@@ -248,7 +238,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id))
+        		"cache"=>array("key"=>md5(CACHE_PREFIX."_PUBLICATIONS_".$publication_id))
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;
@@ -393,7 +383,13 @@ class MDRequestController extends RESTController{
     	}else{
     		$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
     	}
-    
+    	
+    	//时段定向
+    	$current_hours=pow(2,date('H'));
+    	$conditions .= " AND (Campaigns.time_target=0 OR (Campaigns.time_target & :h1:)=:h2:)";
+    	$params['h1'] = $current_hours;
+    	$params['h2'] = $current_hours;
+    	
     	$request_settings['campaign_conditions'] = $conditions;
     	$request_settings['campaign_params'] = $params ;
     
@@ -432,7 +428,7 @@ class MDRequestController extends RESTController{
 
     function launch_campaign_query($type, $conditions, $params){
 
-    	$resultData = $this->getCacheDataValue(CACHE_PREFIX.md5(serialize($params)));
+    	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)));
     	if($resultData){
     		return $resultData;
     	}
@@ -495,7 +491,7 @@ class MDRequestController extends RESTController{
                 array_push($final_ads, $value);
             }
         }
-        $this->saveCacheDataValue(CACHE_PREFIX.md5(serialize($params)), $final_ads);
+        $this->saveCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)), $final_ads);
         return $final_ads;
     }
 
@@ -574,7 +570,7 @@ class MDRequestController extends RESTController{
         		"conditions" => $conditions,
         		"bind" => $params,
         		"order"=>$order,
-        		"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($params)))
+        		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)))
         );
 
         //global $repdb_connected,$display_ad;
@@ -643,7 +639,7 @@ class MDRequestController extends RESTController{
         //writetofile("request.log",'final_ad: '.$query);
         $ad_detail = AdUnits::findFirst(array(
         	"adv_id = '".$id."'",
-        	"cache"=>array("key"=>CACHE_PREFIX.$id)
+        	"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$id)
         ));
         if (!$ad_detail){
             return false;
@@ -914,25 +910,6 @@ class MDRequestController extends RESTController{
             return false;
         }
 
-    }
-
-    private function get_creative_url($adUnit, $type, $extension){
-        $server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
-        $image_url="".$server_detail->server_default_url."".$adUnit->unit_hash.$type.".".$extension."";
-
-        return $image_url;
-    }
-
-    private function get_creativeserver($id){
-
-        //$query="select server_default_url from md_creative_servers where entry_id='".$id."'";
-        $creativeServers = CreativeServers::findFirst($id);
-
-        if ($creativeServers){
-            return $creativeServers;
-        } else {
-            return false;
-        }
     }
 
     private function generate_trackingpixel($url){
