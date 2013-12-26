@@ -6,7 +6,7 @@ use Phalcon\Logger,
     Phalcon\Logger\Adapter\File as FileLogger,
     Phalcon\Cache\Backend\Memcached;
 
-error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
 try {
 

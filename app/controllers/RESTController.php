@@ -662,4 +662,75 @@ class RESTController extends BaseController{
     		return false;
     	}
     }
+
+    function save_request_log($type, $result){
+
+//      $phql="INSERT INTO md_device_request_log (equipment_sn, equipment_key, device_id, device_name, user_pattern, date, operation_type, operation_extra, publication_id, zone_id, campaign_id, creative_id, client_ip) VALUES (:equipment_sn, :equipment_key, :device_id, :device_name, :user_pattern, :date, :operation_type, :operation_extra, :publication_id, :zone_id, :campaign_id, :creative_id, :client_ip)";
+
+        $devReqLog = new DeviceRequestLog();
+
+        $zone_detail = null;
+        $operation_type = null;
+
+        if($type == 'request')
+        {
+            if(isset($result['available']) && $result['available']==1)
+                $operation_type = '1';
+            else
+                $operation_type = '0';
+
+            $zone_hash = $this->request->get('s'); //此值已验证过
+            $zone_detail = $this->get_placement($zone_hash);
+
+            $devReqLog->equipment_sn = $this->request->get("sn", null, '');
+            $devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+            $devReqLog->device_id = '';
+            $devReqLog->device_name = $this->request->get("dm", null, '');
+            $devReqLog->user_pattern = $this->request->get("up",null,'');
+            $devReqLog->date = date("Y-m-d");
+            $devReqLog->operation_type = $operation_type;
+            $devReqLog->operation_extra = '';
+            $devReqLog->publication_id = $zone_detail->publication_id;
+            $devReqLog->zone_id = $zone_detail->entry_id;
+            $devReqLog->campaign_id = $result['campaign_id'];
+            $devReqLog->creative_id = $result['ad_id'];
+            $devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        }
+        else if($type == 'track')
+        {
+            if(isset($result['code']) && $result['code']=='00000')
+                $operation_type = '2';
+            else
+                return false;
+
+            $report_hash = $this->request->get("rh", null, '');
+            $reporting = Reporting::findFirst(array(
+                "conditions"=>"report_hash = '$report_hash'"
+            ));
+
+            $devReqLog->equipment_sn = '';
+            $devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+            $devReqLog->device_id = '';
+            $devReqLog->device_name = $reporting->device_name;
+            $devReqLog->user_pattern = '';
+            $devReqLog->date = date("Y-m-d");
+            $devReqLog->operation_type = $operation_type;
+            $devReqLog->operation_extra = '';
+            $devReqLog->publication_id = $reporting->publication_id;
+            $devReqLog->zone_id = $reporting->zone_id;
+            $devReqLog->campaign_id = $reporting->campaign_id;
+            $devReqLog->creative_id = $reporting->creative_id;
+            $devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        }
+        else
+            return false;
+
+        //Store and check for errors
+        if ($devReqLog->save() == true) {
+            return true;
+        } else {
+            $this->logoDBError($devReqLog);
+            return false;
+        }
+    }
 }
