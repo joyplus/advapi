@@ -145,7 +145,7 @@ class MDNetworkBatchController extends RESTController{
      */
     public function isVideo($extension) {
     	//$exts = array("3gp","avi","flv","mp4","png");
-    	$exts = array("3gp","avi","flv","mp4");
+    	$exts = array("3gp","avi","flv","mp4", "mov");
     	if(!isset($extension) || empty($extension))
     		return false;
     	foreach ($exts as $e) {
