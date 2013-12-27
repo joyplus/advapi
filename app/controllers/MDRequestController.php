@@ -37,6 +37,9 @@ class MDRequestController extends RESTController{
         $request_settings['latitude'] = $this->request->get("latitude", null, '');
         $request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
         $request_settings['i'] = $this->request->get("i", null, '');
+        $request_settings['adv_type'] = $this->request->get("mt", null, null);
+        $request_settings['screen'] = $this->request->get("screen", null, '');
+        $request_settings['screen_size'] = Lov::getScreen($request_settings['screen']);
         
         $request_settings['pattern'] = $this->request->get("up",null,'');
         $request_settings['video_type'] = $this->request->get("vc",null,'');
@@ -338,48 +341,70 @@ class MDRequestController extends RESTController{
     	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
+    	
+    	//广告类型
+    	if(isset($request_settings['adv_type'])) {
+    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+    		$params['adv_type'] = $request_settings['adv_type'];
+    		$params['adv_start'] = date("Y-m-d");
+    		$params['adv_end'] = date("Y-m-d");
+    	}else{
+    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+    		$params['adv_start'] = date("Y-m-d");
+    		$params['adv_end'] = date("Y-m-d");
+    	}
     
     	switch ($zone_detail->zone_type){
     		case 'banner':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
     
     		case 'interstitial':
+    			$conditions .= " AND ad.creative_unit_type='interstitial'";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
+    			//尺寸匹配
+    			if($request_settings['screen_size']) {
+    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    				$params['adv_width'] = $request_settings['screen_size'][0];
+    				$params['adv_height'] = $request_settings['screen_size'][1];
+    			}else{
+    				$conditions .= "))";
+    			}
+    			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='interstitial'))";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='interstitial'))";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
     			//$params['adv_width'] = $zone_detail->zone_width;
     			//$params['adv_height'] = $zone_detail->zone_height;
     			
     			break;
     		case 'open':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='open'))";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
-    			//$params['adv_width'] = $zone_detail->zone_width;
-    			//$params['adv_height'] = $zone_detail->zone_height;
+    			//不传adv_type参数，开机广告默认adv_type为4
+    			if(!isset($request_settings['adv_type'])) {
+    				$conditions .= " AND ad.adv_type=:adv_type:  AND ad.creative_unit_type='open'";
+    				$params['adv_type'] = 4;
+    			}else{
+    				$conditions .= " AND ad.creative_unit_type='open'";
+    			}
+    			//尺寸匹配
+    			if($request_settings['screen_size']) {
+    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    				$params['adv_width'] = $request_settings['screen_size'][0];
+    				$params['adv_height'] = $request_settings['screen_size'][1];
+    			}else{
+    				$conditions .= "))";
+    			}
     			break;
     		case 'previous':
-    			$conditions .= "AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='previous'))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='previous'))";
     			break;
     		case 'middle':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
     		case 'after':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='after'))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='after'))";
     			break;
     	}
     
@@ -539,7 +564,7 @@ class MDRequestController extends RESTController{
     }
 
 
-    private function select_adunit_query($zone_detail, $campaign_detail){
+    private function select_adunit_query($request_settings, $zone_detail, $campaign_detail){
     	$this->debugLog("[select_adunit_query] campaign_detail, id->".$campaign_detail['campaign_id']);
     	$params = array();
 		$conditions = "campaign_id = :campaign_id:";
@@ -565,7 +590,15 @@ class MDRequestController extends RESTController{
                 $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
                 $params['adv_width'] = $zone_detail->zone_width;
                 $params['adv_height'] = $zone_detail->zone_height;
-                break; 
+                break;
+            case 'open':
+            case 'interstitial':
+            	if($request_settings['screen_size']) {
+            		$conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
+            		$params['adv_width'] = $request_settings['screen_size'][0];
+            		$params['adv_height'] = $request_settings['screen_size'][1];
+            	}
+            	break; 
         }
         //创意顺序排序
         $order = "adv_id";
@@ -612,7 +645,7 @@ class MDRequestController extends RESTController{
 
     private function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
 
-        if (!$ad_unit_array = $this->select_adunit_query($zone_detail, $campaign_detail)){
+        if (!$ad_unit_array = $this->select_adunit_query($request_settings, $zone_detail, $campaign_detail)){
             return false;
         }
 
