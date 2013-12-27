@@ -9,7 +9,7 @@ class JSONResponse extends Response{
 		parent::__construct();
 	}
 
-	public function send($records, $error=false){
+	public function send($code, $records, $error=false){
 
 		// Error's come from HTTPException.  This helps set the proper envelope data
 		$response = $this->di->get('response');
@@ -27,13 +27,12 @@ class JSONResponse extends Response{
 			$records = $this->arrayKeysToSnake($records);
 		}
 
-		$etag = md5(serialize($records));
 
 		if(!isset($records['status'])){
 			// Provide an envelope for JSON responses.  '_meta' and 'records' are the objects.
 			$message = array();
 			$message['_meta'] = array(
-				'status' => $success,
+				'status' => $code,
 				'count' => ($error) ? 1 : count($records)
 			);
 
@@ -47,9 +46,12 @@ class JSONResponse extends Response{
 			}
 
 		} else {
+			$message = array();
+			$message['_meta'] = array(
+					'status' => $code,
+			);
 			$response->setHeader('X-Record-Count', count($records));
 			$response->setHeader('X-Status', $success);
-			$message = $records;
 		}
 
 		$response->setContentType('application/json;charset=UTF-8');

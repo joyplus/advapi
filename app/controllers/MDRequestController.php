@@ -350,14 +350,19 @@ class MDRequestController extends RESTController{
     
     		case 'interstitial':
     		case 'mini_interstitial':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='interstitial'))";
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='interstitial'))";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
     			$params['adv_start'] = date("Y-m-d");
     			$params['adv_end'] = date("Y-m-d");
+    			//$params['adv_width'] = $zone_detail->zone_width;
+    			//$params['adv_height'] = $zone_detail->zone_height;
+    			
     			break;
     		case 'open':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='open'))";
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='open'))";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
     			$params['adv_start'] = date("Y-m-d");
     			$params['adv_end'] = date("Y-m-d");
+    			//$params['adv_width'] = $zone_detail->zone_width;
+    			//$params['adv_height'] = $zone_detail->zone_height;
     			break;
     		case 'previous':
     			$conditions .= "AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='previous'))";
@@ -392,7 +397,8 @@ class MDRequestController extends RESTController{
     	
     	$request_settings['campaign_conditions'] = $conditions;
     	$request_settings['campaign_params'] = $params ;
-    
+    	
+    	$this->debugLog("[build query->]".$conditions);
     }
 
     function get_last_cron_exec(){
