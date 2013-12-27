@@ -7,6 +7,8 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDMonitorController extends RESTController{
 
     public function get(){
+    	$reqults['return_type'] = "json";
+    	
 		$data['param_ip'] = $this->request->get("ip", null, '');
 		$data['zone_hash'] = $this->request->get("zone", null, '');
 		$data['ad_hash'] = $this->request->get("ad", null, '');
@@ -28,23 +30,32 @@ class MDMonitorController extends RESTController{
 		
 		$zone_detail = $this->get_placement($data['zone_hash']);
 		if(!$zone_detail) {
-			return $this->codeInputError();
+			$reqults['return_code'] = "30001";
+			$reqults['data']['status'] = "error";
+			return $reqults;
 		}
 		$this->log("[get] get zone id->".$zone_detail->entry_id);
 		
 		$ad = $this->getAdFromHash($data['ad_hash']);
 		if(!$ad) {
-			return $this->codeInputError();
+			$reqults['return_code'] = "30001";
+			$reqults['data']['status'] = "error";
+			return $reqults;
 		}
 		
 		$campaign = $this->getCampaign($ad->campaign_id);
 		if(!$campaign) {
-			return $this->codeInputError();
+			$reqults['return_code'] = "30001";
+			$reqults['data']['status'] = "error";
+			return $reqults;
 		}
 		$this->log("[get] find campaign id->".$campaign->campaign_id);
 		$display_ad = array();
 		$this->reporting_db_update($display_ad, $data, $zone_detail->publication_id, $zone_detail->entry_id, $campaign->campaign_id, $ad->adv_id, "", 1, 0, 1, 0);
-    	return $this->codeSuccess();
+    	
+		$reqults['return_code'] = "00000";
+		$reqults['data']['status'] = "success";
+		return $reqults;
     }
 
     public function existIp($ip) {

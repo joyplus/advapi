@@ -362,7 +362,7 @@ class MDRequestController extends RESTController{
     			break;
     
     		case 'interstitial':
-    			$conditions .= " AND ad.creative_unit_type='interstitial'";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
+    			$conditions .= " AND ad.creative_unit_type='interstitial'";
     			//尺寸匹配
     			if($request_settings['screen_size']) {
     				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
@@ -373,7 +373,7 @@ class MDRequestController extends RESTController{
     			}
     			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND ad.creative_unit_type='interstitial'))";// AND (ad.adv_width=:adv_width: OR ad.adv_width='') AND (ad.adv_height=:adv_height: OR ad.adv_height='')))";
+    			$conditions .= " AND ad.creative_unit_type='interstitial'))";
     			//$params['adv_width'] = $zone_detail->zone_width;
     			//$params['adv_height'] = $zone_detail->zone_height;
     			

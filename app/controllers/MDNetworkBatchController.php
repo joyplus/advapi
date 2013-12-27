@@ -128,7 +128,7 @@ class MDNetworkBatchController extends RESTController{
     			$ad['adv_impression_tracking_url_admaster'] = $a->adv_impression_tracking_url_admaster;
     		if(isset($a->adv_impression_tracking_url_nielsen) && !empty($a->adv_impression_tracking_url_nielsen))
     			$ad['adv_impression_tracking_url_nielsen'] = $a->adv_impression_tracking_url_nielsen;
-    		$params = "ad=".$a->unit_hash."&zone=".$zone->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
+    		$params = "rq=1&ad=".$a->unit_hash."&zone=".$zone->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
     		$ad['adv_impression_tracking_url'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;
     		
     		$ads[] = $ad;
