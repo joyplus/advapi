@@ -7,7 +7,7 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDMonitorController extends RESTController{
 
     public function get(){
-    	$results['return_type'] = "xml";
+    	$results['return_type'] = "json";
     	
 		$data['param_ip'] = $this->request->get("ip", null, '');
 		$data['zone_hash'] = $this->request->get("zone", null, '');
@@ -18,8 +18,8 @@ class MDMonitorController extends RESTController{
 		$data['origin_ip'] = $this->request->getClientAddress(TRUE);
 		
 		$rq = $this->request->get("rq", null, 0);
-		if($rq==1){
-			$results['return_type'] = "json";
+		if($rq!=1){
+			$results['return_type'] = "xml";
 		}
 		
 		$this->log("[get] origin ip->".$data['origin_ip']);
