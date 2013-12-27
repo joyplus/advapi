@@ -17,7 +17,7 @@ class MDMonitorController extends RESTController{
 		$data['ex'] = $this->request->get("ex", null, '');
 		$data['origin_ip'] = $this->request->getClientAddress(TRUE);
 		
-		$rq = $this->request->get("rq", null, 0);
+		$rq = $this->request->get("rq", null, 1);
 		if($rq!=1){
 			$results['return_type'] = "xml";
 		}
