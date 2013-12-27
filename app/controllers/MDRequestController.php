@@ -185,7 +185,7 @@ class MDRequestController extends RESTController{
         }
         else {
             $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-            $display_ad['code'] = "20001";
+            $display_ad['return_code'] = "20001";
         }
 
         return $display_ad;

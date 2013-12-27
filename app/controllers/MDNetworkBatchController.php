@@ -11,12 +11,18 @@ class MDNetworkBatchController extends RESTController{
     	$results['return_type'] = 'json';
     	
     	$hash = $this->request->get("s", null, '');
+    	$rq = $this->request->get("rq", null, 0);
+    	if($rq!=1){
+    		$results['return_code'] = "30001";
+    		$results['data']['status'] = "error";
+    		return $results;
+    	}
     	$this->log("[get] get hash->".$hash);
     	$zone_detail=$this->get_placement($hash);
     	$this->log("[get] get zone id->".$zone_detail->entry_id);
     	if(!$zone_detail) {
     		$results['return_code'] = "30001";
-    		$results['status'] = "error";
+    		$results['data']['status'] = "error";
     		return $results;
     	}
     	$ads = $this->process($zone_detail);

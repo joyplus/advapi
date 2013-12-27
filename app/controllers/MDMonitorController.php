@@ -7,7 +7,7 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDMonitorController extends RESTController{
 
     public function get(){
-    	$reqults['return_type'] = "json";
+    	$results['return_type'] = "xml";
     	
 		$data['param_ip'] = $this->request->get("ip", null, '');
 		$data['zone_hash'] = $this->request->get("zone", null, '');
@@ -16,6 +16,11 @@ class MDMonitorController extends RESTController{
 		$data['i'] = $this->request->get("i", null, '');
 		$data['ex'] = $this->request->get("ex", null, '');
 		$data['origin_ip'] = $this->request->getClientAddress(TRUE);
+		
+		$rq = $this->request->get("rq", null, 0);
+		if($rq==1){
+			$results['return_type'] = "json";
+		}
 		
 		$this->log("[get] origin ip->".$data['origin_ip']);
 		$this->log("[get] param ip->".$data['param_ip']);
@@ -30,32 +35,32 @@ class MDMonitorController extends RESTController{
 		
 		$zone_detail = $this->get_placement($data['zone_hash']);
 		if(!$zone_detail) {
-			$reqults['return_code'] = "30001";
-			$reqults['data']['status'] = "error";
+			$results['return_code'] = "30001";
+			$results['data']['status'] = "error";
 			return $reqults;
 		}
 		$this->log("[get] get zone id->".$zone_detail->entry_id);
 		
 		$ad = $this->getAdFromHash($data['ad_hash']);
 		if(!$ad) {
-			$reqults['return_code'] = "30001";
-			$reqults['data']['status'] = "error";
+			$results['return_code'] = "30001";
+			$results['data']['status'] = "error";
 			return $reqults;
 		}
 		
 		$campaign = $this->getCampaign($ad->campaign_id);
 		if(!$campaign) {
-			$reqults['return_code'] = "30001";
-			$reqults['data']['status'] = "error";
+			$results['return_code'] = "30001";
+			$results['data']['status'] = "error";
 			return $reqults;
 		}
 		$this->log("[get] find campaign id->".$campaign->campaign_id);
 		$display_ad = array();
 		$this->reporting_db_update($display_ad, $data, $zone_detail->publication_id, $zone_detail->entry_id, $campaign->campaign_id, $ad->adv_id, "", 1, 0, 1, 0);
     	
-		$reqults['return_code'] = "00000";
-		$reqults['data']['status'] = "success";
-		return $reqults;
+		$results['return_code'] = "00000";
+		$results['data']['status'] = "success";
+		return $results;
     }
 
     public function existIp($ip) {

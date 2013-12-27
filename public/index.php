@@ -396,7 +396,7 @@ try {
 }
 
 function sendError($rq, $code) {
-	$records = array("code"=>$code);
+	$records = array("return_code"=>$code);
 	if($rq==1) {
 		$response = new JSONResponse();
 		$response->send($code, array("status"=>"error"));
