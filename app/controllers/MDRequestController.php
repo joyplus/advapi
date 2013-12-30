@@ -387,16 +387,16 @@ class MDRequestController extends RESTController{
     			$params['adv_end'] = date("Y-m-d");
     			switch($request_settings['adv_type']) {
     				case 2: //视频
-    					$conditions .= " AND ad.adv_type IN (2,5) ))";
+    					$conditions .= " AND ad.adv_type IN (2,5)";
     					break;
     				case 4: //zip包
-    					$conditions .= " AND ad.adv_type IN (4,5) ))";
+    					$conditions .= " AND ad.adv_type IN (4,5)";
     					break;
     				case 5: //视频及zip包
-    					$conditions .= " AND ad.adv_type = 5 ))";
+    					$conditions .= " AND ad.adv_type = 5";
     					break;
     				default: //默认
-    					$conditions .= " AND ad.adv_type IN (2,4,5) ))";
+    					$conditions .= " AND ad.adv_type IN (2,4,5)";
     					break;
     			}
     			//尺寸匹配
