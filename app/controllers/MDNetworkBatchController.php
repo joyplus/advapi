@@ -169,7 +169,7 @@ class MDNetworkBatchController extends RESTController{
      */
     public function adExtra($c) {
     	$extra['time_target'] = $this->getTimeTarget($c->time_target);
-    	$extra['country_target'] = $this->getAddressTarget($c->campaign_id);
+    	$extra['region_target'] = $this->getAddressTarget($c->campaign_id);
     	
     	return $extra;
     }
