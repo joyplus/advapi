@@ -126,6 +126,7 @@ class MDNetworkBatchController extends RESTController{
     		$ad = $extra;
     		$ad['adv_url'] = $this->get_creative_url($a,"",$a->adv_creative_extension);
     		$ad['adv_hash'] = $a->unit_hash;
+    		$ad['adv_name'] = $a->adv_name;
     		if(isset($a->adv_impression_tracking_url) && !empty($a->adv_impression_tracking_url))
     			$ad['adv_impression_tracking_url_miaozhen'] = $a->adv_impression_tracking_url;
     		if(isset($a->adv_impression_tracking_url_iresearch) && !empty($a->adv_impression_tracking_url_iresearch))
