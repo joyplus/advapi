@@ -96,7 +96,7 @@ class MDNetworkBatchController extends RESTController{
     			"conditions" => $conditions,
     			"bind" => $params,
     			"order"=>$order,
-    			"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)))
+    			"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)), "lifetime"=>MD_CACHE_TIME)
     	);
     	
     	$adUnits = AdUnits::find($query_param);
@@ -181,7 +181,7 @@ class MDNetworkBatchController extends RESTController{
     public function getAddressTarget($id) {
     	$targetings = CampaignTargeting::find(array(
     		"campaign_id = '".$id."' AND targeting_type='geo'",
-    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_".$id)
+    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_".$id, "lifetime"=>MD_CACHE_TIME)
     	));
     	$rs = array();
     	if($targetings) {
@@ -189,7 +189,7 @@ class MDNetworkBatchController extends RESTController{
     		foreach($targetings as $t) {
     			$r = Regions::findFirst(array(
     				"targeting_code='".$t->targeting_code."'",
-    				"cache"=>array("key"=>CACHE_PREFIX."_REGIONS_".$t->targeting_code)
+    				"cache"=>array("key"=>CACHE_PREFIX."_REGIONS_".$t->targeting_code, "lifetime"=>MD_CACHE_TIME)
     			));
     			if($r){
     				$this->log("[getAddressTarget] region id->".entry_id);
