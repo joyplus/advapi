@@ -722,6 +722,26 @@ class RESTController extends BaseController{
             $devReqLog->creative_id = $reporting->creative_id;
             $devReqLog->client_ip = $this->request->getClientAddress(TRUE);
         }
+        else if ($type == 'monitor') {
+        	$report_hash = $result['rh'];
+        	$reporting = Reporting::findFirst(array(
+        			"conditions"=>"report_hash = '$report_hash'"
+        	));
+        	
+        	$devReqLog->equipment_sn = '';
+        	$devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+        	$devReqLog->device_id = '';
+        	$devReqLog->device_name = $reporting->device_name;
+        	$devReqLog->user_pattern = '';
+        	$devReqLog->date = date("Y-m-d");
+        	$devReqLog->operation_type = $operation_type;
+        	$devReqLog->operation_extra = '';
+        	$devReqLog->publication_id = $reporting->publication_id;
+        	$devReqLog->zone_id = $reporting->zone_id;
+        	$devReqLog->campaign_id = $reporting->campaign_id;
+        	$devReqLog->creative_id = $reporting->creative_id;
+        	$devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        }
         else
             return false;
 
