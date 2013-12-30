@@ -190,7 +190,7 @@ class RESTController extends BaseController{
         if (!is_numeric($network_id)){$network_id='';}
 
         if(!isset($request_settings['device_name']) || $request_settings['device_name'] ==''){
-            $device_name='';
+            $device_name=$request_settings['device_movement'];
         }else {
             $device_name=$request_settings['device_name'];
         }
@@ -621,13 +621,13 @@ class RESTController extends BaseController{
     }
     
     function codeSuccess() {
-    	return array("code"=>"00000");
+    	return array("return_code"=>"00000");
     }
     function codeInputError() {
-    	return array("code"=>"30001");
+    	return array("return_code"=>"30001");
     }
     function codeNoAds() {
-    	return array("code"=>"20001");
+    	return array("return_code"=>"20001");
     }
     function debugLog($log) {
     	if(DEBUG_LOG_ENABLE) {

@@ -11,14 +11,27 @@ class MDNetworkBatchController extends RESTController{
     	$results['return_type'] = 'json';
     	
     	$hash = $this->request->get("s", null, '');
+    	$rq = $this->request->get("rq", null, 0);
+    	if($rq!=1){
+    		$results['return_code'] = "30001";
+    		$results['data']['status'] = "error";
+    		return $results;
+    	}
     	$this->log("[get] get hash->".$hash);
     	$zone_detail=$this->get_placement($hash);
     	$this->log("[get] get zone id->".$zone_detail->entry_id);
     	if(!$zone_detail) {
+    		$results['return_code'] = "30001";
+    		$results['data']['status'] = "error";
     		return $results;
     	}
     	$ads = $this->process($zone_detail);
     	$results['data'] = $ads;
+    	if(count($ads)<1) {
+    		$results['return_code'] = "20001";
+    	}else{
+    		$results['return_code'] = "00000";
+    	}
     	return $results;
     }
     
@@ -121,7 +134,7 @@ class MDNetworkBatchController extends RESTController{
     			$ad['adv_impression_tracking_url_admaster'] = $a->adv_impression_tracking_url_admaster;
     		if(isset($a->adv_impression_tracking_url_nielsen) && !empty($a->adv_impression_tracking_url_nielsen))
     			$ad['adv_impression_tracking_url_nielsen'] = $a->adv_impression_tracking_url_nielsen;
-    		$params = "ad=".$a->unit_hash."&zone=".$zone->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
+    		$params = "rq=1&ad=".$a->unit_hash."&zone=".$zone->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
     		$ad['adv_impression_tracking_url'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;
     		
     		$ads[] = $ad;
@@ -138,7 +151,7 @@ class MDNetworkBatchController extends RESTController{
      */
     public function isVideo($extension) {
     	//$exts = array("3gp","avi","flv","mp4","png");
-    	$exts = array("3gp","avi","flv","mp4");
+    	$exts = array("3gp","avi","flv","mp4", "mov");
     	if(!isset($extension) || empty($extension))
     		return false;
     	foreach ($exts as $e) {
@@ -170,7 +183,7 @@ class MDNetworkBatchController extends RESTController{
     		"campaign_id = '".$id."' AND targeting_type='geo'",
     		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_".$id)
     	));
-    	
+    	$rs = array();
     	if($targetings) {
     		$this->log("[getAddressTarget] geo target num->".count($targetings));
     		foreach($targetings as $t) {
