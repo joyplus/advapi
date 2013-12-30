@@ -17,7 +17,7 @@ try {
     define('MAD_CLICK_ALWAYS_EXTERNAL', false);
     define('MAD_TRACK_UNIQUE_CLICKS', false); // Track only unique clicks. Works only if a caching method is enabled.
     define('MAD_CLICK_IMMEDIATE_REDIRECT', false); // Make the click handler redirect the end-user to the destination URL immediately and write the click to the statistic database in the background.
-    define('CACHE_PREFIX', 'ADV_ZH');
+    
     define('MAD_MAINTENANCE', false); //设置true停止广告投放
 
 
@@ -32,6 +32,15 @@ try {
 	define('MAD_CLICK_HANDLER', $config->application->mdclick);
 	define('MAD_TRACK_HANDLER', $config->application->mdtrack);
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
+	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
+    define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
+    
+    //缓存前缀
+    define('CACHE_PREFIX', $config->application->cache_prefix);
+
+    //monitor接口是否检查ip来源
+    define('MAD_MONITOR_IP_CHECK', $config->application->md_monitor_ip_check);
+    
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
 	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
 	define('DEBUG_LOG_ENABLE', $config->logger->enabled);
@@ -291,15 +300,17 @@ try {
     
     $app->mount($mdclick);
     
-    $mdaddress = new MicroCollection();
-    //Set the main handler. ie. a controller instance
-    $mdaddress->setHandler(new MDAddressController());
-    //Set a common prefix for all routes
-    $mdaddress->setPrefix('/v1/mdaddress');
-    //Use the method 'indexAction' in ProductsController
-    $mdaddress->get('/', 'get');
+    $mdnetworkbatch = new MicroCollection();
+    $mdnetworkbatch->setHandler(new MDNetworkBatchController());
+    $mdnetworkbatch->setPrefix('/'.MAD_NETWORK_BATCH_HANDLER);
+    $mdnetworkbatch->get('/', 'get');
+    $app->mount($mdnetworkbatch);
     
-    $app->mount($mdaddress);
+    $mdmonitor = new MicroCollection();
+    $mdmonitor->setHandler(new MDMonitorController());
+    $mdmonitor->setPrefix('/'.MAD_MONITOR_HANDLER);
+    $mdmonitor->get('/', 'get');
+    $app->mount($mdmonitor);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
@@ -311,9 +322,21 @@ try {
     $app->after(function() use ($app) {
 
         $records = $app->getReturnedValue();
-		
-        $response = new XMLResponse();
-        $response->send($records);
+		if(!isset($records['return_type'])) {
+			$records['return_type'] = "xml";
+		}
+		switch($records['return_type']){
+			case 'json' :
+				$response = new JSONResponse();
+				$response->send($records['return_code'], $records['data']);
+				break;
+			case 'xml' :
+			default:
+				$response = new XMLResponse();
+				$response->send($records);
+				break;
+		}
+        
 
         return;
     });
@@ -352,23 +375,34 @@ try {
     $app->handle();
 } catch (PDOException $e){
     $di->get("logger")->log($e->getMessage(), Logger::ERROR);
-    sendError("42000");
+    $rq = $di->get("request")->get("rq",null, 0);
+    sendError($rq, "42000");
 } catch (Phalcon\Db\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("42000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"42000");
 } catch (Phalcon\Mvc\Model\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("42000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"42000");
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("41000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"41000");
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("41000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"41000");
 }
 
-function sendError($code) {
-	$records = array("code"=>$code);
-	$response = new XMLResponse();
-	$response->send($records);
+function sendError($rq, $code) {
+	$records = array("return_code"=>$code);
+	if($rq==1) {
+		$response = new JSONResponse();
+		$response->send($code, array("status"=>"error"));
+	}else{
+		$response = new XMLResponse();
+		$response->send($records);
+	}
+	
 }

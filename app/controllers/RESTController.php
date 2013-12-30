@@ -475,7 +475,7 @@ class RESTController extends BaseController{
     	//}
     	$region = Regions::findFirst(array(
     		"conditions"=>"region_name= '".$region_name."'",
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$region_name),"lifetime"=>86400)
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_REGIONS_".$region_name), "lifetime"=>MD_CACHE_TIME)
     	));
     	if($region){
     		return $region->targeting_code;
@@ -621,17 +621,45 @@ class RESTController extends BaseController{
     }
     
     function codeSuccess() {
-    	return array("code"=>"00000");
+    	return array("return_code"=>"00000");
     }
     function codeInputError() {
-    	return array("code"=>"30001");
+    	return array("return_code"=>"30001");
     }
     function codeNoAds() {
-    	return array("code"=>"20001");
+    	return array("return_code"=>"20001");
     }
     function debugLog($log) {
     	if(DEBUG_LOG_ENABLE) {
     		$this->getDi()->get('debugLogger')->log($log);
+    	}
+    }
+    
+    function get_placement($placement_hash){
+    	$zone = Zones::findFirst(array(
+    			"zone_hash = ?0",
+    			"bind" => array(0=>$placement_hash),
+    			"cache" => array("key"=>CACHE_PREFIX."_ZONES_".$placement_hash, "lifetime"=>MD_CACHE_TIME)
+    	));
+    	return $zone;
+    }
+    
+    public function get_creative_url($adUnit, $type, $extension){
+    	$server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
+    	$image_url="".$server_detail->server_default_url."".$adUnit->unit_hash.$type.".".$extension."";
+    
+    	return $image_url;
+    }
+    
+    public function get_creativeserver($id){
+    
+    	//$query="select server_default_url from md_creative_servers where entry_id='".$id."'";
+    	$creativeServers = CreativeServers::findFirst($id);
+    
+    	if ($creativeServers){
+    		return $creativeServers;
+    	} else {
+    		return false;
     	}
     }
 }

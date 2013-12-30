@@ -37,6 +37,9 @@ class MDRequestController extends RESTController{
         $request_settings['latitude'] = $this->request->get("latitude", null, '');
         $request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
         $request_settings['i'] = $this->request->get("i", null, '');
+        $request_settings['adv_type'] = $this->request->get("mt", null, null);
+        $request_settings['screen'] = $this->request->get("screen", null, '');
+        $request_settings['screen_size'] = Lov::getScreen($request_settings['screen']);
         
         $request_settings['pattern'] = $this->request->get("up",null,'');
         $request_settings['video_type'] = $this->request->get("vc",null,'');
@@ -124,7 +127,7 @@ class MDRequestController extends RESTController{
         	$this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
         }
 
-        $zone_detail=$this->get_placement($request_settings, $errormessage);
+        $zone_detail=$this->get_placement($request_settings['placement_hash']);
 
         if (!$zone_detail){
             return $this->codeInputError();
@@ -176,13 +179,13 @@ class MDRequestController extends RESTController{
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
             $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh'];
+                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh']."&i=".$request_settings['i'];
 
             $display_ad['final_impression_url']=$base_ctr;
         }
         else {
             $this->track_request($request_settings, $zone_detail, $display_ad, 0);
-            $display_ad['code'] = "20001";
+            $display_ad['return_code'] = "20001";
         }
 
         return $display_ad;
@@ -218,16 +221,6 @@ class MDRequestController extends RESTController{
         return true;
     }
 
-    function get_placement(&$request_settings, &$errormessage){
-		$zone = Zones::findFirst(array(
-			"zone_hash = ?0",
-			"bind" => array(0=>$request_settings['placement_hash']),
-			"cache" => array("key"=>CACHE_PREFIX.$request_settings['placement_hash'])
-		));
-    	
-        return $zone;
-    }
-    
     /**
      * 获取设备信息
      */
@@ -238,7 +231,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_movement= ?1",
     		"bind"=>array(1=>$device_movement),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX.$device_movement))
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement), "lifetime"=>MD_CACHE_TIME)
     	));
     	return $device;
     }
@@ -248,7 +241,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5(CACHE_PREFIX.$publication_id))
+        		"cache"=>array("key"=>md5(CACHE_PREFIX."_PUBLICATIONS_".$publication_id), "lifetime"=>MD_CACHE_TIME)
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;
@@ -348,43 +341,89 @@ class MDRequestController extends RESTController{
     	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
+    	
+    	if($zone_detail->zone_type!='open'){
+	    	//广告类型
+	    	if(isset($request_settings['adv_type'])) {
+	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+	    		$params['adv_type'] = $request_settings['adv_type'];
+	    		$params['adv_start'] = date("Y-m-d");
+	    		$params['adv_end'] = date("Y-m-d");
+	    	}else{
+	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+	    		$params['adv_start'] = date("Y-m-d");
+	    		$params['adv_end'] = date("Y-m-d");
+	    	}
+    	}
     
+    	//广告位类型
     	switch ($zone_detail->zone_type){
     		case 'banner':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
     
     		case 'interstitial':
+    			$conditions .= " AND ad.creative_unit_type='interstitial'";
+    			//尺寸匹配
+    			if($request_settings['screen_size']) {
+    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    				$params['adv_width'] = $request_settings['screen_size'][0];
+    				$params['adv_height'] = $request_settings['screen_size'][1];
+    			}else{
+    				$conditions .= "))";
+    			}
+    			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='interstitial'))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='interstitial'))";
+    			//$params['adv_width'] = $zone_detail->zone_width;
+    			//$params['adv_height'] = $zone_detail->zone_height;
+    			
     			break;
     		case 'open':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='open'))";
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: AND ad.adv_status=1 AND ad.creative_unit_type='open'";
     			$params['adv_start'] = date("Y-m-d");
     			$params['adv_end'] = date("Y-m-d");
+    			switch($request_settings['adv_type']) {
+    				case 1:
+    					$conditions .= " AND ad.adv_type = 1";
+    					break;
+    				case 3:
+    					$conditions .= " AND ad.adv_type = 3";
+    					break;
+    				case 2: //视频
+    					$conditions .= " AND (ad.adv_type = 2 OR ad.adv_type = 5)";
+    					break;
+    				case 4: //zip包
+    					$conditions .= " AND (ad.adv_type = 4 OR ad.adv_type = 5)";
+    					break;
+    				case 5: //视频及zip包
+    					$conditions .= " AND ad.adv_type = 5";
+    					break;
+    				default: //默认
+    					$conditions .= " AND (ad.adv_type =2 OR ad.adv_type = 4 OR ad.adv_type = 5)";
+    					break;
+    			}
+    			//尺寸匹配
+    			if($request_settings['screen_size']) {
+    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    				$params['adv_width'] = $request_settings['screen_size'][0];
+    				$params['adv_height'] = $request_settings['screen_size'][1];
+    			}else{
+    				$conditions .= "))";
+    			}
     			break;
     		case 'previous':
-    			$conditions .= "AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='previous'))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='previous'))";
     			break;
     		case 'middle':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
     		case 'after':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 AND ad.creative_unit_type='after'))";
-    			$params['adv_start'] = date("Y-m-d");
-    			$params['adv_end'] = date("Y-m-d");
+    			$conditions .= " AND ad.creative_unit_type='after'))";
     			break;
     	}
     
@@ -393,10 +432,17 @@ class MDRequestController extends RESTController{
     	}else{
     		$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
     	}
-    
+    	
+    	//时段定向
+    	$current_hours=pow(2,date('H'));
+    	$conditions .= " AND (Campaigns.time_target=0 OR (Campaigns.time_target & :h1:)=:h2:)";
+    	$params['h1'] = $current_hours;
+    	$params['h2'] = $current_hours;
+    	
     	$request_settings['campaign_conditions'] = $conditions;
     	$request_settings['campaign_params'] = $params ;
-    
+    	
+    	$this->debugLog("[build query->]".$conditions);
     }
 
     function get_last_cron_exec(){
@@ -432,7 +478,7 @@ class MDRequestController extends RESTController{
 
     function launch_campaign_query($type, $conditions, $params){
 
-    	$resultData = $this->getCacheDataValue(CACHE_PREFIX.md5(serialize($params)));
+    	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)));
     	if($resultData){
     		return $resultData;
     	}
@@ -495,7 +541,7 @@ class MDRequestController extends RESTController{
                 array_push($final_ads, $value);
             }
         }
-        $this->saveCacheDataValue(CACHE_PREFIX.md5(serialize($params)), $final_ads);
+        $this->saveCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)), $final_ads);
         return $final_ads;
     }
 
@@ -537,7 +583,7 @@ class MDRequestController extends RESTController{
     }
 
 
-    private function select_adunit_query($zone_detail, $campaign_detail){
+    private function select_adunit_query($request_settings, $zone_detail, $campaign_detail){
     	$this->debugLog("[select_adunit_query] campaign_detail, id->".$campaign_detail['campaign_id']);
     	$params = array();
 		$conditions = "campaign_id = :campaign_id:";
@@ -563,7 +609,15 @@ class MDRequestController extends RESTController{
                 $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
                 $params['adv_width'] = $zone_detail->zone_width;
                 $params['adv_height'] = $zone_detail->zone_height;
-                break; 
+                break;
+            case 'open':
+            case 'interstitial':
+            	if($request_settings['screen_size']) {
+            		$conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
+            		$params['adv_width'] = $request_settings['screen_size'][0];
+            		$params['adv_height'] = $request_settings['screen_size'][1];
+            	}
+            	break; 
         }
         //创意顺序排序
         $order = "adv_id";
@@ -574,7 +628,7 @@ class MDRequestController extends RESTController{
         		"conditions" => $conditions,
         		"bind" => $params,
         		"order"=>$order,
-        		"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($params)))
+        		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)), "lifetime"=>MD_CACHE_TIME)
         );
 
         //global $repdb_connected,$display_ad;
@@ -610,7 +664,7 @@ class MDRequestController extends RESTController{
 
     private function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
 
-        if (!$ad_unit_array = $this->select_adunit_query($zone_detail, $campaign_detail)){
+        if (!$ad_unit_array = $this->select_adunit_query($request_settings, $zone_detail, $campaign_detail)){
             return false;
         }
 
@@ -643,7 +697,7 @@ class MDRequestController extends RESTController{
         //writetofile("request.log",'final_ad: '.$query);
         $ad_detail = AdUnits::findFirst(array(
         	"adv_id = '".$id."'",
-        	"cache"=>array("key"=>CACHE_PREFIX.$id)
+        	"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$id, "lifetime"=>MD_CACHE_TIME)
         ));
         if (!$ad_detail){
             return false;
@@ -914,25 +968,6 @@ class MDRequestController extends RESTController{
             return false;
         }
 
-    }
-
-    private function get_creative_url($adUnit, $type, $extension){
-        $server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
-        $image_url="".$server_detail->server_default_url."".$adUnit->unit_hash.$type.".".$extension."";
-
-        return $image_url;
-    }
-
-    private function get_creativeserver($id){
-
-        //$query="select server_default_url from md_creative_servers where entry_id='".$id."'";
-        $creativeServers = CreativeServers::findFirst($id);
-
-        if ($creativeServers){
-            return $creativeServers;
-        } else {
-            return false;
-        }
     }
 
     private function generate_trackingpixel($url){
