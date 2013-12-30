@@ -342,18 +342,21 @@ class MDRequestController extends RESTController{
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
     	
-    	//广告类型
-    	if(isset($request_settings['adv_type'])) {
-    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
-    		$params['adv_type'] = $request_settings['adv_type'];
-    		$params['adv_start'] = date("Y-m-d");
-    		$params['adv_end'] = date("Y-m-d");
-    	}else{
-    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
-    		$params['adv_start'] = date("Y-m-d");
-    		$params['adv_end'] = date("Y-m-d");
+    	if($zone_detail->zone_type!='open'){
+	    	//广告类型
+	    	if(isset($request_settings['adv_type'])) {
+	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+	    		$params['adv_type'] = $request_settings['adv_type'];
+	    		$params['adv_start'] = date("Y-m-d");
+	    		$params['adv_end'] = date("Y-m-d");
+	    	}else{
+	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+	    		$params['adv_start'] = date("Y-m-d");
+	    		$params['adv_end'] = date("Y-m-d");
+	    	}
     	}
     
+    	//广告位类型
     	switch ($zone_detail->zone_type){
     		case 'banner':
     			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
@@ -379,12 +382,22 @@ class MDRequestController extends RESTController{
     			
     			break;
     		case 'open':
-    			//不传adv_type参数，开机广告默认adv_type为4
-    			if(!isset($request_settings['adv_type'])) {
-    				$conditions .= " AND ad.adv_type=:adv_type:  AND ad.creative_unit_type='open'";
-    				$params['adv_type'] = 4;
-    			}else{
-    				$conditions .= " AND ad.creative_unit_type='open'";
+    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: AND ad.adv_status=1 AND ad.creative_unit_type='open'";
+    			$params['adv_start'] = date("Y-m-d");
+    			$params['adv_end'] = date("Y-m-d");
+    			switch($request_settings['adv_type']) {
+    				case 2: //视频
+    					$conditions .= " AND ad.adv_type IN (2,5) ))";
+    					break;
+    				case 4: //zip包
+    					$conditions .= " AND ad.adv_type IN (4,5) ))";
+    					break;
+    				case 5: //视频及zip包
+    					$conditions .= " AND ad.adv_type = 5 ))";
+    					break;
+    				default: //默认
+    					$conditions .= " AND ad.adv_type IN (2,4,5) ))";
+    					break;
     			}
     			//尺寸匹配
     			if($request_settings['screen_size']) {
