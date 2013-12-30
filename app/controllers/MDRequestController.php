@@ -231,7 +231,7 @@ class MDRequestController extends RESTController{
     	$device = Devices::findFirst(array(
     		"conditions"=>"device_movement= ?1",
     		"bind"=>array(1=>$device_movement),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement))
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement), "lifetime"=>MD_CACHE_TIME)
     	));
     	return $device;
     }
@@ -241,7 +241,7 @@ class MDRequestController extends RESTController{
 
         $publications = Publications::findFirst(array(
         		"inv_id='".$publication_id."'",
-        		"cache"=>array("key"=>md5(CACHE_PREFIX."_PUBLICATIONS_".$publication_id))
+        		"cache"=>array("key"=>md5(CACHE_PREFIX."_PUBLICATIONS_".$publication_id), "lifetime"=>MD_CACHE_TIME)
         ));
         if ($publications) {
             return $publications->inv_defaultchannel;
@@ -386,17 +386,23 @@ class MDRequestController extends RESTController{
     			$params['adv_start'] = date("Y-m-d");
     			$params['adv_end'] = date("Y-m-d");
     			switch($request_settings['adv_type']) {
+    				case 1:
+    					$conditions .= " AND ad.adv_type = 1";
+    					break;
+    				case 3:
+    					$conditions .= " AND ad.adv_type = 3";
+    					break;
     				case 2: //视频
-    					$conditions .= " AND ad.adv_type IN (2,5) ))";
+    					$conditions .= " AND (ad.adv_type = 2 OR ad.adv_type = 5)";
     					break;
     				case 4: //zip包
-    					$conditions .= " AND ad.adv_type IN (4,5) ))";
+    					$conditions .= " AND (ad.adv_type = 4 OR ad.adv_type = 5)";
     					break;
     				case 5: //视频及zip包
-    					$conditions .= " AND ad.adv_type = 5 ))";
+    					$conditions .= " AND ad.adv_type = 5";
     					break;
     				default: //默认
-    					$conditions .= " AND ad.adv_type IN (2,4,5) ))";
+    					$conditions .= " AND (ad.adv_type =2 OR ad.adv_type = 4 OR ad.adv_type = 5)";
     					break;
     			}
     			//尺寸匹配
@@ -622,7 +628,7 @@ class MDRequestController extends RESTController{
         		"conditions" => $conditions,
         		"bind" => $params,
         		"order"=>$order,
-        		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)))
+        		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".md5(serialize($params)), "lifetime"=>MD_CACHE_TIME)
         );
 
         //global $repdb_connected,$display_ad;
@@ -691,7 +697,7 @@ class MDRequestController extends RESTController{
         //writetofile("request.log",'final_ad: '.$query);
         $ad_detail = AdUnits::findFirst(array(
         	"adv_id = '".$id."'",
-        	"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$id)
+        	"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$id, "lifetime"=>MD_CACHE_TIME)
         ));
         if (!$ad_detail){
             return false;
