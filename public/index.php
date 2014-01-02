@@ -253,6 +253,7 @@ try {
       	    'host'=>BEANSTALK_SERVER,
       	    'port'=>BEANSTALK_PORT
       	));
+      	$queue->choose(BEANSTALK_TUBE);
       	return $queue;
     });
 
