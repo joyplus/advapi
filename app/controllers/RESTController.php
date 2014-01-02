@@ -662,4 +662,127 @@ class RESTController extends BaseController{
     		return false;
     	}
     }
+
+    function save_request_log($type, $result){
+
+//      $phql="INSERT INTO md_device_request_log (equipment_sn, equipment_key, device_id, device_name, user_pattern, date, operation_type, operation_extra, publication_id, zone_id, campaign_id, creative_id, client_ip) VALUES (:equipment_sn, :equipment_key, :device_id, :device_name, :user_pattern, :date, :operation_type, :operation_extra, :publication_id, :zone_id, :campaign_id, :creative_id, :client_ip)";
+
+        $devReqLog = new DeviceRequestLog();
+
+        $zone_detail = null;
+        $operation_type = null;
+        
+        $devReqLog->date = date("Y-m-d");
+        $devReqLog->business_id = BUSINESS_ID;
+        
+        $devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        $codes = $this->getCodeFromIp($devReqLog->client_ip);
+        if($codes) {
+        	$devReqLog->province_code = $codes[0];
+        	$devReqLog->city_code = $codes[1];
+        }else{
+        	$devReqLog->province_code = '';
+        	$devReqLog->city_code = '';
+        }
+        $device = Devices::findByName($devReqLog->device_name);
+        if($device){
+        	$devReqLog->device_id = $device->device_id;
+        }else{
+        	$devReqLog->device_id = 0;
+        }
+
+        if($type == 'request')
+        {
+            if(isset($result['available']) && $result['available']==1)
+                $operation_type = '002';
+            else
+                $operation_type = '001';
+
+            $zone_hash = $this->request->get('s'); //此值已验证过
+            $zone_detail = $this->get_placement($zone_hash);
+
+            $devReqLog->equipment_sn = $this->request->get("sn", null, '');
+            $devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+            $devReqLog->device_name = $this->request->get("dm", null, '');
+            $devReqLog->user_pattern = $this->request->get("up",null,'');
+            $devReqLog->operation_type = $operation_type;
+            $devReqLog->operation_extra = '';
+            $devReqLog->publication_id = $zone_detail->publication_id;
+            $devReqLog->zone_id = $zone_detail->entry_id;
+            $devReqLog->campaign_id = $result['campaign_id'];
+            $devReqLog->creative_id = $result['ad_id'];
+        }
+        else if($type == 'track')
+        {
+            if(isset($result['code']) && $result['code']=='00000')
+                $operation_type = '003';
+            else
+                return false;
+
+            $report_hash = $this->request->get("rh", null, '');
+            $reporting = Reporting::findFirst(array(
+                "conditions"=>"report_hash = '$report_hash'"
+            ));
+
+            $devReqLog->equipment_sn = '';
+            $devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+            $devReqLog->device_name = $reporting->device_name;
+            $devReqLog->user_pattern = '';
+            $devReqLog->operation_type = $operation_type;
+            $devReqLog->operation_extra = '';
+            $devReqLog->publication_id = $reporting->publication_id;
+            $devReqLog->zone_id = $reporting->zone_id;
+            $devReqLog->campaign_id = $reporting->campaign_id;
+            $devReqLog->creative_id = $reporting->creative_id;
+        }
+        else if ($type == 'monitor') {
+        	$operation_type = '003';
+        	$report_hash = $result['rh'];
+        	$reporting = Reporting::findFirst(array(
+        			"conditions"=>"report_hash = '$report_hash'"
+        	));
+        	
+        	$devReqLog->equipment_sn = '';
+        	$devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+        	$devReqLog->device_name = $reporting->device_name;
+        	$devReqLog->user_pattern = '';
+        	$devReqLog->operation_type = $operation_type;
+        	$devReqLog->operation_extra = $this->request->get("ex", null, '');
+        	$devReqLog->publication_id = $reporting->publication_id;
+        	$devReqLog->zone_id = $reporting->zone_id;
+        	$devReqLog->campaign_id = $reporting->campaign_id;
+        	$devReqLog->creative_id = $reporting->creative_id;
+        }
+        else
+            return false;
+        
+        if(MAD_USE_BEANSTALK) {
+        	$log['equipment_sn'] = $devReqLog->equipment_sn;
+        	$log['equipment_key'] = $devReqLog->equipment_key;
+        	$log['device_id'] = $devReqLog->device_id;
+        	$log['device_name'] = $devReqLog->device_name;
+        	$log['user_pattern'] = $devReqLog->user_pattern;
+        	$log['date'] = $devReqLog->date;
+        	$log['operation_type'] = $devReqLog->operation_type;
+        	$log['operation_extra'] = $devReqLog->operation_extra;
+        	$log['publication_id'] = $devReqLog->publication_id;
+        	$log['zone_id'] = $devReqLog->zone_id;
+        	$log['campaign_id'] = $devReqLog->campaign_id;
+        	$log['creative_id'] = $devReqLog->creative_id;
+        	$log['client_ip'] = $devReqLog->client_ip;
+        	$log['province_code'] = $devReqLog->province_code;
+        	$log['city_code'] = $devReqLog->city_code;
+        	$log['business_id'] = $devReqLog->business_id;
+        	
+        	$queue = $this->getDi()->get('beanstalk');
+        	$queue->put(serialize($log));
+        }else{
+	        if ($devReqLog->save() == true) {
+	            return true;
+	        } else {
+	            $this->logoDBError($devReqLog);
+	            return false;
+	        }
+        }
+    }
 }
