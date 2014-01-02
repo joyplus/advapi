@@ -22,6 +22,9 @@ class DeviceRequestLog extends BaseModel
     public $campaign_id;
     public $creative_id;
     public $client_ip;
+    public $province_code;
+    public $city_code;
+    public $business_id;
 
     public function getSource()
     {

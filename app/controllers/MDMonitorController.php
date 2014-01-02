@@ -44,7 +44,10 @@ class MDMonitorController extends RESTController{
 		$this->log("[get] find campaign id->".$campaign->campaign_id);
 		$display_ad = array();
 		$this->reporting_db_update($display_ad, $data, $zone_detail->publication_id, $zone_detail->entry_id, $campaign->campaign_id, $ad->adv_id, "", 1, 0, 1, 0);
-    	return $this->codeSuccess();
+    	
+		//记录device_log
+		$this->save_request_log('monitor', $display_ad);
+		return $this->codeSuccess();
     }
 
     public function existIp($ip) {

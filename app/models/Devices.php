@@ -19,5 +19,15 @@ class Devices extends BaseModel
         $this->setWriteConnectionService('dbMaster');
         $this->useDynamicUpdate(true);
     }
-    
+    public static function findByName($name) {
+    	if(!isset($name) || empty($name))
+    		return false;
+    	$d = Devices::findFirst(array(
+    			"device_movement = '".$name."' OR device_name='".$name."'",
+    			"cache"=>array("key"=>CACHE_PREFIX."_DEVICE_NAME_".$name)
+    	));
+    	if($d)
+    		return $d;
+    	return false;
+    }
 }
