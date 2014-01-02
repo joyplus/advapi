@@ -694,9 +694,9 @@ class RESTController extends BaseController{
         if($type == 'request')
         {
             if(isset($result['available']) && $result['available']==1)
-                $operation_type = '1';
+                $operation_type = '002';
             else
-                $operation_type = '0';
+                $operation_type = '001';
 
             $zone_hash = $this->request->get('s'); //此值已验证过
             $zone_detail = $this->get_placement($zone_hash);
@@ -715,7 +715,7 @@ class RESTController extends BaseController{
         else if($type == 'track')
         {
             if(isset($result['code']) && $result['code']=='00000')
-                $operation_type = '2';
+                $operation_type = '003';
             else
                 return false;
 
@@ -736,7 +736,7 @@ class RESTController extends BaseController{
             $devReqLog->creative_id = $reporting->creative_id;
         }
         else if ($type == 'monitor') {
-        	$operation_type = '2';
+        	$operation_type = '003';
         	$report_hash = $result['rh'];
         	$reporting = Reporting::findFirst(array(
         			"conditions"=>"report_hash = '$report_hash'"
