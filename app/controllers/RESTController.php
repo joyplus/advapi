@@ -190,7 +190,7 @@ class RESTController extends BaseController{
         if (!is_numeric($network_id)){$network_id='';}
 
         if(!isset($request_settings['device_name']) || $request_settings['device_name'] ==''){
-            $device_name='';
+            $device_name=$request_settings['device_movement'];
         }else {
             $device_name=$request_settings['device_name'];
         }
@@ -475,7 +475,7 @@ class RESTController extends BaseController{
     	//}
     	$region = Regions::findFirst(array(
     		"conditions"=>"region_name= '".$region_name."'",
-    		"cache"=>array("key"=>md5(CACHE_PREFIX."_REGIONS_".$region_name),"lifetime"=>86400)
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_REGIONS_".$region_name), "lifetime"=>MD_CACHE_TIME)
     	));
     	if($region){
     		return $region->targeting_code;
@@ -621,13 +621,13 @@ class RESTController extends BaseController{
     }
     
     function codeSuccess() {
-    	return array("code"=>"00000");
+    	return array("return_code"=>"00000");
     }
     function codeInputError() {
-    	return array("code"=>"30001");
+    	return array("return_code"=>"30001");
     }
     function codeNoAds() {
-    	return array("code"=>"20001");
+    	return array("return_code"=>"20001");
     }
     function debugLog($log) {
     	if(DEBUG_LOG_ENABLE) {
@@ -639,7 +639,7 @@ class RESTController extends BaseController{
     	$zone = Zones::findFirst(array(
     			"zone_hash = ?0",
     			"bind" => array(0=>$placement_hash),
-    			"cache" => array("key"=>CACHE_PREFIX."_ZONES_".$placement_hash)
+    			"cache" => array("key"=>CACHE_PREFIX."_ZONES_".$placement_hash, "lifetime"=>MD_CACHE_TIME)
     	));
     	return $zone;
     }

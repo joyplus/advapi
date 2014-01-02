@@ -7,6 +7,8 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDMonitorController extends RESTController{
 
     public function get(){
+    	$results['return_type'] = "json";
+    	
 		$data['param_ip'] = $this->request->get("ip", null, '');
 		$data['zone_hash'] = $this->request->get("zone", null, '');
 		$data['ad_hash'] = $this->request->get("ad", null, '');
@@ -14,6 +16,11 @@ class MDMonitorController extends RESTController{
 		$data['i'] = $this->request->get("i", null, '');
 		$data['ex'] = $this->request->get("ex", null, '');
 		$data['origin_ip'] = $this->request->getClientAddress(TRUE);
+		
+		$rq = $this->request->get("rq", null, 1);
+		if($rq!=1){
+			$results['return_type'] = "xml";
+		}
 		
 		$this->log("[get] origin ip->".$data['origin_ip']);
 		$this->log("[get] param ip->".$data['param_ip']);
@@ -28,18 +35,24 @@ class MDMonitorController extends RESTController{
 		
 		$zone_detail = $this->get_placement($data['zone_hash']);
 		if(!$zone_detail) {
-			return $this->codeInputError();
+			$results['return_code'] = "30001";
+			$results['data']['status'] = "error";
+			return $reqults;
 		}
 		$this->log("[get] get zone id->".$zone_detail->entry_id);
 		
 		$ad = $this->getAdFromHash($data['ad_hash']);
 		if(!$ad) {
-			return $this->codeInputError();
+			$results['return_code'] = "30001";
+			$results['data']['status'] = "error";
+			return $reqults;
 		}
 		
 		$campaign = $this->getCampaign($ad->campaign_id);
 		if(!$campaign) {
-			return $this->codeInputError();
+			$results['return_code'] = "30001";
+			$results['data']['status'] = "error";
+			return $reqults;
 		}
 		$this->log("[get] find campaign id->".$campaign->campaign_id);
 		$display_ad = array();
@@ -47,7 +60,9 @@ class MDMonitorController extends RESTController{
     	
 		//记录device_log
 		$this->save_request_log('monitor', $display_ad);
-		return $this->codeSuccess();
+		$results['return_code'] = "00000";
+		$results['data']['status'] = "success";
+		return $results;
     }
 
     public function existIp($ip) {
@@ -56,7 +71,7 @@ class MDMonitorController extends RESTController{
     	$s = ServerIp::findFirst(array(
     		"ip= ?0",
     		"bind"=>array(0=>$ip),
-    		"cache"=>array("key"=>CACHE_PREFIX."_SERVERIP_".$ip)
+    		"cache"=>array("key"=>CACHE_PREFIX."_SERVERIP_".$ip, "lifetime"=>MD_CACHE_TIME)
     	));
     	if($s)
     		return true;
@@ -69,7 +84,7 @@ class MDMonitorController extends RESTController{
     	$ad = AdUnits::findFirst(array(
     		"unit_hash= ?0",
     		"bind"=>array(0=>$hash),
-    		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$hash)
+    		"cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$hash, "lifetime"=>MD_CACHE_TIME)
     	));
     	if($ad)
     		return $ad;
@@ -80,7 +95,7 @@ class MDMonitorController extends RESTController{
     	$c = Campaigns::findFirst(array(
     		"campaign_id= ?0",
     		"bind"=>array(0=>$id),
-    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNS_".$id)
+    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNS_".$id, "lifetime"=>MD_CACHE_TIME)
     	));
     	if($c)
     		return $c;

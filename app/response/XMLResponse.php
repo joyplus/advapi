@@ -212,7 +212,7 @@ class XMLResponse extends Response{
 
         }
         else {
-        	$response.="<code>".$display_ad['code']."</code>";
+        	$response.="<code>".$display_ad['return_code']."</code>";
         }
 
         return $response;

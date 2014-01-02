@@ -326,7 +326,7 @@ try {
 		switch($records['return_type']){
 			case 'json' :
 				$response = new JSONResponse();
-				$response->send($records['data']);
+				$response->send($records['return_code'], $records['data']);
 				break;
 			case 'xml' :
 			default:
@@ -373,23 +373,34 @@ try {
     $app->handle();
 } catch (PDOException $e){
     $di->get("logger")->log($e->getMessage(), Logger::ERROR);
-    sendError("42000");
+    $rq = $di->get("request")->get("rq",null, 0);
+    sendError($rq, "42000");
 } catch (Phalcon\Db\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("42000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"42000");
 } catch (Phalcon\Mvc\Model\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("42000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"42000");
 } catch (Phalcon\Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("41000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"41000");
 } catch (Exception $e) {
 	$di->get("logger")->log($e->getMessage(), Logger::ERROR);
-	sendError("41000");
+	$rq = $di->get("request")->get("rq",null, 0);
+	sendError($rq,"41000");
 }
 
-function sendError($code) {
-	$records = array("code"=>$code);
-	$response = new XMLResponse();
-	$response->send($records);
+function sendError($rq, $code) {
+	$records = array("return_code"=>$code);
+	if($rq==1) {
+		$response = new JSONResponse();
+		$response->send($code, array("status"=>"error"));
+	}else{
+		$response = new XMLResponse();
+		$response->send($records);
+	}
+	
 }
