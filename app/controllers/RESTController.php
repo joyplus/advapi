@@ -747,7 +747,7 @@ class RESTController extends BaseController{
         	$devReqLog->device_name = $reporting->device_name;
         	$devReqLog->user_pattern = '';
         	$devReqLog->operation_type = $operation_type;
-        	$devReqLog->operation_extra = '';
+        	$devReqLog->operation_extra = $this->request->get("ex", null, '');
         	$devReqLog->publication_id = $reporting->publication_id;
         	$devReqLog->zone_id = $reporting->zone_id;
         	$devReqLog->campaign_id = $reporting->campaign_id;
