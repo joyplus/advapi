@@ -249,16 +249,16 @@ try {
     
     //beanstalk
     $di->set('beanstalk', function() use ($config) {
-		require_once(__DIR__.'/../app/modules/pheanstalk/pheanstalk_init.php');
-		$pheanstalk = new Pheanstalk_Pheanstalk(BEANSTALK_SERVER,BEANSTALK_PORT);
-		$pheanstalk->useTube(BEANSTALK_TUBE);
-		return $pheanstalk;
+// 		require_once(__DIR__.'/../app/modules/pheanstalk/pheanstalk_init.php');
+// 		$pheanstalk = new Pheanstalk_Pheanstalk(BEANSTALK_SERVER,BEANSTALK_PORT);
+// 		$pheanstalk->useTube(BEANSTALK_TUBE);
+// 		return $pheanstalk;
      	
-//      	$queue = new Phalcon\Queue\Beanstalk(array(
-//      	    'host'=>BEANSTALK_SERVER,
-//      	    'port'=>BEANSTALK_PORT
-//      	));
-//      	return $queue;
+      	$queue = new Phalcon\Queue\Beanstalk(array(
+      	    'host'=>BEANSTALK_SERVER,
+      	    'port'=>BEANSTALK_PORT
+      	));
+      	return $queue;
     });
 
 
