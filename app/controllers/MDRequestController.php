@@ -14,6 +14,7 @@ class MDRequestController extends RESTController{
 
     public function get(){
       $result = $this->handleAdRequest();
+      $this->save_request_log('request', $result);
       return $this->respond($result);
     }
 
