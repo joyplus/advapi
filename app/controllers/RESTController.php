@@ -672,7 +672,7 @@ class RESTController extends BaseController{
         $zone_detail = null;
         $operation_type = null;
         
-        $devReqLog->date = date("Y-m-d");
+        $devReqLog->date = date("Y-m-d H:i:s");
         $devReqLog->business_id = BUSINESS_ID;
         if($type=="monitor") {
         	$devReqLog->client_ip = $result["monitor_ip"];
