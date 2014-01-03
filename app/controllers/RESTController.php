@@ -672,10 +672,14 @@ class RESTController extends BaseController{
         $zone_detail = null;
         $operation_type = null;
         
-        $devReqLog->date = date("Y-m-d");
+        $devReqLog->date = date("Y-m-d H:i:s");
         $devReqLog->business_id = BUSINESS_ID;
-        
-        $devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        if($type=="monitor") {
+        	$devReqLog->client_ip = $result["monitor_ip"];
+        }else{
+        	$devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        }
+        $this->debugLog("[save_request_log] client_ip:".$devReqLog->client_ip);
         $codes = $this->getCodeFromIp($devReqLog->client_ip);
         if($codes) {
         	$devReqLog->province_code = $codes[0];
