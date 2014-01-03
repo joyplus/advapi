@@ -55,7 +55,7 @@ class MDMonitorController extends RESTController{
 			return $reqults;
 		}
 		$this->log("[get] find campaign id->".$campaign->campaign_id);
-		$display_ad = array();
+		$display_ad['monitor_ip'] = $data['ip'];
 		$this->reporting_db_update($display_ad, $data, $zone_detail->publication_id, $zone_detail->entry_id, $campaign->campaign_id, $ad->adv_id, "", 1, 0, 1, 0);
     	
 		//记录device_log
