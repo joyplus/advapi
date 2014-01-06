@@ -777,9 +777,13 @@ class RESTController extends BaseController{
         	$log['province_code'] = $devReqLog->province_code;
         	$log['city_code'] = $devReqLog->city_code;
         	$log['business_id'] = $devReqLog->business_id;
-        	
-        	$queue = $this->getDi()->get('beanstalk');
-        	$queue->put(serialize($log));
+
+        	try{
+        		$queue = $this->getDi()->get('beanstalk');
+        		$queue->put(serialize($log));
+        	}catch (Exception $e) {
+        		$this->debugLog($e->getMessage());
+        	}
         }else{
 	        if ($devReqLog->save() == true) {
 	            return true;
