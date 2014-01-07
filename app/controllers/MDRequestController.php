@@ -408,7 +408,7 @@ class MDRequestController extends RESTController{
     			}
     			//尺寸匹配
     			if($request_settings['screen_size']) {
-    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    				$conditions .= " AND (ad.adv_width='' OR ad.adv_width=:adv_width:) AND (ad.adv_height='' OR ad.adv_height=:adv_height:)))";
     				$params['adv_width'] = $request_settings['screen_size'][0];
     				$params['adv_height'] = $request_settings['screen_size'][1];
     			}else{
