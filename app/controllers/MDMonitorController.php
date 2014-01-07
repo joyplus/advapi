@@ -24,11 +24,16 @@ class MDMonitorController extends RESTController{
 		
 		$this->log("[get] origin ip->".$data['origin_ip']);
 		$this->log("[get] param ip->".$data['param_ip']);
-		if(MAD_MONITOR_IP_CHECK && $this->existIp($data['origin_ip'])) {
-			$data['ip'] = $data['param_ip'];
+		if(MAD_MONITOR_IP_CHECK){
+			if($this->existIp($data['origin_ip'])) {
+				$data['ip'] = $data['param_ip'];
+			}else{
+				$data['ip'] = $data['origin_ip'];
+			}
 		}else{
-			$data['ip'] = $data['origin_ip'];
+			$data['ip'] = $data['param_ip'];
 		}
+
 		$geo_codes = $this->getCodeFromIp($data['ip']);
 		$data['province_code'] = $geo_codes[0];
 		$data['city_code'] = $geo_codes[1];
