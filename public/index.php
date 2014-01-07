@@ -52,7 +52,9 @@ try {
 	
 	define('BEANSTALK_SERVER', $config->beanstalk->server);
 	define('BEANSTALK_PORT', $config->beanstalk->port);
-	define('BEANSTALK_TUBE', BUSINESS_ID.$config->beanstalk->tube);
+	define('TUBE_REQUEST_DEVICE_LOG', BUSINESS_ID.$config->beanstalk->request_device_log_tube);
+	define('TUBE_REPORTING', BUSINESS_ID.$config->beanstalk->reporting_tube);
+	
 	
 	define("ENABLE_DEVICE_LOG", $config->application->enable_device_log);
 	
@@ -250,12 +252,21 @@ try {
     });
     
     //beanstalk
-    $di->set('beanstalk', function() use ($config) {
+    $di->set('beanstalk_reporting', function() use ($config) {
       	$queue = new Phalcon\Queue\Beanstalk(array(
       	    'host'=>BEANSTALK_SERVER,
       	    'port'=>BEANSTALK_PORT
       	));
+      	$queue->choose(TUBE_REPORTING);
       	return $queue;
+    });
+    $di->set('beanstalk_request_device_log', function() use ($config) {
+    	$queue = new Phalcon\Queue\Beanstalk(array(
+    		'host'=>BEANSTALK_SERVER,
+    		'port'=>BEANSTALK_PORT
+    	));
+    	$queue->choose(TUBE_REQUEST_DEVICE_LOG);
+    	return $queue;
     });
 
 

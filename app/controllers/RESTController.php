@@ -771,7 +771,7 @@ class RESTController extends BaseController{
         	$log['city_code'] = $devReqLog->city_code;
         	$log['business_id'] = $devReqLog->business_id;
         	
-        	$queue = $this->getDi()->get('beanstalk');
+        	$queue = $this->getDi()->get('beanstalk_request_device_log');
         	$queue->put(serialize($log));
         }else{
 	        if ($devReqLog->save() == true) {
