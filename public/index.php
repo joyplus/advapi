@@ -6,7 +6,7 @@ use Phalcon\Logger,
     Phalcon\Logger\Adapter\File as FileLogger,
     Phalcon\Cache\Backend\Memcached;
 
-error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
 try {
 
@@ -35,15 +35,26 @@ try {
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
     define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
     
+    define('BUSINESS_ID', $config->application->business_id);
+    
     //缓存前缀
-    define('CACHE_PREFIX', $config->application->cache_prefix);
+    define('CACHE_PREFIX', BUSINESS_ID);
 
     //monitor接口是否检查ip来源
     define('MAD_MONITOR_IP_CHECK', $config->application->md_monitor_ip_check);
     
+    //device_log是否使用beanstalk
+    define('MAD_USE_BEANSTALK', $config->application->use_beanstalk);
+    
 	define('MD_SLAVE_NUM', $config->slave->slaveNum);
 	define('MD_CACHE_TIME', $config->cache->modelsLifetime);
 	define('DEBUG_LOG_ENABLE', $config->logger->enabled);
+	
+	define('BEANSTALK_SERVER', $config->beanstalk->server);
+	define('BEANSTALK_PORT', $config->beanstalk->port);
+	define('BEANSTALK_TUBE', BUSINESS_ID.$config->beanstalk->tube);
+	
+	define("ENABLE_DEVICE_LOG", $config->application->enable_device_log);
 	
 	$loader = new \Phalcon\Loader();
 
@@ -237,28 +248,18 @@ try {
     $di->set('mdManager', function() use ($config) {
         return new MDManager();
     });
-	/**
-	 * Register the flash service with custom CSS classes
-	 */
-//	$di->set('flash', function(){
-//		return new Phalcon\Flash\Direct(array(
-//			'error' => 'alert alert-error',
-//			'success' => 'alert alert-success',
-//			'notice' => 'alert alert-info',
-//		));
-//	});
-
-//	/**
-//	 * Register a user component
-//	 */
-//	$di->set('elements', function(){
-//		return new Elements();
-//	});
+    
+    //beanstalk
+    $di->set('beanstalk', function() use ($config) {
+      	$queue = new Phalcon\Queue\Beanstalk(array(
+      	    'host'=>BEANSTALK_SERVER,
+      	    'port'=>BEANSTALK_PORT
+      	));
+      	$queue->choose(BEANSTALK_TUBE);
+      	return $queue;
+    });
 
 
-//	$application = new \Phalcon\Mvc\Application();
-//	$application->setDI($di);
-//	echo $application->handle()->getContent();
 
     /**
      * Out application is a Micro application, so we mush explicitly define all the routes.
