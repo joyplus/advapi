@@ -54,6 +54,8 @@ try {
 	define('BEANSTALK_PORT', $config->beanstalk->port);
 	define('BEANSTALK_TUBE', BUSINESS_ID.$config->beanstalk->tube);
 	
+	define("ENABLE_DEVICE_LOG", $config->application->enable_device_log);
+	
 	$loader = new \Phalcon\Loader();
 
 	/**

@@ -664,6 +664,10 @@ class RESTController extends BaseController{
     }
 
     function save_request_log($type, $result){
+    	
+    	//不记录device_log
+    	if(!ENABLE_DEVICE_LOG)
+    		return false;
 
 //      $phql="INSERT INTO md_device_request_log (equipment_sn, equipment_key, device_id, device_name, user_pattern, date, operation_type, operation_extra, publication_id, zone_id, campaign_id, creative_id, client_ip) VALUES (:equipment_sn, :equipment_key, :device_id, :device_name, :user_pattern, :date, :operation_type, :operation_extra, :publication_id, :zone_id, :campaign_id, :creative_id, :client_ip)";
 
@@ -684,13 +688,6 @@ class RESTController extends BaseController{
         	$devReqLog->province_code = '';
         	$devReqLog->city_code = '';
         }
-        $device = Devices::findByName($devReqLog->device_name);
-        if($device){
-        	$devReqLog->device_id = $device->device_id;
-        }else{
-        	$devReqLog->device_id = 0;
-        }
-
         if($type == 'request')
         {
             if(isset($result['available']) && $result['available']==1)
