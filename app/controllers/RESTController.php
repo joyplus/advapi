@@ -748,6 +748,7 @@ class RESTController extends BaseController{
         	$devReqLog->zone_id = $result['zone_id'];
         	$devReqLog->campaign_id = $result['campaign_id'];
         	$devReqLog->creative_id = $result['creative_id'];
+
         }
         else
             return false;
