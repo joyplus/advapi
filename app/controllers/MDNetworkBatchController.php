@@ -36,35 +36,36 @@ class MDNetworkBatchController extends RESTController{
     }
     
     public function process($zone) {
+    	$date = date("Y-m-d",strtotime ("+1 day"));
     	$ads = array();
-    	$campaigns = $this->findCampaigns($zone);
+    	$campaigns = $this->findCampaigns($zone, $date);
     	$this->log("[process] find campaigns num->".count($campaigns));
     	foreach ($campaigns as $c) {
-    		$as = $this->findAds($c, $zone);
+    		$as = $this->findAds($c, $zone, $date);
     		$ads = $ads + $as;
     	}
     	return $ads;
     }
     
-    public function buildCampaignSql($zone) {
+    public function buildCampaignSql($zone, $date) {
     	$conditions .= "(c1.targeting_type='placement' AND c1.targeting_code=:entry_id:)";
     	$params['entry_id'] = $zone->entry_id;
     	
     	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
-    	$params['campaign_start'] = date("Y-m-d");
-    	$params['campaign_end'] = date("Y-m-d");
+    	$params['campaign_start'] = $date;
+    	$params['campaign_end'] = $date;
     	
     	$conditions .= " AND (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1)";
-    	$params['adv_start'] = date("Y-m-d");
-    	$params['adv_end'] = date("Y-m-d");
+    	$params['adv_start'] = $date;
+    	$params['adv_end'] = $date;
     	
-    	$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
+    	//$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
     	
     	return array("conditions"=>$conditions, "params"=>$params);
     }
     
-    public function findCampaigns($zone) {
-    	$sets = $this->buildCampaignSql($zone);
+    public function findCampaigns($zone, $date) {
+    	$sets = $this->buildCampaignSql($zone, $date);
     	$result = $this->modelsManager->createBuilder()
     	->from('Campaigns')
     	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1')
@@ -77,15 +78,15 @@ class MDNetworkBatchController extends RESTController{
     	return $result;
     }
     
-    public function findAds($c, $zone) {
+    public function findAds($c, $zone, $date) {
     	$conditions = "campaign_id = :campaign_id:";
 		$params['campaign_id'] = $c->campaign_id;
     	
     	$conditions .= " AND adv_start<= :adv_start:";
-    	$params['adv_start'] = date("Y-m-d");
+    	$params['adv_start'] = $date;
     	
     	$conditions .= " AND adv_end>= :adv_end:";
-    	$params['adv_end'] = date("Y-m-d");
+    	$params['adv_end'] = $date;
     	
     	$conditions .= " AND adv_status = 1";
     	
@@ -102,7 +103,7 @@ class MDNetworkBatchController extends RESTController{
     	$adUnits = AdUnits::find($query_param);
     	$this->log("[findAds] campaign id->".$c->campaign_id);
     	$this->log("[findAds] adUnits num->".count($adUnits));
-    	$ads = $this->processAds($adUnits, $c, $zone);
+    	$ads = $this->processAds($adUnits, $c, $zone, $date);
     	
     	return $ads;
     }
@@ -114,7 +115,7 @@ class MDNetworkBatchController extends RESTController{
      * @param $zone
      * @return array
      */
-    public function processAds($adUnits, $c, $zone) {
+    public function processAds($adUnits, $c, $zone, $date) {
     	if(count($adUnits) < 1)
     		return array();
     	$extra = $this->adExtra($c);
@@ -127,6 +128,12 @@ class MDNetworkBatchController extends RESTController{
     		$ad['adv_url'] = $this->get_creative_url($a,"",$a->adv_creative_extension);
     		$ad['adv_hash'] = $a->unit_hash;
     		$ad['adv_name'] = $a->adv_name;
+    		$ad['adv_weight'] = $a->creative_weight;
+    		$ad['adv_date'] = $date;
+    		$limit = CampaignLimit::findByCampaignId($c->campaign_id);
+    		if($limit){
+    			$ad['daliy_amount'] = $limit->total_amount;
+    		}
     		if(isset($a->adv_impression_tracking_url) && !empty($a->adv_impression_tracking_url))
     			$ad['adv_impression_tracking_url_miaozhen'] = $a->adv_impression_tracking_url;
     		if(isset($a->adv_impression_tracking_url_iresearch) && !empty($a->adv_impression_tracking_url_iresearch))
@@ -171,7 +178,7 @@ class MDNetworkBatchController extends RESTController{
     public function adExtra($c) {
     	$extra['time_target'] = $this->getTimeTarget($c->time_target);
     	$extra['region_target'] = $this->getAddressTarget($c->campaign_id);
-    	
+    	$extra['channel_target'] = $this->getChannelTarget($c->campaign_id);
     	return $extra;
     }
     
@@ -182,7 +189,7 @@ class MDNetworkBatchController extends RESTController{
     public function getAddressTarget($id) {
     	$targetings = CampaignTargeting::find(array(
     		"campaign_id = '".$id."' AND targeting_type='geo'",
-    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_".$id, "lifetime"=>MD_CACHE_TIME)
+    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_GEO_".$id, "lifetime"=>MD_CACHE_TIME)
     	));
     	$rs = array();
     	if($targetings) {
@@ -215,6 +222,32 @@ class MDNetworkBatchController extends RESTController{
     	}
     	$this->log("[getTimeTarget] time->".implode(",", $times));
     	return $times;
+    }
+    
+    /**
+     * channel target
+     * @param unknown $id
+     */
+    public function getChannelTarget($id) {
+    	$targetings = CampaignTargeting::find(array(
+    			"campaign_id = '".$id."' AND targeting_type='channel'",
+    			"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNTARGETING_CHANNEL_".$id, "lifetime"=>MD_CACHE_TIME)
+    	));
+    	$cs = array();
+    	if($targetings) {
+    		$this->log("[getChannelTarget] channel target num->".count($targetings));
+    		foreach($targetings as $t) {
+    			$c = Channels::findFirst(array(
+    					"channel_id='".$t->targeting_code."'",
+    					"cache"=>array("key"=>CACHE_PREFIX."_CHANNELS_".$t->targeting_code, "lifetime"=>MD_CACHE_TIME)
+    			));
+    			if($c){
+    				$this->log("[getChannelTarget] id->".entry_id);
+    				$cs[] = $c->channel_name;
+    			}
+    		}
+    	}
+    	return $cs;
     }
     
     public function log($log) {

@@ -738,21 +738,17 @@ class RESTController extends BaseController{
         }
         else if ($type == 'monitor') {
         	$operation_type = '003';
-        	$report_hash = $result['rh'];
-        	$reporting = Reporting::findFirst(array(
-        			"conditions"=>"report_hash = '$report_hash'"
-        	));
-        	
         	$devReqLog->equipment_sn = '';
         	$devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
-        	$devReqLog->device_name = $reporting->device_name;
+        	$devReqLog->device_name = $result['device_name'];
         	$devReqLog->user_pattern = '';
         	$devReqLog->operation_type = $operation_type;
         	$devReqLog->operation_extra = $this->request->get("ex", null, '');
-        	$devReqLog->publication_id = $reporting->publication_id;
-        	$devReqLog->zone_id = $reporting->zone_id;
-        	$devReqLog->campaign_id = $reporting->campaign_id;
-        	$devReqLog->creative_id = $reporting->creative_id;
+        	$devReqLog->publication_id = $result['publication_id'];
+        	$devReqLog->zone_id = $result['zone_id'];
+        	$devReqLog->campaign_id = $result['campaign_id'];
+        	$devReqLog->creative_id = $result['creative_id'];
+
         }
         else
             return false;
@@ -774,9 +770,12 @@ class RESTController extends BaseController{
         	$log['province_code'] = $devReqLog->province_code;
         	$log['city_code'] = $devReqLog->city_code;
         	$log['business_id'] = $devReqLog->business_id;
-        	
-        	$queue = $this->getDi()->get('beanstalkRequestDeviceLog');
-        	$queue->put(serialize($log));
+        	try{
+        		$queue = $this->getDi()->get('beanstalkRequestDeviceLog');
+        		$queue->put(serialize($log));
+        	}catch (Exception $e) {
+        		$this->debugLog($e->getMessage());
+        	}
         }else{
 	        if ($devReqLog->save() == true) {
 	            return true;
