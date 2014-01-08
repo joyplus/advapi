@@ -33,11 +33,7 @@ class MDMonitorController extends RESTController{
 		}else{
 			$data['ip'] = $data['param_ip'];
 		}
-
-		$geo_codes = $this->getCodeFromIp($data['ip']);
-		$data['province_code'] = $geo_codes[0];
-		$data['city_code'] = $geo_codes[1];
-		
+	
 		$zone_detail = $this->get_placement($data['zone_hash']);
 		if(!$zone_detail) {
 			$results['return_code'] = "30001";
@@ -52,19 +48,12 @@ class MDMonitorController extends RESTController{
 			$results['data']['status'] = "error";
 			return $reqults;
 		}
+
 		
-		$campaign = $this->getCampaign($ad->campaign_id);
-		if(!$campaign) {
-			$results['return_code'] = "30001";
-			$results['data']['status'] = "error";
-			return $reqults;
-		}
-		$this->log("[get] find campaign id->".$campaign->campaign_id);
-		$display_ad['monitor_ip'] = $data['ip'];
-		$this->reporting_db_update($display_ad, $data, $zone_detail->publication_id, $zone_detail->entry_id, $campaign->campaign_id, $ad->adv_id, "", 1, 0, 1, 0);
-    	
+		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data);
+		$reporting['monitor_ip'] = $data['ip'];
 		//记录device_log
-		$this->save_request_log('monitor', $display_ad);
+		$this->save_request_log('monitor', $reporting);
 		$results['return_code'] = "00000";
 		$results['data']['status'] = "success";
 		return $results;
@@ -105,6 +94,22 @@ class MDMonitorController extends RESTController{
     	if($c)
     		return $c;
     	return false;
+    }
+    
+    public function reportingDbUpdate($zone_detail, $ad, $data) {
+    	
+    	$reporting['ip'] = $data['ip'];
+    	$reporting['device_name'] = $data['device_name'];
+    	$reporting['publication_id'] = $zone_detail->publication_id;
+    	$reporting['zone_id'] = $zone_detail->entry_id;
+    	$reporting['campaign_id'] = $ad->campaign_id;
+    	$reporting['creative_id'] =$ad->adv_id;
+    	$reporting['report_hash'] = md5(serialize($reporting));
+    	 	
+    	$queue = $this->getDi()->get('beanstalkReporting');
+    	$queue->put(serialize($reporting));
+    	
+    	return $reporting;
     }
     
     public function log($log) {

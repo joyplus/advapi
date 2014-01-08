@@ -861,14 +861,15 @@ class MDRequestController extends RESTController{
 
                     switch ($adUnit->adv_type){
                         case 1:
-                            $creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension); //<a href="mfox:external:'.$content['adv_click_url'].'">
+                            $creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
                             $display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
 <meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
                             break;
 
                         case 2:
+                        	$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
                             $display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
-<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$adUnit->adv_bannerurl).'</a>' . $tracking_pixel_html . '</div>';
+<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
                             break;
 
                         case 3:
