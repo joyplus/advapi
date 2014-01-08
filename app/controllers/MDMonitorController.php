@@ -33,11 +33,7 @@ class MDMonitorController extends RESTController{
 		}else{
 			$data['ip'] = $data['param_ip'];
 		}
-
-		$geo_codes = $this->getCodeFromIp($data['ip']);
-		$data['province_code'] = $geo_codes[0];
-		$data['city_code'] = $geo_codes[1];
-		
+	
 		$zone_detail = $this->get_placement($data['zone_hash']);
 		if(!$zone_detail) {
 			$results['return_code'] = "30001";
@@ -52,16 +48,9 @@ class MDMonitorController extends RESTController{
 			$results['data']['status'] = "error";
 			return $reqults;
 		}
+
 		
-// 		$campaign = $this->getCampaign($ad->campaign_id);
-// 		if(!$campaign) {
-// 			$results['return_code'] = "30001";
-// 			$results['data']['status'] = "error";
-// 			return $reqults;
-// 		}
-// 		$this->log("[get] find campaign id->".$campaign->campaign_id);
-		
-		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $geo_codes, $data);
+		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data);
 		$reporting['monitor_ip'] = $data['ip'];
 		//记录device_log
 		$this->save_request_log('monitor', $reporting);
@@ -107,26 +96,13 @@ class MDMonitorController extends RESTController{
     	return false;
     }
     
-    public function reportingDbUpdate($zone_detail, $ad, $geo_codes, $data) {
-    	$current_date=date("Y-m-d");
-    	$current_day=date("d");
-    	$current_month=date("m");
-    	$current_hours=date('H');
-    	$current_year=date("Y");
+    public function reportingDbUpdate($zone_detail, $ad, $data) {
     	
-    	
-    	$reporting['province_code'] = $geo_codes[0];
-    	$reporting['city_code'] = $geo_codes[1];
-    	$reporting['hours'] = $current_hours;
+    	$reporting['ip'] = $data['ip'];
     	$reporting['device_name'] = $data['device_name'];
-    	$reporting['date'] = $current_date;
-    	$reporting['day'] = $current_day;
-    	$reporting['month'] = $current_month;
-    	$reporting['year'] = $current_year;
     	$reporting['publication_id'] = $zone_detail->publication_id;
     	$reporting['zone_id'] = $zone_detail->entry_id;
     	$reporting['campaign_id'] = $ad->campaign_id;
-    	
     	$reporting['creative_id'] =$ad->adv_id;
     	$reporting['report_hash'] = md5(serialize($reporting));
     	 	
