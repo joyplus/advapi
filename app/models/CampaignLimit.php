@@ -26,4 +26,14 @@ class CampaignLimit extends BaseModel
         $this->useDynamicUpdate(true);
         $this->skipAttributes(array('campaign_id', 'cap_type', 'total_amount', 'last_refresh', 'date', 'hours'));
     }
+    
+    public static function findByCampaignId($id) {
+    	$limit = CampaignLimit::findFirst(array(
+    		"conditions"=>"campaign_id='$id'",
+    		"cache"=>array("key"=>CACHE_PREFIX."_CAMPAIGNLIMIT_CAMPAIGNID_".$id)
+    	));
+    	if($limit)
+    		return $limit;
+    	return false;
+    }
 }
