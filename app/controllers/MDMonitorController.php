@@ -61,10 +61,10 @@ class MDMonitorController extends RESTController{
 // 		}
 // 		$this->log("[get] find campaign id->".$campaign->campaign_id);
 		
-		$this->reportingDbUpdate($zone_detail, $ad, $geo_codes, $data);
-    	
+		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $geo_codes, $data);
+		$reporting['monitor_ip'] = $data['ip'];
 		//记录device_log
-		$this->save_request_log('monitor', $display_ad);
+		$this->save_request_log('monitor', $reporting);
 		$results['return_code'] = "00000";
 		$results['data']['status'] = "success";
 		return $results;
@@ -132,6 +132,8 @@ class MDMonitorController extends RESTController{
     	 	
     	$queue = $this->getDi()->get('beanstalkReporting');
     	$queue->put(serialize($reporting));
+    	
+    	return $reporting;
     }
     
     public function log($log) {

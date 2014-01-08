@@ -676,10 +676,14 @@ class RESTController extends BaseController{
         $zone_detail = null;
         $operation_type = null;
         
-        $devReqLog->date = date("Y-m-d");
+        $devReqLog->date = date("Y-m-d H:i:s");
         $devReqLog->business_id = BUSINESS_ID;
-        
-        $devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        if($type=="monitor") {
+        	$devReqLog->client_ip = $result["monitor_ip"];
+        }else{
+        	$devReqLog->client_ip = $this->request->getClientAddress(TRUE);
+        }
+        $this->debugLog("[save_request_log] client_ip:".$devReqLog->client_ip);
         $codes = $this->getCodeFromIp($devReqLog->client_ip);
         if($codes) {
         	$devReqLog->province_code = $codes[0];
@@ -691,9 +695,9 @@ class RESTController extends BaseController{
         if($type == 'request')
         {
             if(isset($result['available']) && $result['available']==1)
-                $operation_type = '1';
+                $operation_type = '002';
             else
-                $operation_type = '0';
+                $operation_type = '001';
 
             $zone_hash = $this->request->get('s'); //此值已验证过
             $zone_detail = $this->get_placement($zone_hash);
@@ -712,7 +716,7 @@ class RESTController extends BaseController{
         else if($type == 'track')
         {
             if(isset($result['code']) && $result['code']=='00000')
-                $operation_type = '2';
+                $operation_type = '003';
             else
                 return false;
 
@@ -733,22 +737,17 @@ class RESTController extends BaseController{
             $devReqLog->creative_id = $reporting->creative_id;
         }
         else if ($type == 'monitor') {
-        	$operation_type = '2';
-        	$report_hash = $result['rh'];
-        	$reporting = Reporting::findFirst(array(
-        			"conditions"=>"report_hash = '$report_hash'"
-        	));
-        	
+        	$operation_type = '003';
         	$devReqLog->equipment_sn = '';
         	$devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
-        	$devReqLog->device_name = $reporting->device_name;
+        	$devReqLog->device_name = $result['device_name'];
         	$devReqLog->user_pattern = '';
         	$devReqLog->operation_type = $operation_type;
-        	$devReqLog->operation_extra = '';
-        	$devReqLog->publication_id = $reporting->publication_id;
-        	$devReqLog->zone_id = $reporting->zone_id;
-        	$devReqLog->campaign_id = $reporting->campaign_id;
-        	$devReqLog->creative_id = $reporting->creative_id;
+        	$devReqLog->operation_extra = $this->request->get("ex", null, '');
+        	$devReqLog->publication_id = $result['publication_id'];
+        	$devReqLog->zone_id = $result['zone_id'];
+        	$devReqLog->campaign_id = $result['campaign_id'];
+        	$devReqLog->creative_id = $result['creative_id'];
         }
         else
             return false;
