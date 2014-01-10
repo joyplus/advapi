@@ -30,8 +30,10 @@ class MDMonitorController extends RESTController{
 			}else{
 				$data['ip'] = $data['origin_ip'];
 			}
-		}else{
+		}else if($this->is_valid_ip($data['param_ip'])){
 			$data['ip'] = $data['param_ip'];
+		}else{
+			$data['ip'] = $data['origin_ip'];
 		}
 	
 		$zone_detail = $this->get_placement($data['zone_hash']);
