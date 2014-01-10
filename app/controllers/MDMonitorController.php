@@ -24,14 +24,23 @@ class MDMonitorController extends RESTController{
 		
 		$this->log("[get] origin ip->".$data['origin_ip']);
 		$this->log("[get] param ip->".$data['param_ip']);
+		
 		if(MAD_MONITOR_IP_CHECK){
 			if($this->existIp($data['origin_ip'])) {
-				$data['ip'] = $data['param_ip'];
+				if($this->is_valid_ip($data['param_ip'])){
+					$data['ip'] = $data['param_ip'];
+				}else{
+					$data['ip'] = $data['origin_ip'];
+				}
 			}else{
 				$data['ip'] = $data['origin_ip'];
 			}
 		}else{
-			$data['ip'] = $data['param_ip'];
+			if($this->is_valid_ip($data['param_ip'])){
+				$data['ip'] = $data['param_ip'];
+			}else{
+				$data['ip'] = $data['origin_ip'];
+			}
 		}
 	
 		$zone_detail = $this->get_placement($data['zone_hash']);
@@ -97,6 +106,7 @@ class MDMonitorController extends RESTController{
     }
     
     public function reportingDbUpdate($zone_detail, $ad, $data) {
+    	$current_timestamp = time();
     	
     	$reporting['ip'] = $data['ip'];
     	$reporting['device_name'] = $data['device_name'];
@@ -104,6 +114,7 @@ class MDMonitorController extends RESTController{
     	$reporting['zone_id'] = $zone_detail->entry_id;
     	$reporting['campaign_id'] = $ad->campaign_id;
     	$reporting['creative_id'] =$ad->adv_id;
+    	$reporting['timestamp'] = $current_timestamp;
     	$reporting['report_hash'] = md5(serialize($reporting));
     	 	
     	$queue = $this->getDi()->get('beanstalkReporting');
