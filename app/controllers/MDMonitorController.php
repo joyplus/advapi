@@ -106,6 +106,12 @@ class MDMonitorController extends RESTController{
     }
     
     public function reportingDbUpdate($zone_detail, $ad, $data) {
+    	$current_date=date("Y-m-d");
+    	$current_day=date("d");
+    	$current_month=date("m");
+    	$current_hours=date('H');
+    	$current_year=date("Y");
+    	$current_timestamp = time();
     	
     	$reporting['ip'] = $data['ip'];
     	$reporting['device_name'] = $data['device_name'];
@@ -113,6 +119,12 @@ class MDMonitorController extends RESTController{
     	$reporting['zone_id'] = $zone_detail->entry_id;
     	$reporting['campaign_id'] = $ad->campaign_id;
     	$reporting['creative_id'] =$ad->adv_id;
+    	$reporting['date'] = $current_date;
+    	$reporting['year'] = $current_year;
+    	$reporting['month'] = $current_month;
+    	$reporting['day'] = $current_day;
+    	$reporting['hours'] = $current_hours;
+    	$reporting['timestamp'] = $current_timestamp;
     	$reporting['report_hash'] = md5(serialize($reporting));
     	 	
     	$queue = $this->getDi()->get('beanstalkReporting');
