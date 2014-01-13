@@ -612,6 +612,12 @@ class MDRequestController extends RESTController{
                 $params['adv_height'] = $zone_detail->zone_height;
                 break;
             case 'open':
+            	if($request_settings['screen_size']) {
+            		$conditions .= " AND (adv_width='' OR adv_width = :adv_width:) AND (adv_height='' OR adv_height= :adv_height:)";
+            		$params['adv_width'] = $request_settings['screen_size'][0];
+            		$params['adv_height'] = $request_settings['screen_size'][1];
+            	}
+            	break;
             case 'interstitial':
             	if($request_settings['screen_size']) {
             		$conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
