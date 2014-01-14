@@ -459,7 +459,7 @@ class RESTController extends BaseController{
     			if(!empty($matchs[2])) {
     				$code2 = $this->getCodeFromAddress($matchs[2]);
     			}
-    			$this->getDi()->get('logger')->log("match code:".$code1."--".$code2);
+    			$this->debugLog("match code:".$code1."--".$code2);
     			return array($code1, $code2);
     		}
     	}
