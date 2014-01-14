@@ -894,20 +894,16 @@ class MDRequestController extends RESTController{
                 	$display_ad['type']='open';
                 	$display_ad['animation']='none';
                 	
-                	$server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
-                	if($server_detail) {
-                		if(isset($adUnit->adv_creative_url) && !empty($adUnit->adv_creative_url)){
-                			$display_ad['creative-url']=$adUnit->adv_creative_url;
-                		}
-                		if(isset($adUnit->adv_creative_url_2) && !empty($adUnit->adv_creative_url_2)){
-                			$display_ad['creative-url_2']=$adUnit->adv_creative_url_2;
-                		}
-                		if(isset($adUnit->adv_creative_url_3) && !empty($adUnit->adv_creative_url_3)){
-                			$display_ad['creative-url_3']=$adUnit->adv_creative_url_3;
-                		}
+                	if(isset($adUnit->adv_creative_url) && !empty($adUnit->adv_creative_url)){
+                		$display_ad['creative-url']=$adUnit->adv_creative_url;
+                	}
+                	if(isset($adUnit->adv_creative_url_2) && !empty($adUnit->adv_creative_url_2)){
+                		$display_ad['creative-url_2']=$adUnit->adv_creative_url_2;
+                	}
+                	if(isset($adUnit->adv_creative_url_3) && !empty($adUnit->adv_creative_url_3)){
+                		$display_ad['creative-url_3']=$adUnit->adv_creative_url_3;
                 	}
                 	break;
-                
             }
 
             return true;
