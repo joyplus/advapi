@@ -55,7 +55,7 @@ class MDNetworkBatchController extends RESTController{
     	$params['campaign_start'] = $date;
     	$params['campaign_end'] = $date;
     	
-    	$conditions .= " AND (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1)";
+    	$conditions .= " AND (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 and ad.adv_type='2')";
     	$params['adv_start'] = $date;
     	$params['adv_end'] = $date;
     	
@@ -88,7 +88,7 @@ class MDNetworkBatchController extends RESTController{
     	$conditions .= " AND adv_end>= :adv_end:";
     	$params['adv_end'] = $date;
     	
-    	$conditions .= " AND adv_status = 1";
+    	$conditions .= " AND adv_status = 1 AND adv_type=2";
     	
     	//创意权重排序
     	$order = "creative_weight DESC";
@@ -120,15 +120,12 @@ class MDNetworkBatchController extends RESTController{
     		return array();
     	$extra = $this->adExtra($c);
     	foreach ($adUnits as $a) {
-    		$this->log("[processAds] ad id->".$a->adv_id.", ad extension->".$a->adv_creative_extension);
-    		$video = $this->isVideo($a->adv_creative_extension);
-    		if(!$video)
-    			continue;
     		$ad = $extra;
-    		$ad['adv_url'] = $this->get_creative_url($a,"",$a->adv_creative_extension);
+    		$ad['adv_url'] = $a->adv_creative_url;
     		$ad['adv_hash'] = $a->unit_hash;
     		$ad['adv_name'] = $a->adv_name;
     		$ad['adv_weight'] = $a->creative_weight;
+    		$ad['adv_creative_time'] = $a->creative_time;
     		$ad['adv_date'] = $date;
     		$limit = CampaignLimit::findByCampaignId($c->campaign_id);
     		if($limit){
@@ -151,26 +148,6 @@ class MDNetworkBatchController extends RESTController{
     		return $ads;
     	return array();
     }
-    
-    /**
-     * 判断是否是视频
-     * @param $extension
-     * @return boolean
-     */
-    public function isVideo($extension) {
-    	//$exts = array("3gp","avi","flv","mp4","png");
-    	$exts = array("3gp","avi","flv","mp4", "mov");
-    	if(!isset($extension) || empty($extension))
-    		return false;
-    	foreach ($exts as $e) {
-    		$index = strcasecmp($extension, $e);
-    		if($index == 0) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-    
     /**
      * 获取广告素材的其他信息
      * @param $c
