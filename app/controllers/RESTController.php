@@ -684,14 +684,6 @@ class RESTController extends BaseController{
         	$devReqLog->client_ip = $this->request->getClientAddress(TRUE);
         }
          $this->debugLog("[save_request_log] client_ip:".$devReqLog->client_ip);
-//         $codes = $this->getCodeFromIp($devReqLog->client_ip);
-//         if($codes) {
-//         	$devReqLog->province_code = $codes[0];
-//         	$devReqLog->city_code = $codes[1];
-//         }else{
-//         	$devReqLog->province_code = '';
-//         	$devReqLog->city_code = '';
-//         }
         if($type == 'request')
         {
             if(isset($result['available']) && $result['available']==1)
@@ -739,11 +731,11 @@ class RESTController extends BaseController{
         else if ($type == 'monitor') {
         	$operation_type = '003';
         	$devReqLog->equipment_sn = '';
-        	$devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
+        	$devReqLog->equipment_key = $result['equipment_key']; //mac address
         	$devReqLog->device_name = $result['device_name'];
         	$devReqLog->user_pattern = '';
         	$devReqLog->operation_type = $operation_type;
-        	$devReqLog->operation_extra = $this->request->get("ex", null, '');
+        	$devReqLog->operation_extra = $result['ex'];
         	$devReqLog->publication_id = $result['publication_id'];
         	$devReqLog->zone_id = $result['zone_id'];
         	$devReqLog->campaign_id = $result['campaign_id'];
@@ -756,7 +748,6 @@ class RESTController extends BaseController{
         if(MAD_USE_BEANSTALK) {
         	$log['equipment_sn'] = $devReqLog->equipment_sn;
         	$log['equipment_key'] = $devReqLog->equipment_key;
-//         	$log['device_id'] = $devReqLog->device_id;
         	$log['device_name'] = $devReqLog->device_name;
         	$log['user_pattern'] = $devReqLog->user_pattern;
         	$log['date'] = $devReqLog->date;
@@ -767,8 +758,6 @@ class RESTController extends BaseController{
         	$log['campaign_id'] = $devReqLog->campaign_id;
         	$log['creative_id'] = $devReqLog->creative_id;
         	$log['client_ip'] = $devReqLog->client_ip;
-//         	$log['province_code'] = $devReqLog->province_code;
-//         	$log['city_code'] = $devReqLog->city_code;
         	$log['business_id'] = $devReqLog->business_id;
         	try{
         		$queue = $this->getDi()->get('beanstalkRequestDeviceLog');
