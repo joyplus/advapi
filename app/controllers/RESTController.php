@@ -729,9 +729,6 @@ class RESTController extends BaseController{
             $devReqLog->creative_id = $reporting->creative_id;
         }
         else if ($type == 'monitor') {
-        	if(isset($result['monitorProcessExtraData'])) {
-        		$log['monitorProcessExtraData'] = 1;
-        	}
         	$operation_type = '003';
         	$devReqLog->equipment_sn = '';
         	$devReqLog->equipment_key = $result['equipment_key']; //mac address
