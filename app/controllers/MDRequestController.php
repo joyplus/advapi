@@ -785,7 +785,8 @@ class MDRequestController extends RESTController{
                             $display_ad['type']='hosted';
                             $display_ad['click_url']=$adUnit->adv_click_url;
 
-                            $display_ad['image_url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                            //$display_ad['image_url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                            $display_ad['image_url']=$adUnit->adv_creative_url;
                             $display_ad['interstitial-creative_res_url']=$display_ad['image_url'];
 
                             /*if ($content['creativeserver_id']==1){
@@ -800,7 +801,8 @@ class MDRequestController extends RESTController{
 
                         case 2:
                             $display_ad['type']='image-url';
-                            $display_ad['image_url']=$adUnit->adv_bannerurl;
+                            //$display_ad['image_url']=$adUnit->adv_bannerurl;
+                            $display_ad['image_url']=$adUnit->adv_creative_url;
                             $display_ad['interstitial-creative_res_url']=$display_ad['image_url'];
                             $display_ad['click_url']=$adUnit->adv_click_url;
                             break;
@@ -867,15 +869,17 @@ class MDRequestController extends RESTController{
 
                     switch ($adUnit->adv_type){
                         case 1:
-                            $creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                            //$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                        	$creative_res_url=$adUnit->adv_creative_url;
                             $display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
-<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
+<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_type,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
                             break;
 
                         case 2:
-                        	$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                        	//$creative_res_url=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
+                        	$creative_res_url=$adUnit->adv_creative_url;
                             $display_ad['interstitial-content']='<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
-<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_creative_extension,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
+<meta name="viewport" content="width=device-width" /><div style="position:absolute;top:0;left:0;"><a href="#">'.$this->getHtmlForCreativeResUrl($display_ad,$adUnit->adv_type,$creative_res_url).'</a>' . $tracking_pixel_html . '</div>';
                             break;
 
                         case 3:
@@ -890,26 +894,22 @@ class MDRequestController extends RESTController{
                 	$display_ad['type']='open';
                 	$display_ad['animation']='none';
                 	
-                	$server_detail=$this->get_creativeserver($adUnit->creativeserver_id);
-                	if($server_detail) {
-                		if(isset($adUnit->adv_creative_extension) && !empty($adUnit->adv_creative_extension)){
-                			$display_ad['creative-url']="".$server_detail->server_default_url."".$adUnit->unit_hash.".".$adUnit->adv_creative_extension;
-                		}
-                		if(isset($adUnit->adv_creative_extension_2) && !empty($adUnit->adv_creative_extension_2)){
-                			$display_ad['creative-url_2']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_2;
-                		}
-                		if(isset($adUnit->adv_creative_extension_3) && !empty($adUnit->adv_creative_extension_3)){
-                			$display_ad['creative-url_3']="".$server_detail->server_default_url."".$adUnit->adv_creative_extension_3;
-                		}
+                	if(isset($adUnit->adv_creative_url) && !empty($adUnit->adv_creative_url)){
+                		$display_ad['creative-url']=$adUnit->adv_creative_url;
                 	}
-                	$display_ad['interstitial-creative_res_url']=$url;
-                	
+                	if(isset($adUnit->adv_creative_url_2) && !empty($adUnit->adv_creative_url_2)){
+                		$display_ad['creative-url_2']=$adUnit->adv_creative_url_2;
+                	}
+                	if(isset($adUnit->adv_creative_url_3) && !empty($adUnit->adv_creative_url_3)){
+                		$display_ad['creative-url_3']=$adUnit->adv_creative_url_3;
+                	}
                 	break;
-                
             }
 
             return true;
         }
+        
+        //this can't be excute forever
         else if ($type==2){
             $valid_ad=0;
             //TODO object to array
@@ -985,7 +985,7 @@ class MDRequestController extends RESTController{
 
     private function getHtmlForCreativeResUrl(&$display_ad, $extension,$url){
 
-        if(strpos('png,jpeg,jpg,gif,bmp', $extension) !==false){
+        if($extension==1){//图片
             $display_ad['interstitial-creative_res_url']=$url;
             return '<img src="'.$url.'">';
         }else {

@@ -47,7 +47,7 @@ class MDMonitorController extends RESTController{
 		if(!$zone_detail) {
 			$results['return_code'] = "30001";
 			$results['data']['status'] = "error";
-			return $reqults;
+			return $results;
 		}
 		$this->log("[get] get zone id->".$zone_detail->entry_id);
 		
@@ -55,12 +55,25 @@ class MDMonitorController extends RESTController{
 		if(!$ad) {
 			$results['return_code'] = "30001";
 			$results['data']['status'] = "error";
-			return $reqults;
+			return $results;
 		}
 
 		
 		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data);
 		$reporting['monitor_ip'] = $data['ip'];
+		if(empty($data['i'])) {
+			$reporting['ex'] = $this->request->getUserAgent();
+			$extra = $this->processMonitorExtraData($reporting['ex']);
+			$reporting['equipment_key'] = $extra['Dnum'];
+			$reporting['device_name'] = $extra['sn'];
+			$reporting['ex'] = $extra['extra'];
+			
+		}else{
+			$reporting['equipment_key'] = $data['i'];
+			$reporting['device_name'] = $data['device_name'];
+			$reporting['ex'] = $data['ex'];
+		}
+		
 		//记录device_log
 		$this->save_request_log('monitor', $reporting);
 		$results['return_code'] = "00000";
@@ -121,6 +134,58 @@ class MDMonitorController extends RESTController{
     	$queue->put(serialize($reporting));
     	
     	return $reporting;
+    }
+    
+    //第一部分：浏览器原User-Agent
+    //第二部分：#2.0#号，用于分隔，并表示本UA规范的版本目前是2.0
+    //第三部分：终端品牌/终端型号/主系统版本/浏览器版本/终端分辨率
+    //第四部分：(Dnum,Didtoken; DID,HuanID,用户token)
+    public function processMonitorExtraData($data) {
+    	$this->debugLog("[processMonitorExtraData] data->".$data);
+    	$ex = array();
+    	$parts = explode('#',$data);
+    	if(!is_array($parts)) {
+    		return $ex;
+    	}
+    	$ex['userAgent'] = trim($parts[0]," ");
+    	$ex['userAgentVersion'] = trim($parts[1]," ");
+    	if(!isset($parts[2]))
+    		return $ex;
+    	
+    	$ex['extra'] = trim($parts[1]," ")."#".trim($parts[2]," ");
+    	$pattern = "/(.+?)\((.+)\)/";
+    	if(preg_match($pattern, $parts[2], $matchs)) {
+    		$part3 = $matchs[1];
+    		$part4 = $matchs[2];
+    	}
+    
+    	if(isset($part3)) {
+    		$part3s = explode('/', $part3);
+    		if(is_array($part3s)) {
+    			$ex['brands'] = trim($part3s[0]," ");
+    			$ex['sn'] = trim($part3s[1]," ");
+    			$ex['systemVersion'] = trim($part3s[2]," ");
+    			$ex['browseVersion'] = trim($part3s[3]," ");
+    			$ex['quality'] = trim($part3s[4]," ");
+    		}
+    	}
+    	if(isset($part4)) {
+    		$part4s = explode(';', $part4);
+    		if(is_array($part4s)){
+    			$part4s1s = explode(',', $part4s[0]);
+    			if(is_array($part4s1s)) {
+    				$ex['Dnum'] = trim($part4s1s[0]," ");
+    				$ex['Didtoken'] = trim($part4s1s[1]," ");
+    			}
+    			$part4s2s = explode(',', $part4s[1]);
+    			if(is_array($part4s2s)) {
+    				$ex['DID'] = trim($part4s2s[0]," ");
+    				$ex['HuanID'] = trim($part4s2s[1]," ");
+    				$ex['Usertoken'] = trim($part4s2s[2]," ");
+    			}
+    		}
+    	}
+    	return $ex;
     }
     
     public function log($log) {
