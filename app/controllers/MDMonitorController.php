@@ -47,7 +47,7 @@ class MDMonitorController extends RESTController{
 		if(!$zone_detail) {
 			$results['return_code'] = "30001";
 			$results['data']['status'] = "error";
-			return $reqults;
+			return $results;
 		}
 		$this->log("[get] get zone id->".$zone_detail->entry_id);
 		
@@ -55,12 +55,21 @@ class MDMonitorController extends RESTController{
 		if(!$ad) {
 			$results['return_code'] = "30001";
 			$results['data']['status'] = "error";
-			return $reqults;
+			return $results;
 		}
 
 		
 		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data);
 		$reporting['monitor_ip'] = $data['ip'];
+		if(empty($data['i']) && empty($data['ex']) && empty($data['device_name'])) {
+			$reporting['ex'] = $this->request->getUserAgent();
+			$reporting['monitorProcessExtraData'] = "processUserAgent";
+		}else{
+			$reporting['equipment_key'] = $data['i'];
+			$reporting['device_name'] = $data['device_name'];
+			$reporting['ex'] = $data['ex'];
+		}
+		
 		//记录device_log
 		$this->save_request_log('monitor', $reporting);
 		$results['return_code'] = "00000";
