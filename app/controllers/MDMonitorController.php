@@ -128,6 +128,9 @@ class MDMonitorController extends RESTController{
     	$reporting['campaign_id'] = $ad->campaign_id;
     	$reporting['creative_id'] =$ad->adv_id;
     	$reporting['timestamp'] = $current_timestamp;
+    	$reporting['requests'] = 1;
+    	$reporting['clicks'] = 1;
+    	$reporting['impressions'] = 1;
     	$reporting['report_hash'] = md5(serialize($reporting));
     	 	
     	$queue = $this->getDi()->get('beanstalkReporting');
