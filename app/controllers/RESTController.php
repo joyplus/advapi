@@ -187,160 +187,26 @@ class RESTController extends BaseController{
         if (!is_numeric($zone_id)){$zone_id='';}
         if (!is_numeric($campaign_id)){$campaign_id='';}
         if (!is_numeric($creative_id)){$creative_id='';}
-        if (!is_numeric($network_id)){$network_id='';}
 
-        if(!isset($request_settings['device_name']) || $request_settings['device_name'] ==''){
-            $device_name=$request_settings['device_movement'];
-        }else {
-            $device_name=$request_settings['device_name'];
-        }
-
-        if(!isset($request_settings['geo_region']) || $request_settings['geo_region'] ==''){
-            $geo_region='';
-        }else {
-            $geo_region=$request_settings['geo_region'];
-        }
-
-        if(!isset($request_settings['geo_city']) || $request_settings['geo_city'] ==''){
-            $geo_city='';
-        }else {
-            $geo_city=$request_settings['geo_city'];
-        }
-        
-        if(!isset($request_settings['province_code']) || $request_settings['province_code'] ==''){
-        	$province_code='';
-        }else {
-        	$province_code=$request_settings['province_code'];
-        }
-        
-        if(!isset($request_settings['city_code']) || $request_settings['city_code'] ==''){
-        	$city_code='';
-        }else {
-        	$city_code=$request_settings['city_code'];
-        }
-
-        $current_date=date("Y-m-d");
-        $current_day=date("d");
-        $current_month=date("m");
-        $current_hours=date('H');
-        $current_year=date("Y");
-        $current_timestamp=time();
-
-        //$select_query="select entry_id from md_reporting where hours='".$current_hours."' AND geo_city='".$geo_city."' AND  publication_id='".$publication_id."' AND zone_id='".$zone_id."' AND campaign_id='".$campaign_id."' AND creative_id='".$creative_id."' AND network_id='".$network_id."' AND date='".$current_date."' AND device_name='".$device_name."' LIMIT 1";
-
-        //global $repdb_connected,$display_ad;
-//        $reporting = Reporting::findFirst(array(
-//            "hours = '".$current_hours."'",
-//            "geo_city = '".$geo_city."'",
-//            "publication_id = '".$publication_id."'",
-//            "zone_id = '".$zone_id."'",
-//            "campaign_id = '".$campaign_id."'",
-//            "creative_id = '".$creative_id."'",
-//            "network_id = '".$network_id."'",
-//            "date = '".$current_date."'",
-//            "device_name = '".device_name."'"
-//        ));
-
-//        $reporting = Reporting::findFirst(array(
-//            "conditions" => "hours = ?1 and publication_id = ?2 and zone_id = ?3 and campaign_id=?4 and creative_id=?5 and network_id=?6 and date=?7 and device_name=?8 and geo_city = ?9",
-//            "bind"       => array(1 =>$current_hours,
-//                                  2 =>$publication_id,
-//                                 3 =>$zone_id,
-//                                4 =>$campaign_id,
-//                                5 =>$creative_id,
-//                                6 =>$network_id,
-//                                7 =>$current_date,
-//                                8 =>device_name,
-//                                9 =>$geo_city
-//
-//            )
-//        ));
-
-        $conditions = "hours = :hours: AND publication_id = :publication_id: AND zone_id = :zone_id: AND campaign_id = :campaign_id: AND creative_id = :creative_id: AND date = :date: AND device_name = :device_name: ";
-        $param = array(
-            'hours' => $current_hours,
-            'publication_id' => $publication_id,
-            'zone_id' => $zone_id,
-            'campaign_id' => $campaign_id,
-            'creative_id' => $creative_id,
-            'date' => $current_date,
-            'device_name' => $device_name
-        );
-
-
-        if($province_code!=''){
-            $conditions .= "AND province_code = :province_code: ";
-            $param['province_code'] = $province_code;
-        }
-
-        if($city_code!=''){
-            $conditions .= "AND city_code = :city_code: ";
-            $param['city_code'] = $city_code;
-        }
-
-        if($network_id!=''){
-            $conditions .= "AND network_id = :network_id:";
-            $param['network_id'] = $network_id;
-        }
-
-
-        $reporting = Reporting::findFirst(array(
-        	"conditions"=>$conditions,
-        	"bind"=>$param
-        	//"cache"=>array("key"=>CACHE_PREFIX.md5(serialize($param)))
-        ));
-
-        //$reporting = $resultSet->getFirst();
-
-        //TODO Moved to handler class
-//        $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST . rtrim(dirname($_SERVER['PHP_SELF']), '/')."/".MAD_TRACK_HANDLER."?publication_id=".$publication_id."&zone_id=".$zone_id."&network_id=".$network_id."&campaign_id=".$campaign_id."&ad_id=".$creative_id."&h=".$request_settings['request_hash']."";
-//        $display_ad['final_impression_url']=$base_ctr;
-
-
-        if ($reporting){
-//             $reporting->total_requests = $reporting->total_requests + $add_request;
-//             $reporting->total_requests_sec = $reporting->total_requests_sec + $add_request_sec;
-//             $reporting->total_impressions = $reporting->total_impressions + $add_impression;
-//             $reporting->total_clicks = $reporting->total_clicks + $add_click;
-//             $result = $reporting->update();
-        	$sql = "UPDATE md_reporting SET total_impressions=total_impressions+ ".$add_impression." ,total_requests=total_requests+ ".$add_request." ,total_requests_sec=total_requests_sec+ ".$add_request_sec." , total_clicks=total_clicks+ ".$add_click." WHERE entry_id= '".$reporting->entry_id."'";
-        	$result = $reporting->getWriteConnection()->execute($sql);
-        	if(!$result) {
-        		$this->logoDBError($reporting);
-        	}
-        }
-        else {
-            $reporting = new Reporting();
-            $reporting->province_code = $province_code;
-            $reporting->city_code = $city_code;
-            $reporting->geo_city = $geo_city;
-            $reporting->hours = $current_hours;
-            $reporting->geo_region = $geo_region;
-            $reporting->device_name = $device_name;
-            $reporting->type = '1';
-            $reporting->date = $current_date;
-            $reporting->day = $current_day;
-            $reporting->month = $current_month;
-            $reporting->year = $current_year;
-            $reporting->publication_id = $publication_id;
-            $reporting->zone_id = $zone_id;
-            $reporting->campaign_id = $campaign_id;
-
-            $reporting->creative_id = $creative_id;
-            $reporting->network_id = $network_id;
-            $reporting->total_requests = $add_request;
-            $reporting->total_requests_sec = $add_request_sec;
-            $reporting->total_impressions = $add_impression;
-            $reporting->total_clicks = $add_click;
-            $reporting->report_hash = md5(serialize($reporting));
-
-
-            $result = $reporting->create();
-        }
-        if ($result == false) {
-			$this->logoDBError($reporting);
-        }
-        $display_ad['rh'] = $reporting->report_hash;
+        $current_timestamp = time();
+        $reporting['ip'] = $request_settings['ip_address'];
+		$reporting['type'] = '1';
+		$reporting['publication_id'] = $publication_id;
+		$reporting['zone_id'] = $zone_id;
+		$reporting['campaign_id'] = $campaign_id;
+		
+		$reporting['creative_id'] = $creative_id;
+		$reporting['requests'] = $add_request;
+		$reporting['impressions'] = $add_impression;
+		$reporting['clicks'] = $add_click;
+		$reporting['timestamp'] = $current_timestamp;
+		
+		$reporting['report_hash'] = md5(serialize($reporting));
+		
+		$queue = $this->getDi()->get('beanstalkReporting');
+		$queue->put(serialize($reporting));
+		
+		$display_ad['rh'] = $reporting['report_hash'];
     }
 
     function track_request(&$request_settings, $zone_detail, &$display_ad, $impression){
@@ -686,47 +552,40 @@ class RESTController extends BaseController{
          $this->debugLog("[save_request_log] client_ip:".$devReqLog->client_ip);
         if($type == 'request')
         {
-            if(isset($result['available']) && $result['available']==1)
+            if(isset($result['available']) && $result['available']==1) {
                 $operation_type = '002';
-            else
+                $devReqLog->campaign_id = $result['campaign_id'];
+                $devReqLog->creative_id = $result['ad_id'];
+            }else {
                 $operation_type = '001';
+                $devReqLog->campaign_id = 0;
+                $devReqLog->creative_id = 0;
+            }
 
             $zone_hash = $this->request->get('s'); //此值已验证过
             $zone_detail = $this->get_placement($zone_hash);
 
-            $devReqLog->equipment_sn = $this->request->get("sn", null, '');
-            $devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
-            $devReqLog->device_name = $this->request->get("dm", null, '');
-            $devReqLog->user_pattern = $this->request->get("up",null,'');
+            $devReqLog->equipment_sn = $result['equipment_sn'];
+            $devReqLog->equipment_key = $result['equipment_key']; //mac address
+            $devReqLog->device_name = $result['device_name'];
+            $devReqLog->user_pattern = $result['up'];
             $devReqLog->operation_type = $operation_type;
             $devReqLog->operation_extra = '';
-            $devReqLog->publication_id = $zone_detail->publication_id;
-            $devReqLog->zone_id = $zone_detail->entry_id;
-            $devReqLog->campaign_id = $result['campaign_id'];
-            $devReqLog->creative_id = $result['ad_id'];
+            $devReqLog->publication_id = $result['publication_id'];
+            $devReqLog->zone_id = $result['zone_id'];
         }
         else if($type == 'track')
         {
-            if(isset($result['code']) && $result['code']=='00000')
-                $operation_type = '003';
-            else
-                return false;
-
-            $report_hash = $this->request->get("rh", null, '');
-            $reporting = Reporting::findFirst(array(
-                "conditions"=>"report_hash = '$report_hash'"
-            ));
-
             $devReqLog->equipment_sn = '';
-            $devReqLog->equipment_key = $this->request->get("i", null, ''); //mac address
-            $devReqLog->device_name = $reporting->device_name;
+            $devReqLog->equipment_key = $result['equipment_key'];
+            $devReqLog->device_name = $result['device_name'];
             $devReqLog->user_pattern = '';
-            $devReqLog->operation_type = $operation_type;
+            $devReqLog->operation_type = '003';
             $devReqLog->operation_extra = '';
-            $devReqLog->publication_id = $reporting->publication_id;
-            $devReqLog->zone_id = $reporting->zone_id;
-            $devReqLog->campaign_id = $reporting->campaign_id;
-            $devReqLog->creative_id = $reporting->creative_id;
+            $devReqLog->publication_id = $result['publication_id'];
+            $devReqLog->zone_id = $result['zone_id'];
+            $devReqLog->campaign_id = $result['campaign_id'];
+            $devReqLog->creative_id = $result['creative_id'];
         }
         else if ($type == 'monitor') {
         	$operation_type = '003';

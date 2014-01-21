@@ -14,7 +14,6 @@ class MDRequestController extends RESTController{
 
     public function get(){
       $result = $this->handleAdRequest();
-      //$this->save_request_log('request', $result);
       return $this->respond($result);
     }
 
@@ -180,7 +179,7 @@ class MDRequestController extends RESTController{
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
             $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-                ."/".MAD_TRACK_HANDLER."?rh=".$display_ad['rh']."&i=".$request_settings['i'];
+                ."/".MAD_TRACK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&dm=".$request_settings['device_name']."&i=".$request_settings['i'];
 
             $display_ad['final_impression_url']=$base_ctr;
         }
@@ -189,6 +188,26 @@ class MDRequestController extends RESTController{
             $display_ad['return_code'] = "20001";
         }
 
+        
+        /////记录device_log
+        if(empty($request_settings['device_name'])) {
+        	$result['device_name'] = $request_settings['device_movement'];
+        }else{
+        	$result['device_name'] = $request_settings['device_name'];
+        }
+        
+        $result['equipment_sn'] = '';
+        $result['equipment_key'] = $request_settings['i'];
+        $result['screen'] = $request_settings['screen'];
+        $result['up'] = $request_settings['pattern'];
+        
+        $result['campaign_id'] = $display_ad['campaign_id'];
+        $result['ad_id'] = $display_ad['ad_id'];
+        $result['publication_id'] = $zone_detail->publication_id;
+        $result['zone_id'] = $zone_detail->entry_id;
+        $result['available'] = $display_ad['available'];
+        
+        $this->save_request_log('request', $result);
         return $display_ad;
     }
 
@@ -745,6 +764,9 @@ class MDRequestController extends RESTController{
     			.", adv_start->".$adUnit->adv_start 
     			.", adv_end->".$adUnit->adv_end 
     			);
+    	
+    	$display_ad['ad_hash'] = $adUnit->unit_hash;
+    	$display_ad['zone_hash'] = $zone_detail->zone_hash;
     	if($adUnit->adv_type==3) {
     		$display_ad['add_impression'] = true;
     	} else {
