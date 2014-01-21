@@ -129,7 +129,7 @@ class MDMonitorController extends RESTController{
     	$reporting['creative_id'] =$ad->adv_id;
     	$reporting['timestamp'] = $current_timestamp;
     	$reporting['requests'] = 1;
-    	$reporting['clicks'] = 1;
+    	$reporting['clicks'] = 0;
     	$reporting['impressions'] = 1;
     	$reporting['report_hash'] = md5(serialize($reporting));
     	 	
