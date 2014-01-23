@@ -190,6 +190,12 @@ class RESTController extends BaseController{
 
         $current_timestamp = time();
         $reporting['ip'] = $request_settings['ip_address'];
+        
+        if(empty($request_settings['device_name'])){
+        	$reporting['device_name'] = $request_settings['device_movement'];
+        }else{
+       		$reporting['device_name'] = $request_settings['device_name'];
+        }
 		$reporting['type'] = '1';
 		$reporting['publication_id'] = $publication_id;
 		$reporting['zone_id'] = $zone_id;
