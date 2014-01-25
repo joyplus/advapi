@@ -22,6 +22,7 @@ class MDTrackController extends RESTController{
         $ad_hash = $this->request->get("ad", null, '');
         $zone_hash = $this->request->get("zone", null, '');
         $mac = $this->request->get("i", null, '');
+        $ds = $this->request->get("ds", null, '');
         $dm = $this->request->get("dm", null, '');
         
         
@@ -60,7 +61,12 @@ class MDTrackController extends RESTController{
 		
 		
 		$reporting['equipment_key'] = $mac;
-		$reporting['device_name'] = $dm;
+		
+		if(empty($ds)) {
+			$reporting['device_name'] = $dm;
+		}else{
+			$reporting['device_name'] = $ds;
+		}
 		$this->save_request_log('track', $reporting);
 
         return $this->codeSuccess();
