@@ -45,15 +45,6 @@ class MDRequestController extends RESTController{
         $request_settings['video_type'] = $this->request->get("vc",null,'');
 
         $param_sdk = $this->request->get("sdk");
-        
-        
-        if(empty($request_settings['device_name'])) {
-        	$request_settings['device'] = $request_settings['device_movement'];
-        }else{
-        	$request_settings['device'] = $request_settings['device_name'];
-        }
-        
-        
         if (!isset($param_sdk) or ($param_sdk!='banner' && $param_sdk!='vad')){
             $request_settings['sdk']='banner';
         }
@@ -187,9 +178,8 @@ class MDRequestController extends RESTController{
             //display_ad();
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
-            
             $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
-                ."/".MAD_TRACK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&dm=".$request_settings['device']."&i=".$request_settings['i'];
+                ."/".MAD_TRACK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
 
             $display_ad['final_impression_url']=$base_ctr;
         }
@@ -200,7 +190,12 @@ class MDRequestController extends RESTController{
 
         
         /////记录device_log
-        $result['device_name'] = $request_settings['device'];
+        if(empty($request_settings['device_name'])) {
+        	$result['device_name'] = $request_settings['device_movement'];
+        }else{
+        	$result['device_name'] = $request_settings['device_name'];
+        }
+        
         $result['equipment_sn'] = '';
         $result['equipment_key'] = $request_settings['i'];
         $result['screen'] = $request_settings['screen'];
