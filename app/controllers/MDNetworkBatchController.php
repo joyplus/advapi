@@ -213,15 +213,8 @@ class MDNetworkBatchController extends RESTController{
     	$cs = array();
     	if($targetings) {
     		$this->log("[getChannelTarget] channel target num->".count($targetings));
-    		foreach($targetings as $t) {
-    			$c = Channels::findFirst(array(
-    					"channel_id='".$t->targeting_code."'",
-    					"cache"=>array("key"=>CACHE_PREFIX."_CHANNELS_".$t->targeting_code, "lifetime"=>MD_CACHE_TIME)
-    			));
-    			if($c){
-    				$this->log("[getChannelTarget] id->".entry_id);
-    				$cs[] = $c->channel_name;
-    			}
+     		foreach($targetings as $t) {
+     			$cs[] = $t->targeting_code;
     		}
     	}
     	return $cs;
