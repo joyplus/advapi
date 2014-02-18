@@ -358,7 +358,7 @@ class MDRequestController extends RESTController{
     		$params['device_quality'] = $request_settings['device_quality'];
     	}
     
-    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
+    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
     	

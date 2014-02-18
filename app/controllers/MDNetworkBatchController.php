@@ -214,7 +214,9 @@ class MDNetworkBatchController extends RESTController{
     	if($targetings) {
     		$this->log("[getChannelTarget] channel target num->".count($targetings));
      		foreach($targetings as $t) {
-     			$cs[] = $t->targeting_code;
+     			if(!empty($t->targeting_code)) {
+     				$cs[] = $t->targeting_code;
+     			}
     		}
     	}
     	return $cs;
