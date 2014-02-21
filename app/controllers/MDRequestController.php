@@ -17,7 +17,7 @@ class MDRequestController extends RESTController{
       return $this->respond($result);
     }
 
-    private function handleAdRequest(){
+    public function handleAdRequest(){
         $request_settings = array();
         $request_data = array();
         $display_ad = array();
@@ -158,7 +158,7 @@ class MDRequestController extends RESTController{
         }else{
 	        $this->buildQuery($request_settings, $zone_detail);
 	
-	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['left-video'], $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings, $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
 	
 	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
 	
@@ -496,7 +496,7 @@ class MDRequestController extends RESTController{
         }
     }
 
-    function launch_campaign_query($type, $conditions, $params){
+    function launch_campaign_query($request_settings, $conditions, $params){
 
     	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)));
     	if($resultData){
@@ -508,7 +508,7 @@ class MDRequestController extends RESTController{
 	    	->from('Campaigns')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
     	
-    	if($type) {
+    	if($request_settings['left-video']) {
     		$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
     	}
 	    	

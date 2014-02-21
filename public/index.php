@@ -32,6 +32,7 @@ try {
 	define('MAD_CLICK_HANDLER', $config->application->mdclick);
 	define('MAD_TRACK_HANDLER', $config->application->mdtrack);
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
+	define('MAD_REQUEST_HANDLER_V2', $config->application->mdrequestv2);
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
     define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
     
@@ -288,6 +289,13 @@ try {
     //Use the method 'indexAction' in ProductsController
     $mdrequest->get('/', 'get');
     $app->mount($mdrequest);
+    
+    //Mount MDRequestV2 collection
+    $mdrequestV2 = new MicroCollection();
+    $mdrequestV2->setHandler(new MDRequestV2Controller());
+    $mdrequestV2->setPrefix('/'.MAD_REQUEST_HANDLER_V2);
+    $mdrequestV2->get('/', 'get');
+    $app->mount($mdrequestV2);
 
     //Mount MDRequest collection
     $mdtrack = new MicroCollection();
