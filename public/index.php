@@ -36,6 +36,9 @@ try {
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
     define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
     
+    //是否查询campaign_tmp表
+    define('MAD_USE_CAMPAIGN_TMP', $config->application->use_campaign_tmp);
+    
     define('BUSINESS_ID', $config->application->business_id);
     
     //缓存前缀

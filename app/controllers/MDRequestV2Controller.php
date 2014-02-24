@@ -8,15 +8,16 @@ class MDRequestV2Controller extends MDRequestController{
 
     public function get(){
 		$result = $this->handleAdRequest();
-		return array("return_code"=>"20000");
+		return $result;
     }
     
-    public function buildQuery($request_settings, $zone_detail) {
+    public function buildQuery(&$request_settings, $zone_detail) {
     	$params = array();
     	
-    	$geoTarget = $this->existTargeting("geo", $request_settings['province_code']);
-    	if($geoTarget) {
-    		$request_settings['left-geo'] = true;
+    	$provinceTarget = $this->existTargeting("geo", $request_settings['province_code']);
+    	$cityTarget = $this->existTargeting("geo", $request_settings['city_code']);
+    	if($geoTarget || $cityTarget) {
+    		$request_settings['left_geo'] = true;
 	    	$conditions = ' (Campaigns.country_target=1';
 	    	if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
 	    		$conditions .= " OR (c1.targeting_type='geo' AND (c1.targeting_code=:province_code: OR c1.targeting_code=:city_code:)))";
@@ -31,7 +32,7 @@ class MDRequestV2Controller extends MDRequestController{
 	    		$conditions .= ')';
 	    	}
     	}else{
-    		$request_settings['left-geo'] = false;
+    		$request_settings['left_geo'] = false;
     		$conditions .= "(Campaigns.country_target=1)";
     	}
     	 
@@ -39,18 +40,18 @@ class MDRequestV2Controller extends MDRequestController{
     	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type']) && ($zone_detail->zone_type=='previous' || $zone_detail->zone_type=='middle' || $zone_detail->zone_type=='after')) {
     		$conditions .= " AND (Campaigns.video_target=1 OR (c2.targeting_type='video' AND c2.targeting_code=:video_type:))";
     		$params['video_type'] = $request_settings['video_type'];
-    		$request_settings['left-video'] = true;
+    		$request_settings['left_video'] = true;
     	}else{
-    		$request_settings['left-video'] = false;
+    		$request_settings['left_video'] = false;
     	}
     	
     	$publicationTarget = $this->existTargeting("placement", $zone_detail->entry_id);
     	if($publicationTarget) {
-    		$request_settings['left-publication'] = true;
+    		$request_settings['left_publication'] = true;
     		$conditions .= " AND (Campaigns.publication_target=1 OR (c3.targeting_type='placement' AND c3.targeting_code=:entry_id:))";
     		$params['entry_id'] = $zone_detail->entry_id;
     	}else{
-    		$request_settings['left-publication'] = false;
+    		$request_settings['left_publication'] = false;
     		$conditions .= " AND (Campaigns.publication_target=1)";
     	}
     	
@@ -58,14 +59,16 @@ class MDRequestV2Controller extends MDRequestController{
     	$qualityTarget = $this->existTargeting("quality", $request_settings['device_quality']);
     	if($qualityTarget) {
 	    	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
-	    		$request_settings['left-quality'] = true;
+	    		$request_settings['left_quality'] = true;
 	    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code=:device_quality:))";
 	    		$params['device_quality'] = $request_settings['device_quality'];
 	    	}else{
-	    		$request_settings['left-quality'] = false;
+	    		$conditions .= " AND (Campaigns.quality_target=1)";
+	    		$request_settings['left_quality'] = false;
 	    	}
     	}else{
-    		$request_settings['left-quality'] = false;
+    		$conditions .= " AND (Campaigns.quality_target=1)";
+    		$request_settings['left_quality'] = false;
     	}
     	
     	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
@@ -106,9 +109,9 @@ class MDRequestV2Controller extends MDRequestController{
     			}
     			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND ad.creative_unit_type='interstitial'))";
-    			//$params['adv_width'] = $zone_detail->zone_width;
-    			//$params['adv_height'] = $zone_detail->zone_height;
+    			$conditions .= " AND ad.creative_unit_type='interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$params['adv_width'] = $zone_detail->zone_width;
+    			$params['adv_height'] = $zone_detail->zone_height;
     			 
     			break;
     		case 'open':
@@ -176,38 +179,48 @@ class MDRequestV2Controller extends MDRequestController{
     }
     
     
-    function launch_campaign_query($type, $conditions, $params){
+    public function launch_campaign_query($request_settings, $conditions, $params){
     
     	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)));
     	if($resultData){
     		return $resultData;
     	}
-    	 
-    	$campaignarray = array();
-    	$result = $this->modelsManager->createBuilder()
-    	->from('Campaigns')
-    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
-    	 
-    	if($type) {
-    		$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
+    	
+    	if(MAD_USE_CAMPAIGN_TMP) {
+    		$campaign_table = "CampaignsTmp";
+    	}else{
+    		$campaign_table = "Campaigns";
     	}
-    
-    	$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c3.campaign_id', 'c3')
-    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c7.campaign_id', 'c7')
-    	->leftjoin('CampaignLimit', 'Campaigns.campaign_id = c_limit.campaign_id', 'c_limit')
-    	->leftjoin('AdUnits', 'Campaigns.campaign_id = ad.campaign_id', 'ad')
-    	->where($conditions, $params)
-    	->groupBy(array('Campaigns.campaign_id'))
-    	->getQuery()
-    	->execute();
+    	
+    	$sql = "SELECT Campaigns.campaign_id AS campaign_id,
+    			Campaigns.creative_show_rule AS creative_show_rule,
+    			Campaigns.campaign_priority AS campaign_priority,
+    			Campaigns.campaign_type AS campaign_type FROM $campaign_table AS Campaigns";
+    	if($request_settings['left_geo']) {
+    		$sql .= " LEFT JOIN CampaignTargeting AS c1 ON Campaigns.campaign_id=c1.campaign_id";
+    	}
+    	if($request_settings['left_video']) {
+    		$sql .= " LEFT JOIN CampaignTargeting AS c2 ON Campaigns.campaign_id=c2.campaign_id";
+    	}
+    	if($request_settings['left_publication']) {
+    		$sql .= " LEFT JOIN CampaignTargeting AS c3 ON Campaigns.campaign_id=c3.campaign_id";
+    	}
+    	if($request_settings['left_quality']) {
+    		$sql .= " LEFT JOIN CampaignTargeting AS c7 ON Campaigns.campaign_id=c7.campaign_id";
+    	}
+    	$sql .= " LEFT JOIN CampaignLimit AS c_limit ON Campaigns.campaign_id = c_limit.campaign_id";
+    	$sql .= " LEFT JOIN AdUnits AS ad ON Campaigns.campaign_id = ad.campaign_id";
+    	$sql .= " WHERE " . $conditions;
+    	
+    	$campaignarray = array();
+    	$result = $this->modelsManager->executeQuery($sql, $params);
     
     	foreach ($result as $item) {
     		$add = array(
     				'creative_show_rule'=>$item->creative_show_rule,
     				'campaign_id'=>$item->campaign_id,
     				'priority'=>$item->campaign_priority,
-    				'type'=>$item->campaign_type,
-    				'network_id'=>$item->campaign_networkid
+    				'type'=>$item->campaign_type
     		);
     		array_push($campaignarray, $add);
     	}
@@ -221,7 +234,6 @@ class MDRequestV2Controller extends MDRequestController{
     		$priority[$key] = $row['priority'];
     		$type[$key] = $row['type'];
     		$creative_show_rule[$key] = $row['creative_show_rule'];
-    		$network_id[$key] = $row['network_id'];
     	}
     
     	array_multisort($priority, SORT_DESC, $campaignarray);
