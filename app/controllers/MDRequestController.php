@@ -508,7 +508,7 @@ class MDRequestController extends RESTController{
 	    	->from('Campaigns')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
     	
-    	if($request_settings['left-video']) {
+    	if($request_settings['left_video']) {
     		$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
     	}
 	    	

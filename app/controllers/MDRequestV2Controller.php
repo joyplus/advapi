@@ -261,19 +261,8 @@ class MDRequestV2Controller extends MDRequestController{
      * @return boolean
      */
     private function existTargeting($type, $code) {
-    	$targeting = CampaignTargeting::findFirst(array(
-    		"targeting_type=:targeting_type: AND targeting_code=:targeting_code:",
-    		"bind"=>array(
-    			"targeting_type"=>$type,
-    			"targeting_code"=>$code
-    		),
-    		"cache"=>array(
-    			"key"=>CACHE_PREFIX."_CAMPAIGN_TARGETING_".$type."_".$code,
-    			"lifetime"=>MD_CACHE_TIME
-    		)
-    	));
-    	
-    	return $targeting?true:false;
+    	$data = $this->getCacheAdData(CACHE_PREFIX."_TARGETING_OBJECT_".$type.$code); 	
+    	return $data?true:false;
     }
       
 }
