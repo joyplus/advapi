@@ -17,7 +17,7 @@ class MDRequestController extends RESTController{
       return $this->respond($result);
     }
 
-    private function handleAdRequest(){
+    protected function handleAdRequest(){
         $request_settings = array();
         $request_data = array();
         $display_ad = array();
@@ -158,7 +158,7 @@ class MDRequestController extends RESTController{
         }else{
 	        $this->buildQuery($request_settings, $zone_detail);
 	
-	        if ($campaign_query_result=$this->launch_campaign_query($request_settings['left-video'], $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
+	        if ($campaign_query_result=$this->launch_campaign_query($request_settings, $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
 	
 	            $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
 	
@@ -326,9 +326,9 @@ class MDRequestController extends RESTController{
     	if(isset($request_settings['video_type']) && is_numeric($request_settings['video_type']) && ($zone_detail->zone_type=='previous' || $zone_detail->zone_type=='middle' || $zone_detail->zone_type=='after')) {
     		$conditions .= " AND (Campaigns.video_target=1 OR (c2.targeting_type='video' AND c2.targeting_code=:video_type:))";
     		$params['video_type'] = $request_settings['video_type'];
-    		$request_settings['left-video'] = true;
+    		$request_settings['left_video'] = true;
     	}else{
-    		$request_settings['left-video'] = false;
+    		$request_settings['left_video'] = false;
     	}
 //     	else if (isset($request_settings['channel']) && is_numeric($request_settings['channel']) && ($zone_detail->zone_type=='interstitial' || $zone_detail->zone_type=='mini_interstitial' || $zone_detail->zone_type=='banner' || $zone_detail->zone_type=='open')){
 //     		$conditions .= " AND (Campaigns.channel_target=1 OR (c2.targeting_type='channel' AND c2.targeting_code=:channel:))";
@@ -396,9 +396,9 @@ class MDRequestController extends RESTController{
     			}
     			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND ad.creative_unit_type='interstitial'))";
-    			//$params['adv_width'] = $zone_detail->zone_width;
-    			//$params['adv_height'] = $zone_detail->zone_height;
+    			$conditions .= " AND ad.creative_unit_type='interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$params['adv_width'] = $zone_detail->zone_width;
+    			$params['adv_height'] = $zone_detail->zone_height;
     			
     			break;
     		case 'open':
@@ -496,7 +496,7 @@ class MDRequestController extends RESTController{
         }
     }
 
-    function launch_campaign_query($type, $conditions, $params){
+    function launch_campaign_query($request_settings, $conditions, $params){
 
     	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)));
     	if($resultData){
@@ -508,7 +508,7 @@ class MDRequestController extends RESTController{
 	    	->from('Campaigns')
 	    	->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c1.campaign_id', 'c1');
     	
-    	if($type) {
+    	if($request_settings['left_video']) {
     		$result = $result->leftjoin('CampaignTargeting', 'Campaigns.campaign_id = c2.campaign_id', 'c2');
     	}
 	    	
@@ -565,7 +565,7 @@ class MDRequestController extends RESTController{
         return $final_ads;
     }
 
-    private function removeElementWithValue($array, $key, $value){
+    protected function removeElementWithValue($array, $key, $value){
         foreach($array as $subKey => $subArray){
             if($subArray[$key] != $value){
                 unset($array[$subKey]);
