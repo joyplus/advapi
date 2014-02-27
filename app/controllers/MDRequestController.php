@@ -358,7 +358,7 @@ class MDRequestController extends RESTController{
     		$params['device_quality'] = $request_settings['device_quality'];
     	}
     
-    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
+    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.del_flg<>1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
     	
@@ -615,7 +615,7 @@ class MDRequestController extends RESTController{
 		$conditions .= " AND adv_end>= :adv_end:";
 		$params['adv_end'] = date("Y-m-d");
 		
-		$conditions .= " AND adv_status = 1";
+		$conditions .= " AND adv_status = 1 AND del_flg<>1";
 		
 		$zone_type = $zone_detail->zone_type;
 		if($zone_type=="mini_interstitial")
