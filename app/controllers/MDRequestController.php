@@ -781,6 +781,7 @@ class MDRequestController extends RESTController{
             $display_ad['available']=1;
             $display_ad['ad_id']=$adUnit->adv_id;
             $display_ad['campaign_id']=$adUnit->campaign_id;
+            $display_ad['refresh']=$zone_detail->zone_refresh;
 
             switch ($zone_detail->zone_type){
                 case 'banner':
@@ -788,7 +789,6 @@ class MDRequestController extends RESTController{
                     $display_ad['main_type']='display';
 
                     $display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
-                    $display_ad['refresh']=$zone_detail->zone_refresh;
                     $display_ad['width']=$zone_detail->adv_width;
                     $display_ad['height']=$zone_detail->adv_height;
                     if (MAD_CLICK_ALWAYS_EXTERNAL or $adUnit->adv_click_opentype=='external'){
