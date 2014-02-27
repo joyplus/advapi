@@ -207,7 +207,9 @@ class XMLResponse extends Response{
 
             }
             
-
+            $response.= "<refresh>";
+            $response.= "".$display_ad['refresh']."";
+            $response.= "</refresh>";
             $response.= "</ad>";
 
         }
