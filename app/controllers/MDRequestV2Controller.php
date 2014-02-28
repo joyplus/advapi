@@ -109,7 +109,7 @@ class MDRequestV2Controller extends MDRequestController{
     			}
     			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND ad.creative_unit_type='interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$conditions .= " AND ad.creative_unit_type='mini_interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			 

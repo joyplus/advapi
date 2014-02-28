@@ -396,7 +396,7 @@ class MDRequestController extends RESTController{
     			}
     			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND ad.creative_unit_type='interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$conditions .= " AND ad.creative_unit_type='mini_interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			
@@ -618,14 +618,13 @@ class MDRequestController extends RESTController{
 		$conditions .= " AND adv_status = 1 AND del_flg<>1";
 		
 		$zone_type = $zone_detail->zone_type;
-		if($zone_type=="mini_interstitial")
-			$zone_type="interstitial";
 		
 		$conditions .= " AND creative_unit_type = :creative_unit_type:";
 		$params['creative_unit_type'] = $zone_type;
         switch ($zone_type){
             case 'banner':
             case 'middle':
+            case 'mini_interstitial' :
                 $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
                 $params['adv_width'] = $zone_detail->zone_width;
                 $params['adv_height'] = $zone_detail->zone_height;
@@ -643,7 +642,7 @@ class MDRequestController extends RESTController{
             		$params['adv_width'] = $request_settings['screen_size'][0];
             		$params['adv_height'] = $request_settings['screen_size'][1];
             	}
-            	break; 
+            	break;
         }
         //创意顺序排序
         $order = "adv_id";
