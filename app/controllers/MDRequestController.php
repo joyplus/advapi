@@ -364,7 +364,7 @@ class MDRequestController extends RESTController{
     	
     	if($zone_detail->zone_type!='open'){
 	    	//广告类型
-	    	if(isset($request_settings['adv_type'])) {
+	    	if(!empty($request_settings['adv_type'])) {
 	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
 	    		$params['adv_type'] = $request_settings['adv_type'];
 	    		$params['adv_start'] = date("Y-m-d");
