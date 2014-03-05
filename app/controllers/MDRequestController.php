@@ -13,8 +13,8 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDRequestController extends RESTController{
 
     public function get(){
-      $result = $this->handleAdRequest();
-      return $this->respond($result);
+      	$result = $this->handleAdRequest();
+      	return $this->respond($result);
     }
 
     protected function handleAdRequest(){
@@ -119,11 +119,11 @@ class MDRequestController extends RESTController{
 
         $request_data['ip']=$request_settings['ip_address'];
         
-        $device_detail = $this->getDevice($request_settings['device_movement']);
+        $device_detail = $this->getDevice($request_settings['device_name'], $request_settings['device_movement']);
         if($device_detail) {
         	$request_settings['device_type'] = $device_detail->device_type;
         	$request_settings['device_brand'] = $device_detail->device_brands;
-        	$request_settings['device_quality']= $device_detail->device_quality;
+        	$request_settings['device_quality']= $this->getDeviceQuality($device_detail->device_id);
         	$this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
         }
 
@@ -244,14 +244,14 @@ class MDRequestController extends RESTController{
     /**
      * 获取设备信息
      */
-    function getDevice($device_movement) {
-    	if(!isset($device_movement) || empty($device_movement)) {
+    function getDevice($device_name, $device_movement) {
+    	if(empty($device_name) && empty($device_movement)) {
     		return false;
     	}
     	$device = Devices::findFirst(array(
-    		"conditions"=>"device_movement= ?1",
-    		"bind"=>array(1=>$device_movement),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement), "lifetime"=>MD_CACHE_TIME)
+    		"conditions"=>"device_movement= ?1 OR device_name= ?2",
+    		"bind"=>array(1=>$device_movement, 2=>$device_name),
+    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement.$device_name), "lifetime"=>MD_CACHE_TIME)
     	));
     	return $device;
     }
@@ -1134,5 +1134,18 @@ class MDRequestController extends RESTController{
     		$u = $url."?mac=%mac%&dm=%dm%";
     	}
     	return $u;
+    }
+    
+    private function getDeviceQuality($id) {
+    	if (empty($id)) {
+    		return false;
+    	}
+    	$d = DevicePackageMatrix::findFirst(array(
+    		"device_id = :device_id:",
+    		"bind"=>array("device_id"=>$id),
+    		"cache"=>array("key"=>CACHE_PREFIX."_DEVICE_PACKAGE_ID_".$id, "lifetime"=>MD_CACHE_TIME)
+    	));
+    	
+    	return $d?$d->package_id:false;
     }
 }
