@@ -161,9 +161,9 @@ class MDRequestV2Controller extends MDRequestController{
     	}
     	
     	if (MAD_IGNORE_DAILYLIMIT_NOCRON && !$this->check_cron_active()){
-    		$conditions .= " AND ((c_limit.total_amount_left='' OR c_limit.total_amount_left>=1) OR (c_limit.cap_type=1))";
+    		$conditions .= " AND ((c_limit.total_amount_left>=1) OR (c_limit.cap_type=1))";
     	}else{
-    		$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
+    		$conditions .= " AND (c_limit.total_amount_left>=1)";
     	}
     	 
     	//时段定向
@@ -175,7 +175,7 @@ class MDRequestV2Controller extends MDRequestController{
     	$request_settings['campaign_conditions'] = $conditions;
     	$request_settings['campaign_params'] = $params ;
     	 
-    	$this->debugLog("[build query->]".$conditions);
+    	$this->debugLog("[v2][build query->]".$conditions);
     }
     
     
@@ -228,7 +228,7 @@ class MDRequestV2Controller extends MDRequestController{
     	if (count($campaignarray)<1){
     		return false;
     	}
-    	$this->debugLog("[launch_campaign_query] found campaigns, num->".count($campaignarray));
+    	$this->debugLog("[v2][launch_campaign_query] found campaigns, num->".count($campaignarray));
     	foreach ($campaignarray as $key => $row) {
     		$campaign_id[$key]  = $row['campaign_id'];
     		$priority[$key] = $row['priority'];
