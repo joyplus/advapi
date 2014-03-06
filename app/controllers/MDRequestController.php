@@ -145,7 +145,9 @@ class MDRequestController extends RESTController{
         $this->setGeo($request_settings);
         
         //处理试投放
+        $this->debugLog("[handleAdRequest] i->".$request_settings['i']);
         $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
+        $this->debugLog("[handleAdRequest] cacheKey->".$cacheKey);
         $adv_id = $this->getCacheAdData($cacheKey);
         if($adv_id){
         	$this->debugLog("[handleAdRequest] 找到试投放,key->".$cacheKey.", id->".$adv_id);
@@ -448,9 +450,9 @@ class MDRequestController extends RESTController{
     	}
     
     	if (MAD_IGNORE_DAILYLIMIT_NOCRON && !$this->check_cron_active()){
-    		$conditions .= " AND ((c_limit.total_amount_left='' OR c_limit.total_amount_left>=1) OR (c_limit.cap_type=1))";
+    		$conditions .= " AND ((c_limit.total_amount_left>=1) OR (c_limit.cap_type=1))";
     	}else{
-    		$conditions .= " AND (c_limit.total_amount_left='' OR c_limit.total_amount_left>=1)";
+    		$conditions .= " AND (c_limit.total_amount_left>=1)";
     	}
     	
     	//时段定向
@@ -482,7 +484,7 @@ class MDRequestController extends RESTController{
 
     }
 
-    private function check_cron_active(){
+    protected function check_cron_active(){
 
         $last_exec=$this->get_last_cron_exec();
 
@@ -574,7 +576,7 @@ class MDRequestController extends RESTController{
         return $array;
     }
 
-    private function process_campaignquery_result($zone_detail, &$request_settings, &$display_ad, $result){
+    protected function process_campaignquery_result($zone_detail, &$request_settings, &$display_ad, $result){
 
         foreach($result as $key=>$campaign_detail)
         {
@@ -603,7 +605,7 @@ class MDRequestController extends RESTController{
     }
 
 
-    private function select_adunit_query($request_settings, $zone_detail, $campaign_detail){
+    protected function select_adunit_query($request_settings, $zone_detail, $campaign_detail){
     	$this->debugLog("[select_adunit_query] campaign_detail, id->".$campaign_detail['campaign_id']);
     	$params = array();
 		$conditions = "campaign_id = :campaign_id:";
@@ -687,7 +689,7 @@ class MDRequestController extends RESTController{
 
     }
 
-    private function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
+    protected function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
 
         if (!$ad_unit_array = $this->select_adunit_query($request_settings, $zone_detail, $campaign_detail)){
             return false;
@@ -714,7 +716,7 @@ class MDRequestController extends RESTController{
         return false;
     }
 
-    private function get_ad_unit($id){
+    protected function get_ad_unit($id){
 
         //$query="SELECT adv_id, campaign_id, unit_hash, adv_type,adv_creative_extension, adv_click_url, adv_click_opentype, adv_chtml, adv_mraid, adv_bannerurl, adv_impression_tracking_url, adv_clickthrough_type, adv_creative_extension, creativeserver_id, adv_height, adv_width FROM md_ad_units WHERE adv_id='".$id."'";
 
@@ -740,7 +742,7 @@ class MDRequestController extends RESTController{
         return $ad_detail;
     }
 
-    private function build_ad(&$display_ad, $zone_detail, $type, $adUnit){
+    protected function build_ad(&$display_ad, $zone_detail, $type, $adUnit){
     	//素材类型 1普通上传 3富媒体
     	$this->debugLog("[build_ad] adv_id->".$adUnit->adv_id
     			.", campaign_id->".$adUnit->campaign_id
@@ -999,12 +1001,12 @@ class MDRequestController extends RESTController{
 
     }
 
-    private function generate_trackingpixel($url){
+    protected function generate_trackingpixel($url){
         //return '<img style="display:none;" src="'.$url.'"/>';
         return '';
     }
 
-    private function getHtmlForCreativeResUrl(&$display_ad, $extension,$url){
+    protected function getHtmlForCreativeResUrl(&$display_ad, $extension,$url){
 
         if($extension==1){//图片
             $display_ad['interstitial-creative_res_url']=$url;
@@ -1018,7 +1020,7 @@ class MDRequestController extends RESTController{
 
     }
 
-    private function extract_url($input){
+    protected function extract_url($input){
 
         if (preg_match("/href='([^']*)'/i", $input , $regs)){
             return $regs[1]; }
@@ -1136,7 +1138,7 @@ class MDRequestController extends RESTController{
     	return $u;
     }
     
-    private function getDeviceQuality($id) {
+    protected function getDeviceQuality($id) {
     	if (empty($id)) {
     		return false;
     	}
