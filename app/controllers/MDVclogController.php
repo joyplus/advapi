@@ -29,7 +29,7 @@ class MDVclogController extends RESTController{
     	foreach ($params as $key=>$value) {
     		$log.=$key."->".$value."\n";
     	}
-    	$this->debugLog("[MDApplogController]".$log);
+    	$this->debugLog("[MDVclogController]".$log);
 		return $result;
     }
 }
