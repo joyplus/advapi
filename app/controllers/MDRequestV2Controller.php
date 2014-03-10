@@ -150,8 +150,8 @@ class MDRequestV2Controller extends MDRequestController{
     		case 'previous':
     			$conditions .= " AND ad.creative_unit_type='previous'))";
     			break;
-    		case 'middle':
-    			$conditions .= " AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    		case 'middle'://同banner处理
+    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;

@@ -440,7 +440,7 @@ class MDRequestController extends RESTController{
     			$conditions .= " AND ad.creative_unit_type='previous'))";
     			break;
     		case 'middle':
-    			$conditions .= " AND ad.creative_unit_type='middle' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
@@ -620,6 +620,10 @@ class MDRequestController extends RESTController{
 		$conditions .= " AND adv_status = 1 AND del_flg<>1";
 		
 		$zone_type = $zone_detail->zone_type;
+		//暂停同banner处理
+		if($zone_type=='middle'){
+			$zone_type = 'banner';
+		}
 		
 		$conditions .= " AND creative_unit_type = :creative_unit_type:";
 		$params['creative_unit_type'] = $zone_type;
