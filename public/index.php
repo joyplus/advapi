@@ -36,6 +36,9 @@ try {
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);
     define('MAD_MONITOR_HANDLER', $config->application->mdmonitor);
     
+    define('MAD_APPLOG_HANDLER', $config->application->mdapplog);
+    define('MAD_VCLOG_HANDLER', $config->application->mdvclog);
+    
     //是否查询campaign_tmp表
     define('MAD_USE_CAMPAIGN_TMP', $config->application->use_campaign_tmp);
     
@@ -333,6 +336,18 @@ try {
     $mdmonitor->setPrefix('/'.MAD_MONITOR_HANDLER);
     $mdmonitor->get('/', 'get');
     $app->mount($mdmonitor);
+    
+    $mdapplog = new MicroCollection();
+    $mdapplog->setHandler(new MDApplogController());
+    $mdapplog->setPrefix('/'.MAD_APPLOG_HANDLER);
+    $mdapplog->get('/', 'get');
+    $app->mount($mdapplog);
+    
+    $mdvclog = new MicroCollection();
+    $mdvclog->setHandler(new MDVclogController());
+    $mdvclog->setPrefix('/'.MAD_VCLOG_HANDLER);
+    $mdvclog->get('/', 'get');
+    $app->mount($mdvclog);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
