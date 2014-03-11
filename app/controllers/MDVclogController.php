@@ -7,6 +7,7 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDVclogController extends RESTController{
 
     public function get(){
+    	
     	$params['cpi'] = $this->request->get("cpi", null, '');
     	$params['cpn'] = $this->request->get("cpn", null, '');
     	$params['csti'] = $this->request->get("csti", null, '');
@@ -26,10 +27,18 @@ class MDVclogController extends RESTController{
     	$params['dss'] = $this->request->get("dss", null, '');
     	$params['dsr'] = $this->request->get("dsr", null, '');
     	$params['i'] = $this->request->get("i", null, '');
+    	$params['ip'] = $this->request->getClientAddress(TRUE);
+    	
+    	$params['date'] = date("Y-m-d H:i:s");
     	foreach ($params as $key=>$value) {
     		$log.=$key."->".$value."\n";
     	}
     	$this->debugLog("[MDVclogController]".$log);
+    	
+    	$queue = $this->getDi()->get('beanstalk');
+    	$queue->choose(TUBE_VCLOG);
+    	$queue->put($params);
+    	
 		return $result;
     }
 }
