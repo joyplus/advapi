@@ -146,49 +146,53 @@ class MDMonitorController extends RESTController{
     public function processMonitorExtraData($data) {
     	$this->debugLog("[processMonitorExtraData] data->".$data);
     	$ex = array();
-    	$parts = explode('#',$data);
-    	if(!is_array($parts)) {
-    		return $ex;
-    	}
-    	$ex['userAgent'] = trim($parts[0]," ");
-    	$ex['userAgentVersion'] = trim($parts[1]," ");
-    	if(!isset($parts[2]))
-    		return $ex;
-    	
-    	$ex['extra'] = trim($parts[1]," ")."#".trim($parts[2]," ");
-    	$pattern = "/(.+?)\((.+)\)/";
-    	if(preg_match($pattern, $parts[2], $matchs)) {
-    		$part3 = $matchs[1];
-    		$part4 = $matchs[2];
-    	}
-    
-    	if(isset($part3)) {
-    		$part3s = explode('/', $part3);
-    		if(is_array($part3s)) {
-    			$ex['brands'] = trim($part3s[0]," ");
-    			$ex['sn'] = trim($part3s[1]," ");
-    			$ex['systemVersion'] = trim($part3s[2]," ");
-    			$ex['browseVersion'] = trim($part3s[3]," ");
-    			$ex['quality'] = trim($part3s[4]," ");
-    		}
-    	}
-    	if(isset($part4)) {
-    		$part4s = explode(';', $part4);
-    		if(is_array($part4s)){
-    			$part4s1s = explode(',', $part4s[0]);
-    			if(is_array($part4s1s)) {
-    				$ex['Dnum'] = trim($part4s1s[0]," ");
-    				$ex['Didtoken'] = trim($part4s1s[1]," ");
-    			}
-    			$part4s2s = explode(',', $part4s[1]);
-    			if(is_array($part4s2s)) {
-    				$ex['DID'] = trim($part4s2s[0]," ");
-    				$ex['HuanID'] = trim($part4s2s[1]," ");
-    				$ex['Usertoken'] = trim($part4s2s[2]," ");
-    			}
-    		}
-    	}
-    	return $ex;
+		
+		//#分割，获取原user-agent，ua版本，其他信息
+		$parts = explode('#',$data);
+		if(!is_array($parts)) {
+			return $ex;
+		}
+		$ex['userAgent'] = trim($parts[0]," ");
+		$ex['userAgentVersion'] = trim($parts[1]," ");
+		if(!isset($parts[2]))
+			return $ex;
+		
+		// /分割，获取终端品牌/终端型号/主系统版本/浏览器版本/其他信息
+		$part3s = explode('/', $parts[2]);
+		if(is_array($part3s)) {
+			$ex['brands'] = trim($part3s[0]," ");
+			$ex['sn'] = trim($part3s[1]," ");
+			$ex['systemVersion'] = trim($part3s[2]," ");
+			$ex['browseVersion'] = trim($part3s[3]," ");
+			$part4 = trim($part3s[4]," ");
+		}
+		
+		if(isset($part4)) {
+			//正则匹配，获取 终端分辨率，第四部分信息
+			$pattern = "/(.+?)\((.+)\)$/";
+			if(preg_match($pattern, $part4, $matchs)) {
+				$part3 = $matchs[1];
+				$part5 = $matchs[2];
+			}
+			$ex['quality'] = $part3;
+			
+			// ;分割，分别获取第四部分信息
+			$part4s = explode(';', $part5);
+			if(is_array($part4s)){
+				$part4s1s = explode(',', $part4s[0]);
+				if(is_array($part4s1s)) {
+					$ex['Dnum'] = trim($part4s1s[0]," ");
+					$ex['Didtoken'] = trim($part4s1s[1]," ");
+				}
+				$part4s2s = explode(',', $part4s[1]);
+				if(is_array($part4s2s)) {
+					$ex['DID'] = trim($part4s2s[0]," ");
+					$ex['HuanID'] = trim($part4s2s[1]," ");
+					$ex['Usertoken'] = trim($part4s2s[2]," ");
+				}
+			}
+		}
+		return $ex;
     }
     
     public function log($log) {
