@@ -42,7 +42,7 @@ class MDNetworkBatchController extends RESTController{
     	$this->log("[process] find campaigns num->".count($campaigns));
     	foreach ($campaigns as $c) {
     		$as = $this->findAds($c, $zone, $date);
-    		$ads = $ads + $as;
+    		$ads = array_merge($ads, $as);
     	}
     	return $ads;
     }
@@ -51,11 +51,11 @@ class MDNetworkBatchController extends RESTController{
     	$conditions .= "(c1.targeting_type='placement' AND c1.targeting_code=:entry_id:)";
     	$params['entry_id'] = $zone->entry_id;
     	
-    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
+    	$conditions .= " AND Campaigns.del_flg<>1 AND Campaigns.campaign_status=1 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
     	$params['campaign_start'] = $date;
     	$params['campaign_end'] = $date;
     	
-    	$conditions .= " AND (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 and ad.adv_type='2')";
+    	$conditions .= " AND (ad.del_flg<>1 AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1 and ad.adv_type='2')";
     	$params['adv_start'] = $date;
     	$params['adv_end'] = $date;
     	
@@ -88,7 +88,7 @@ class MDNetworkBatchController extends RESTController{
     	$conditions .= " AND adv_end>= :adv_end:";
     	$params['adv_end'] = $date;
     	
-    	$conditions .= " AND adv_status = 1 AND adv_type=2";
+    	$conditions .= " AND adv_status = 1 AND adv_type=2 AND del_flg<>1";
     	
     	//创意权重排序
     	$order = "creative_weight DESC";
