@@ -1,3 +1,11 @@
+<?php if($code!=="00000") {?>
+{
+	"_meta":
+	{
+		"code":<?php echo json_encode($code)?>
+	}
+}
+<?php }else{?>
 {
 	"_meta":
 	{
@@ -6,3 +14,4 @@
 	},
 	"items":<?php echo json_encode($data) ?>
 }
+<?php }?>

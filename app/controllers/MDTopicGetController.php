@@ -15,7 +15,7 @@ class MDTopicGetController extends RESTController{
     	));
     	if(!$topic) {
     		$result['code'] = "20001";
-    		$this->outputJson("topic/item", $result);
+    		$this->outputJson("topic/items", $result);
     	}
     	
     	$result['code'] = "00000";

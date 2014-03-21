@@ -1,3 +1,11 @@
+<?php if($code!=="00000") {?>
+{
+	"_meta":
+	{
+		"code":<?php echo json_encode($code)?>
+	}
+}
+<?php }else{?>
 {
 	"_meta":
 	{
@@ -8,3 +16,4 @@
 	<?php if(!empty($tracking_url)) echo '"trackingUrl":"'.$tracking_url.'",'?>
 	"items":<?php echo json_encode($items) ?>
 }
+<?php }?>
