@@ -1,0 +1,19 @@
+<?php if($code!=="00000") {?>
+{
+	"_meta":
+	{
+		"code":<?php echo json_encode($code)?>
+	}
+}
+<?php }else{?>
+{
+	"_meta":
+	{
+		"code":<?php echo json_encode($code)?>,
+		"count":<?php echo json_encode(count($items))?>
+	},
+	"creativeUrl":<?php echo json_encode($creative_url)?>,
+	<?php if(!empty($tracking_url)) echo '"trackingUrl":"'.$tracking_url.'",'?>
+	"items":<?php echo json_encode($items) ?>
+}
+<?php }?>
