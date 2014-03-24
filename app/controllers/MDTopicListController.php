@@ -2,8 +2,9 @@
 
 class MDTopicListController extends RESTController{
 
-    public function get(){
+	public function get(){
     	$params['business_id'] = $this->request->get("bid", null, '');
+    	$this->log("[get] bid->".$params['business_id']);
     	$topics = Topic::find(array(
     		"business_id = :business_id:",
     		"bind"=>$params,
@@ -26,6 +27,11 @@ class MDTopicListController extends RESTController{
     		$result['code'] = "00000";
     	}
     	$result['data'] = $rows;
+    	$this->log("[get] data->".json_encode($result));
     	$this->outputJson("topic/index", $result);
-    }
+	}
+	private function log($log) {
+		$this->debugLog("[TopicListController]".$log);
+	}
+    
 }

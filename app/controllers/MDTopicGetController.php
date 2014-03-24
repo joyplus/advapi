@@ -4,7 +4,7 @@ class MDTopicGetController extends RESTController{
 
     public function get(){
     	$params['s'] = $this->request->get("s", null, '');
-    	
+    	$this->log("[get] s->".$params['s']);
     	$topic = Topic::findFirst(array(
     		"hash=:s:",
     		"bind"=>$params,
@@ -17,7 +17,7 @@ class MDTopicGetController extends RESTController{
     		$result['code'] = "20001";
     		$this->outputJson("topic/items", $result);
     	}
-    	
+    	$this->log("[get] topic id->".$topic->id);
     	$result['code'] = "00000";
     	$ad = $this->getAdunit($topic->zone_hash);
     	if($ad) {
@@ -45,7 +45,7 @@ class MDTopicGetController extends RESTController{
     		$result['code'] = "20001";
     	}
     	$result['items'] = $rows;
-    	
+    	$this->log("[get] results->".json_encode($result));
     	$this->outputJson("topic/items", $result);
     }
     
@@ -55,14 +55,17 @@ class MDTopicGetController extends RESTController{
     	if(!$zone) {
     		return false;
     	}
+    	$this->log("[get] zone id->".$zone->entry_id);
     	$campaign = $this->findCampaign($zone->entry_id, $date);
     	if(!$campaign) {
     		return false;
     	}
+    	$this->log("[get] campaign id->".$campaign->campaign_id);
     	$ads = $this->findAdUnit($campaign, $date);
     	if(!ads) {
     		return false;
     	}
+    	$this->log("[get] count ads->".count($ads));
     	if($campaign->rule==1){ //创意随机排序
     		shuffle($ads);
     		$ad_id = $ads[0]['ad_id'];
@@ -70,6 +73,7 @@ class MDTopicGetController extends RESTController{
     		$ad_id = $ads[0]['ad_id'];
     	}
     	$ad = AdUnits::findFirst($ad_id);
+    	$this->log("[get] ad id->".$ad->adv_id);
     	return $ad;
     }
     
@@ -128,5 +132,9 @@ class MDTopicGetController extends RESTController{
     		$adarray[] = $add;
     	}
     	return count($adarray)<1?false:$adarray;
+    }
+    
+    private function log($log) {
+    	$this->debugLog("[TopicGetController]".$log);
     }
 }
