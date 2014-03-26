@@ -30,6 +30,10 @@ class MDApplogController extends RESTController{
     		$log.=$key."->".$value."\n";
     	}
     	$this->debugLog("[MDApplogController]".$log);
+    	
+    	$queue = $this->getDi()->get('beanstalk');
+    	$queue->choose(TUBE_APPLOG);
+    	$queue->put($params);
 		return $result;
     }
 }
