@@ -1,23 +1,16 @@
 <?php
-class TopicItems extends BaseModel
-{
+class TopicRelations extends BaseModel {
 	public $id;
-	public $name;
-	public $description;
-	public $pic_url;
-	public $uri;
-	public $business_id;
-	public $create_time;
-	public $column;
-	public $zone;
-
+	public $topic_id;
+	public $topic_item_id;
+	
 	public function initialize() {
 		$this->setReadConnectionService('dbSlave');
 		$this->setWriteConnectionService('dbMaster');
 		$this->useDynamicUpdate(true);
 	}
-
+	
 	public function getSource() {
-		return "md_vod_topic_items";
+		return "md_vod_topic_items_relation";
 	}
 }

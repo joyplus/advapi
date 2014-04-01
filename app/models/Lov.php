@@ -30,5 +30,20 @@ class Lov extends BaseModel
 		}
 		return false;
 	}
+	
+	public static function getValue($key, $code) {
+		if(empty($key) || empty($code))
+			return false;
+		$params = array(
+			"key"=>$key,
+			"code"=>$code
+		);
+		$lov = Lov::findFirst(array(
+				"key=:key: AND code=:code:",
+				"bind"=>$params,
+				"cache"=>array("key"=>CACHE_PREFIX."_LOV_KET_CODE_".$key.$code)
+		));
+		return $lov?$lov->value:false;
+	}
 
 }

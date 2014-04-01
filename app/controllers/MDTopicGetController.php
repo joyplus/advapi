@@ -19,7 +19,7 @@ class MDTopicGetController extends RESTController{
     	}
     	$this->log("[get] topic id->".$topic->id);
     	$result['code'] = "00000";
-    	$result['widget_pic_url'] = $topic->widget_pic_url;
+    	$result['widget_pic_url'] = $topic->widget_url;
     	$ad = $this->getAdunit($topic->zone_hash);
     	if($ad) {
     		$params = "rq=1&ad=".$ad->unit_hash."&zone=".$topic->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
@@ -29,18 +29,29 @@ class MDTopicGetController extends RESTController{
     		$result['creative_url'] = $topic->background_url;
     	}
 
-    	$items = TopicItems::find(array(
+    	$items = TopicRelations::find(array(
     		"topic_id = :topic_id:",
     		"bind"=>array("topic_id"=>$topic->id),
     		"cache"=>array(
-    			"key"=>CACHE_PREFIX."_TOPIC_ITEMS_TOPICID_".$topic->id,
+    			"key"=>CACHE_PREFIX."_TOPIC_RELATIONS_".$topic->id,
     			"lifetime"=>MD_CACHE_TIME
     		)
     	));
-    	
     	foreach ($items as $item) {
-    		$row = $this->arrayKeysToSnake($item->toArray());
-    		$rows[] = $row;
+    		$video = TopicItems::findFirst(array(
+    			"id=:id:",
+    			"bind"=>array("id"=>$item->topic_item_id),
+    			"cache"=>array(
+    					"key"=>CACHE_PREFIX."_TOPIC_ITEM_ID_".$item->topic_item_id,
+    					"lifetime"=>MD_CACHE_TIME
+    			)
+    		));
+    		if($video) {
+	    		$row = $this->arrayKeysToSnake($video->toArray());
+	    		$row['column'] = Lov::getValue("topic_video_column", $row['column']);
+	    		$row['zone'] = Lov::getValue("topic_video_zone", $row['zone']);
+	    		$rows[] = $row;
+    		}
     	}
     	if(count($rows)<1) {
     		$result['code'] = "20001";
