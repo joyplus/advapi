@@ -682,6 +682,7 @@ class RESTController extends BaseController{
      * @return boolean
      */
     function isIpBlocked($ip) {
+    	$blockIpInstance = $this->di->get("BlockIp");
     	$key = CACHE_PREFIX."_IP_BLOCK_LIST";
     	$ip2long = bindec(decbin(ip2long($ip)));
     	
@@ -689,11 +690,11 @@ class RESTController extends BaseController{
     	if($cache) {
     		$list = $cache;
     	}else{
-    		$list = BlockIp::getIpBlockList();
+    		$list = $blockIpInstance->getIpBlockList();
     		$this->setCacheAdData($key, $list);
     	}
-    	$keys = BlockIp::getTwoBlocksKey($ip2long, array_keys($list));
-    	if(BlockIp::exist($ip2long, $list[$keys[0]]) || BlockIp::exist($ip2long, $list[$keys[1]])) {
+    	$keys = $blockIpInstance->getTwoBlocksKey($ip2long, array_keys($list));
+    	if($blockIpInstance->exist($ip2long, $list[$keys[0]]) || $blockIpInstance->exist($ip2long, $list[$keys[1]])) {
     		return true;
     	}
     	return false;

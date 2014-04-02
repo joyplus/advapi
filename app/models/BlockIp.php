@@ -17,7 +17,7 @@ class BlockIp extends BaseModel {
     }
     
     
-    public static function getIpBlockList() {
+    public function getIpBlockList() {
     	$list = BlockIp::find(array(
     			"columns"=>"ip_start, ip_end",
     			"cache"=>array(
@@ -32,11 +32,11 @@ class BlockIp extends BaseModel {
     	return count($rows)>0?$rows:false;
     }
     
-    public static function exist($ip, $row) {
+    public  function exist($ip, $row) {
     	return $ip>=$row[0] && $ip<=$row[1];
     }
     
-    public static function getTwoBlocksKey($ip, $array) {
+    public function getTwoBlocksKey($ip, $array) {
     	$count = count($array);
     	$min = 0;
     	$max = $count-1;

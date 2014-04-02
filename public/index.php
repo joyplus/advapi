@@ -295,8 +295,10 @@ try {
     	return $queue;
     });
 
-
-
+	/**
+	 * inject Models
+	 */
+	$di->set('BlockIp', new BlockIp());
     /**
      * Out application is a Micro application, so we mush explicitly define all the routes.
      * For APIs, this is ideal.  This is as opposed to the more robust MVC Application
