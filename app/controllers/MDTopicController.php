@@ -1,6 +1,6 @@
 <?php
 
-class MDTopicGetController extends RESTController{
+class MDTopicController extends RESTController{
 
     public function get(){
     	$params['s'] = $this->request->get("s", null, '');
@@ -14,39 +14,53 @@ class MDTopicGetController extends RESTController{
     		)
     	));
     	if(!$topic) {
-    		$result['code'] = "20001";
-    		$this->outputJson("topic/items", $result);
+    		$result['_meta']['code'] = "20001";
+    		$this->outputJson($result);
     	}
     	$this->log("[get] topic id->".$topic->id);
-    	$result['code'] = "00000";
+    	$result['_meta']['code'] = "00000";
+    	$result['widgetPicUrl'] = $topic->widget_url;
     	$ad = $this->getAdunit($topic->zone_hash);
     	if($ad) {
     		$params = "rq=1&ad=".$ad->unit_hash."&zone=".$topic->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
-    		$result['creative_url'] = $ad->adv_creative_url;
-    		$result['tracking_url'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;;
+    		$result['creativeUrl'] = $ad->adv_creative_url;
+    		$result['trackingUrl'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;;
     	}else{
-    		$result['creative_url'] = $topic->background_url;
+    		$result['creativeUrl'] = $topic->background_url;
     	}
 
-    	$items = TopicItems::find(array(
+    	$items = TopicRelations::find(array(
     		"topic_id = :topic_id:",
     		"bind"=>array("topic_id"=>$topic->id),
     		"cache"=>array(
-    			"key"=>CACHE_PREFIX."_TOPIC_ITEMS_TOPICID_".$topic->id,
+    			"key"=>CACHE_PREFIX."_TOPIC_RELATIONS_".$topic->id,
     			"lifetime"=>MD_CACHE_TIME
     		)
     	));
-    	
     	foreach ($items as $item) {
-    		$row = $this->arrayKeysToSnake($item->toArray());
-    		$rows[] = $row;
+    		$video = TopicItems::findFirst(array(
+    			"id=:id:",
+    			"bind"=>array("id"=>$item->topic_item_id),
+    			"cache"=>array(
+    					"key"=>CACHE_PREFIX."_TOPIC_ITEM_ID_".$item->topic_item_id,
+    					"lifetime"=>MD_CACHE_TIME
+    			)
+    		));
+    		if($video) {
+	    		$row = $this->arrayKeysToSnake($video->toArray());
+	    		$row['column'] = Lov::getValue("topic_video_column", $row['column']);
+	    		$row['zone'] = Lov::getValue("topic_video_zone", $row['zone']);
+	    		$rows[] = $row;
+    		}
     	}
     	if(count($rows)<1) {
-    		$result['code'] = "20001";
+    		$result['_meta']['code'] = "20001";
+    	}else{
+    		$result['_meta']['count'] = count($rows);
     	}
     	$result['items'] = $rows;
     	$this->log("[get] results->".json_encode($result));
-    	$this->outputJson("topic/items", $result);
+    	$this->outputJson($result);
     }
     
     private function getAdunit($zone_hash) {
@@ -134,7 +148,38 @@ class MDTopicGetController extends RESTController{
     	return count($adarray)<1?false:$adarray;
     }
     
+    
+    public function listTopic(){
+    	$params['business_id'] = $this->request->get("bid", null, '');
+    	$this->log("[get] bid->".$params['business_id']);
+    	$topics = Topic::find(array(
+    			"business_id = :business_id:",
+    			"bind"=>$params,
+    			"cache"=>array(
+    					"key"=>CACHE_PREFIX."_TOPIC_BUSINESS_".$params['business_id'],
+    					"lifetime"=>MD_CACHE_TIME
+    			),
+    			"order"=>"id"
+    	));
+    	foreach ($topics as $t) {
+    		$row = $this->arrayKeysToSnake($t->toArray());
+    
+    		$row['url'] = "".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+    		."/".MAD_TOPIC_GET_HANDLER."?s=".$row['hash'];
+    		$rows[] = $row;
+    	}
+    	if(count($rows)<1){
+    		$result['_meta']['code'] = "20001";
+    	}else{
+    		$result['_meta']['code'] = "00000";
+    		$result['_meta']['count'] = count($rows);
+    	}
+    	$result['items'] = $rows;
+    	$this->log("[listTopic] data->".json_encode($result));
+    	$this->outputJson($result);
+    }
+    
     private function log($log) {
-    	$this->debugLog("[TopicGetController]".$log);
+    	$this->debugLog("[TopicController]".$log);
     }
 }
