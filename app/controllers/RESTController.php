@@ -140,13 +140,16 @@ class RESTController extends BaseController{
 		$cacheKey=md5($cacheKey);
 		
 		$resultget = $this->getDi()->get("cacheAdData")->get($cacheKey);
-		if ($resultget){
-			return $resultget;
-		}
-		else {
-			return false;
-		}
+			return $resultget?$resultget:false;
 	}
+	
+	function setCacheAdData($key, $value, $time=MD_CACHE_TIME) {
+		if(!MD_CACHE_ENABLE)
+			return false;
+		$cacheKey=md5($key);
+		$this->getDi()->get("cacheAdData")->save($cacheKey, $value, $time);
+	}
+	
     function getCacheDataValue($cacheKey){
 		if(!MD_CACHE_ENABLE)
 			return false;
@@ -154,12 +157,7 @@ class RESTController extends BaseController{
         $cacheKey=md5($cacheKey);
 
         $resultget = $this->getDi()->get("cacheData")->get($cacheKey);
-        if ($resultget){
-            return $resultget;
-        }
-        else {
-            return false;
-        }
+        return $resultget?$resultget:false;
     }
 
     function saveCacheDataValue($cacheKey, $cacheValue){
@@ -675,5 +673,29 @@ class RESTController extends BaseController{
      */
     protected function snakeToCamel($val) {
     	return str_replace(' ', '', lcfirst(ucwords(str_replace('_', ' ', $val))));
+    }
+    
+    
+    /**
+     * 判断ip是否进入黑名单
+     * @param unknown $ip
+     * @return boolean
+     */
+    function isIpBlocked($ip) {
+    	$key = CACHE_PREFIX."_IP_BLOCK_LIST";
+    	$ip2long = bindec(decbin(ip2long($ip)));
+    	
+    	$cache = $this->getCacheAdData($key);
+    	if($cache) {
+    		$list = $cache;
+    	}else{
+    		$list = BlockIp::getIpBlockList();
+    		$this->setCacheAdData($key, $list);
+    	}
+    	$keys = BlockIp::getTwoBlocksKey($ip2long, array_keys($list));
+    	if(BlockIp::exist($ip2long, $list[$keys[0]]) || BlockIp::exist($ip2long, $list[$keys[1]])) {
+    		return true;
+    	}
+    	return false;
     }
 }

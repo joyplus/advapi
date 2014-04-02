@@ -16,20 +16,8 @@ class BlockIp extends BaseModel {
     	$this->useDynamicUpdate(true);
     }
     
-    /**
-     * 判断ip是否进入黑名单
-     */
-    public static function isBlock($ip) {
-    	$ip2long = bindec(decbin(ip2long($ip)));
-    	$list = self::getIpBlockList();
-    	$keys = self::getTwoBlocksKey($ip2long, array_keys($list));
-    	if(self::exist($ip2long, $list[$keys[0]]) || self::exist($ip2long, $list[$keys[1]])) {
-    		return true;
-    	}
-    	return false;
-    }
     
-    private static function getIpBlockList() {
+    public static function getIpBlockList() {
     	$list = BlockIp::find(array(
     			"columns"=>"ip_start, ip_end",
     			"cache"=>array(
@@ -40,14 +28,15 @@ class BlockIp extends BaseModel {
     	foreach ($list as $row) {
     		$rows[$row->ip_start] = array($row->ip_start, $row->ip_end);
     	}
+    	asort($rows);
     	return count($rows)>0?$rows:false;
     }
     
-    private static function exist($ip, $row) {
+    public static function exist($ip, $row) {
     	return $ip>=$row[0] && $ip<=$row[1];
     }
     
-    private static function getTwoBlocksKey($ip, $array) {
+    public static function getTwoBlocksKey($ip, $array) {
     	$count = count($array);
     	$min = 0;
     	$max = $count-1;
