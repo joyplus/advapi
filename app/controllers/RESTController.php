@@ -640,11 +640,11 @@ class RESTController extends BaseController{
         }
     }
     
-    protected function outputJson($template, array $data) {
+    protected function outputJson(array $data) {
     	$response = $this->response;
     	$response->setHeader("Content-Type", 'application/json;charset=UTF-8');
-    	$html = $this->view->render($template, $data);
-    	$response->setContent($html);
+    	//$html = $this->view->render($template, $data);
+    	$response->setJsonContent($data);
     	$response->send();
     	exit();
     }

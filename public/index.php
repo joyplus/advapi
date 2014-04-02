@@ -369,13 +369,13 @@ try {
     $app->mount($mdvclog);
     
     $mdtopic = new MicroCollection();
-    $mdtopic->setHandler(new MDTopicListController());
+    $mdtopic->setHandler(new MDTopicController());
     $mdtopic->setPrefix('/'.MAD_TOPIC_LIST_HANDLER);
-    $mdtopic->get('/', 'get');
+    $mdtopic->get('/', 'listTopic');
     $app->mount($mdtopic);
     
     $mdtopicget = new MicroCollection();
-    $mdtopicget->setHandler(new MDTopicGetController());
+    $mdtopicget->setHandler(new MDTopicController());
     $mdtopicget->setPrefix('/'.MAD_TOPIC_GET_HANDLER);
     $mdtopicget->get('/', 'get');
     $app->mount($mdtopicget);
