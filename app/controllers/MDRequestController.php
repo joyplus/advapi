@@ -119,6 +119,10 @@ class MDRequestController extends RESTController{
 
         $request_data['ip']=$request_settings['ip_address'];
         
+        if(BlockIp::isBlock($request_data['ip'])) {
+        	return $this->codeNoAds();
+        }
+        
         $device_detail = $this->getDevice($request_settings['device_name'], $request_settings['device_movement']);
         if($device_detail) {
         	$request_settings['device_type'] = $device_detail->device_type;
