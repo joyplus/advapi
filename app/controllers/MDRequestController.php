@@ -118,7 +118,6 @@ class MDRequestController extends RESTController{
         }
 
         $request_data['ip']=$request_settings['ip_address'];
-        $request_data['ip'] = "0.0.0.5";
         if($this->isIpBlocked($request_data['ip'])) {
         	return $this->codeNoAds();
         }
