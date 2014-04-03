@@ -19,6 +19,7 @@ class MDTopicController extends RESTController{
     	}
     	$this->log("[get] topic id->".$topic->id);
     	$result['_meta']['code'] = "00000";
+    	$result['openType'] = $topic->open_type;
     	$result['widgetPicUrl'] = $topic->widget_url;
     	$ad = $this->getAdunit($topic->zone_hash);
     	if($ad) {
