@@ -687,15 +687,23 @@ class RESTController extends BaseController{
     	$ip2long = bindec(decbin(ip2long($ip)));
     	
     	$cache = $this->getCacheAdData($key);
+    	if($cache=="noData") {
+    		return false;
+    	}
     	if($cache) {
     		$list = $cache;
     	}else{
     		$list = $blockIpInstance->getIpBlockList();
+    		if(!$list) {
+    			$list = "noData";
+    		}
     		$this->setCacheAdData($key, $list);
     	}
-    	$keys = $blockIpInstance->getTwoBlocksKey($ip2long, array_keys($list));
-    	if($blockIpInstance->exist($ip2long, $list[$keys[0]]) || $blockIpInstance->exist($ip2long, $list[$keys[1]])) {
-    		return true;
+    	if(is_array($list)) {
+	    	$keys = $blockIpInstance->getTwoBlocksKey($ip2long, array_keys($list));
+	    	if($blockIpInstance->exist($ip2long, $list[$keys[0]]) || $blockIpInstance->exist($ip2long, $list[$keys[1]])) {
+	    		return true;
+	    	}
     	}
     	return false;
     }
