@@ -23,7 +23,7 @@ class MDTopicController extends RESTController{
     	$result['widgetPicUrl'] = $topic->widget_url;
     	$ad = $this->getAdunit($topic->zone_hash);
     	if($ad) {
-    		$params = "rq=1&ad=".$ad->unit_hash."&zone=".$topic->zone_hash."&dm=%dm%&i=%mac%&ip=%ip%&ex=%ex%";
+    		$params = "rq=1&ad=".$ad->unit_hash."&zone=".$topic->zone_hash."&dm=%dm%&i=%mac%";
     		$result['creativeUrl'] = $ad->adv_creative_url;
     		$result['trackingUrl'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;;
     	}else{
