@@ -5,6 +5,7 @@ class Topic extends BaseModel
 	public $name;
 	public $description;
 	public $background_url;
+	public $open_type;
 	public $widget_url;
 	public $pic_url;
 	public $zone_hash;
