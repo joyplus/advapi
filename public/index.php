@@ -294,6 +294,10 @@ try {
     	$queue->choose(TUBE_REQUEST_DEVICE_LOG);
     	return $queue;
     });
+    
+    $di->set('collections', function(){
+    	return include(__DIR__ . '/../app/routes/routeLoader.php');
+    });
 
 	/**
 	 * inject Models
@@ -306,6 +310,10 @@ try {
      */
     $app = new Phalcon\Mvc\Micro();
     $app->setDI($di);
+    
+    foreach($di->get('collections') as $collection){
+    	$app->mount($collection);
+    }
 
     //Mount MDRequest collection
     $mdrequest = new MicroCollection();
@@ -370,17 +378,6 @@ try {
     $mdvclog->get('/', 'get');
     $app->mount($mdvclog);
     
-    $mdtopic = new MicroCollection();
-    $mdtopic->setHandler(new MDTopicController());
-    $mdtopic->setPrefix('/'.MAD_TOPIC_LIST_HANDLER);
-    $mdtopic->get('/', 'listTopic');
-    $app->mount($mdtopic);
-    
-    $mdtopicget = new MicroCollection();
-    $mdtopicget->setHandler(new MDTopicController());
-    $mdtopicget->setPrefix('/'.MAD_TOPIC_GET_HANDLER);
-    $mdtopicget->get('/', 'get');
-    $app->mount($mdtopicget);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
