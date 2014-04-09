@@ -19,11 +19,7 @@ class BlockIp extends BaseModel {
     
     public function getIpBlockList() {
     	$list = BlockIp::find(array(
-    			"columns"=>"ip_start, ip_end",
-    			"cache"=>array(
-    					"key"=>CACHE_PREFIX."_IP_BLOCK_LIST",
-    					"life_time"=>MD_CACHE_TIME
-    			)
+    			"columns"=>"ip_start, ip_end"
     	));
     	foreach ($list as $row) {
     		$rows[$row->ip_start] = array($row->ip_start, $row->ip_end);
