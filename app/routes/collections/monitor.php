@@ -4,9 +4,9 @@ return call_user_func(function($config){
 
 	$collection = new \Phalcon\Mvc\Micro\Collection();
 
-	$collection->setHandler('MDRequestController')->setLazy(true);
+	$collection->setHandler('MDMonitorController')->setLazy(true);
 
-    $collection->setPrefix('/'.$config->application->mdrequest);
+    $collection->setPrefix('/'.$config->application->mdmonitor);
     
     $collection->get('/', 'get');
 

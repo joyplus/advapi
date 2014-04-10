@@ -7,7 +7,7 @@
  * php files in the collections directory must return Collection objects only.
  */
 
-return call_user_func(function(){
+return call_user_func(function($config){
 
 	$collections = array();
 	$collectionFiles = scandir(dirname(__FILE__) . '/collections');
@@ -26,4 +26,4 @@ return call_user_func(function(){
 	}
 
 	return $collections;
-});
+}, $config);
