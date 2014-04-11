@@ -25,9 +25,19 @@ class MDTopicController extends RESTController{
     	if($ad) {
     		$params = "rq=1&ad=".$ad->unit_hash."&zone=".$topic->zone_hash."&dm=%dm%&i=%mac%";
     		$result['creativeUrl'] = $ad->adv_creative_url;
-    		$result['trackingUrl'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;;
+    		$result['trackingUrl'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;
+    		$result['trackingUrlMiaozhen'] = $ad->adv_impression_tracking_url?adv_impression_tracking_url:"";
+    		$result['trackingUrlIresearch'] = $ad->adv_impression_tracking_url_iresearch?$ad->adv_impression_tracking_url_iresearch:"";
+    		$result['trackingUrlAdmaster'] = $ad->adv_impression_tracking_url_admaster?$ad->adv_impression_tracking_url_admaster:"";
+    		$result['trackingUrlNielsen'] = $ad->adv_impression_tracking_url_nielsen?$ad->adv_impression_tracking_url_nielsen:"";
+    		
     	}else{
     		$result['creativeUrl'] = $topic->background_url;
+    		$result['trackingUrl'] = "";
+    		$result['trackingUrlMiaozhen'] = "";
+    		$result['trackingUrlIresearch'] = "";
+    		$result['trackingUrlAdmaster'] = "";
+    		$result['trackingUrlNielsen'] = "";
     	}
 
     	$items = TopicRelations::find(array(

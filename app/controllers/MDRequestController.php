@@ -358,9 +358,8 @@ class MDRequestController extends RESTController{
     		$params['device_brand'] = $request_settings['device_brand'];
     	}*/
     
-    	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
-    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code=:device_quality:))";
-    		$params['device_quality'] = $request_settings['device_quality'];
+    	if(is_array($request_settings['device_quality'])) {
+    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code IN(".implode(",", $request_settings['device_quality']).")))";
     	}
     
     	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.del_flg<>1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
@@ -797,8 +796,8 @@ class MDRequestController extends RESTController{
                     $display_ad['main_type']='display';
 
                     $display_ad['trackingpixel']=$adUnit->adv_impression_tracking_url;
-                    $display_ad['width']=$zone_detail->adv_width;
-                    $display_ad['height']=$zone_detail->adv_height;
+                    $display_ad['width']=$zone_detail->zone_width;
+                    $display_ad['height']=$zone_detail->zone_height;
                     if (MAD_CLICK_ALWAYS_EXTERNAL or $adUnit->adv_click_opentype=='external'){
                         $display_ad['clicktype']='safari';
                         $display_ad['skipoverlay']=0;
@@ -1149,12 +1148,14 @@ class MDRequestController extends RESTController{
     	if (empty($id)) {
     		return false;
     	}
-    	$d = DevicePackageMatrix::findFirst(array(
+    	$result = DevicePackageMatrix::find(array(
     		"device_id = :device_id:",
     		"bind"=>array("device_id"=>$id),
     		"cache"=>array("key"=>CACHE_PREFIX."_DEVICE_PACKAGE_ID_".$id, "lifetime"=>MD_CACHE_TIME)
     	));
-    	
-    	return $d?$d->package_id:false;
+    	foreach ($result as $row) {
+    		$rows[] = $row->package_id;
+    	}
+    	return $rows;
     }
 }

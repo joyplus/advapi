@@ -56,12 +56,11 @@ class MDRequestV2Controller extends MDRequestController{
     	}
     	
     	
-    	$qualityTarget = $this->existTargeting("quality", $request_settings['device_quality']);
+    	$qualityTarget = $this->existTargetingQuality($request_settings['device_quality']);
     	if($qualityTarget) {
-	    	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
+	    	if(is_array($request_settings['device_quality'])) {
 	    		$request_settings['left_quality'] = true;
-	    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code=:device_quality:))";
-	    		$params['device_quality'] = $request_settings['device_quality'];
+	    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code IN (".implode(",",$request_settings['device_quality']).")))";
 	    	}else{
 	    		$conditions .= " AND (Campaigns.quality_target=1)";
 	    		$request_settings['left_quality'] = false;
@@ -263,6 +262,19 @@ class MDRequestV2Controller extends MDRequestController{
     private function existTargeting($type, $code) {
     	$data = $this->getCacheAdData(CACHE_PREFIX."_TARGETING_OBJECT_".$type.$code); 	
     	return $data?true:false;
+    }
+    
+    private function existTargetingQuality($rows) {
+    	if(!is_array($rows)) {
+    		return false;
+    	}
+    	foreach ($rows as $row) {
+    		if($this->existTargeting("quality", $row)){
+    			return true;
+    		}
+    	}
+    	
+    	return false;
     }
       
 }
