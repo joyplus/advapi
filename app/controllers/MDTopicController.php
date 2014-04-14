@@ -4,15 +4,35 @@ class MDTopicController extends RESTController{
 
     public function get(){
     	$params['s'] = $this->request->get("s", null, '');
+    	$params['business_id'] = $this->request->get("bid", null, '');
+    	$this->log("[get] bid->".$params['business_id']);
     	$this->log("[get] s->".$params['s']);
-    	$topic = Topic::findFirst(array(
-    		"hash=:s:",
-    		"bind"=>$params,
-    		"cache"=>array(
-    			"key"=>CACHE_PREFIX."_TOPIC_HASH_".$params['s'],
-    			"lifetime"=>MD_CACHE_TIME
-    		)
-    	));
+    	if(!empty($params['s'])) {
+	    	$topic = Topic::findFirst(array(
+	    		"hash=:s:",
+	    		"bind"=>array("s"=>$params['s']),
+	    		"cache"=>array(
+	    			"key"=>CACHE_PREFIX."_TOPIC_HASH_".$params['s'],
+	    			"lifetime"=>MD_CACHE_TIME
+	    		)
+	    	));
+    	}else if(!empty($params['business_id'])) {
+    		$topics = Topic::find(array(
+    				"business_id = :business_id:",
+    				"bind"=>array("business_id"=>$params['business_id']),
+    				"cache"=>array(
+    						"key"=>CACHE_PREFIX."_TOPIC_BUSINESS_".$params['business_id'],
+    						"lifetime"=>MD_CACHE_TIME
+    				),
+    				"order"=>"id"
+    		));
+    		foreach ($topics as $t) {
+    			$rows[] = $t;
+    		}
+    		//随机取一条记录
+    		shuffle($rows);
+    		$topic = $rows[0];
+    	}
     	if(!$topic) {
     		$result['_meta']['code'] = "20001";
     		$this->outputJson($result);
@@ -162,7 +182,7 @@ class MDTopicController extends RESTController{
     
     public function listTopic(){
     	$params['business_id'] = $this->request->get("bid", null, '');
-    	$this->log("[get] bid->".$params['business_id']);
+    	$this->log("[list] bid->".$params['business_id']);
     	$topics = Topic::find(array(
     			"business_id = :business_id:",
     			"bind"=>$params,
