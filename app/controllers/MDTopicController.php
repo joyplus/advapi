@@ -4,15 +4,35 @@ class MDTopicController extends RESTController{
 
     public function get(){
     	$params['s'] = $this->request->get("s", null, '');
+    	$params['business_id'] = $this->request->get("bid", null, '');
+    	$this->log("[get] bid->".$params['business_id']);
     	$this->log("[get] s->".$params['s']);
-    	$topic = Topic::findFirst(array(
-    		"hash=:s:",
-    		"bind"=>$params,
-    		"cache"=>array(
-    			"key"=>CACHE_PREFIX."_TOPIC_HASH_".$params['s'],
-    			"lifetime"=>MD_CACHE_TIME
-    		)
-    	));
+    	if(!empty($params['s'])) {
+	    	$topic = Topic::findFirst(array(
+	    		"hash=:s:",
+	    		"bind"=>array("s"=>$params['s']),
+	    		"cache"=>array(
+	    			"key"=>CACHE_PREFIX."_TOPIC_HASH_".$params['s'],
+	    			"lifetime"=>MD_CACHE_TIME
+	    		)
+	    	));
+    	}else if(!empty($params['business_id'])) {
+    		$topics = Topic::find(array(
+    				"business_id = :business_id:",
+    				"bind"=>array("business_id"=>$params['business_id']),
+    				"cache"=>array(
+    						"key"=>CACHE_PREFIX."_TOPIC_BUSINESS_".$params['business_id'],
+    						"lifetime"=>MD_CACHE_TIME
+    				),
+    				"order"=>"id"
+    		));
+    		foreach ($topics as $t) {
+    			$rows[] = $t;
+    		}
+    		//随机取一条记录
+    		shuffle($rows);
+    		$topic = $rows[0];
+    	}
     	if(!$topic) {
     		$result['_meta']['code'] = "20001";
     		$this->outputJson($result);
@@ -25,9 +45,19 @@ class MDTopicController extends RESTController{
     	if($ad) {
     		$params = "rq=1&ad=".$ad->unit_hash."&zone=".$topic->zone_hash."&dm=%dm%&i=%mac%";
     		$result['creativeUrl'] = $ad->adv_creative_url;
-    		$result['trackingUrl'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;;
+    		$result['trackingUrl'] = MAD_ADSERVING_PROTOCOL.MAD_SERVER_HOST."/".MAD_MONITOR_HANDLER."?".$params;
+    		$result['trackingUrlMiaozhen'] = $ad->adv_impression_tracking_url?adv_impression_tracking_url:"";
+    		$result['trackingUrlIresearch'] = $ad->adv_impression_tracking_url_iresearch?$ad->adv_impression_tracking_url_iresearch:"";
+    		$result['trackingUrlAdmaster'] = $ad->adv_impression_tracking_url_admaster?$ad->adv_impression_tracking_url_admaster:"";
+    		$result['trackingUrlNielsen'] = $ad->adv_impression_tracking_url_nielsen?$ad->adv_impression_tracking_url_nielsen:"";
+    		
     	}else{
     		$result['creativeUrl'] = $topic->background_url;
+    		$result['trackingUrl'] = "";
+    		$result['trackingUrlMiaozhen'] = "";
+    		$result['trackingUrlIresearch'] = "";
+    		$result['trackingUrlAdmaster'] = "";
+    		$result['trackingUrlNielsen'] = "";
     	}
 
     	$items = TopicRelations::find(array(
@@ -152,7 +182,7 @@ class MDTopicController extends RESTController{
     
     public function listTopic(){
     	$params['business_id'] = $this->request->get("bid", null, '');
-    	$this->log("[get] bid->".$params['business_id']);
+    	$this->log("[list] bid->".$params['business_id']);
     	$topics = Topic::find(array(
     			"business_id = :business_id:",
     			"bind"=>$params,

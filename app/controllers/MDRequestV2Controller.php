@@ -56,12 +56,11 @@ class MDRequestV2Controller extends MDRequestController{
     	}
     	
     	
-    	$qualityTarget = $this->existTargeting("quality", $request_settings['device_quality']);
+    	$qualityTarget = $this->existTargetingQuality($request_settings['device_quality']);
     	if($qualityTarget) {
-	    	if(isset($request_settings['device_quality']) && is_numeric($request_settings['device_quality'])) {
+	    	if(is_array($request_settings['device_quality'])) {
 	    		$request_settings['left_quality'] = true;
-	    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code=:device_quality:))";
-	    		$params['device_quality'] = $request_settings['device_quality'];
+	    		$conditions .= " AND (Campaigns.quality_target=1 OR (c7.targeting_type='quality' AND c7.targeting_code IN (".implode(",",$request_settings['device_quality']).")))";
 	    	}else{
 	    		$conditions .= " AND (Campaigns.quality_target=1)";
 	    		$request_settings['left_quality'] = false;
@@ -71,7 +70,11 @@ class MDRequestV2Controller extends MDRequestController{
     		$request_settings['left_quality'] = false;
     	}
     	
-    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.del_flg<>1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
+    	$conditions .= " AND Campaigns.campaign_status=1 AND Campaigns.campaign_class<>2 AND Campaigns.campaign_start<=:campaign_start: AND Campaigns.campaign_end>=:campaign_end:";
+    	if(!MAD_USE_CAMPAIGN_TMP) {
+    		$conditions .= " AND Campaigns.del_flg<>1" ;
+    	}
+    	
     	$params['campaign_start'] = date("Y-m-d");
     	$params['campaign_end'] = date("Y-m-d");
     	 
@@ -263,6 +266,19 @@ class MDRequestV2Controller extends MDRequestController{
     private function existTargeting($type, $code) {
     	$data = $this->getCacheAdData(CACHE_PREFIX."_TARGETING_OBJECT_".$type.$code); 	
     	return $data?true:false;
+    }
+    
+    private function existTargetingQuality($rows) {
+    	if(!is_array($rows)) {
+    		return false;
+    	}
+    	foreach ($rows as $row) {
+    		if($this->existTargeting("quality", $row)){
+    			return true;
+    		}
+    	}
+    	
+    	return false;
     }
       
 }
