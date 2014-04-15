@@ -76,6 +76,8 @@ class MDMonitorController extends RESTController{
 		
 		//记录device_log
 		$this->save_request_log('monitor', $reporting);
+		
+		$this->handleUrl($reporting);
 		$results['return_code'] = "00000";
 		$results['data']['status'] = "success";
 		return $results;
@@ -193,6 +195,23 @@ class MDMonitorController extends RESTController{
 			}
 		}
 		return $ex;
+    }
+    
+    public function handleUrl($data) {
+    	$current_timestamp = time();
+    	 
+    	$url['ip'] = $data['ip'];
+    	$url['device_name'] = $data['device_name'];
+    	$url['publication_id'] = $data['publication_id'];
+    	$url['zone_id'] = $data['zone_id'];
+    	$url['campaign_id'] = $data['campaign_id'];
+    	$url['creative_id'] =$data['creative_id'];
+    	$url['equipment_key'] = $data['equipment_key'];
+    	$url['ex'] = $data['ex'];
+    	$url['timestamp'] = $current_timestamp;
+    	$queue = $this->getDi()->get('beanstalk');
+    	$queue->choose(TUBE_TRACKING_URL);
+    	$queue->put($url);
     }
     
     public function log($log) {

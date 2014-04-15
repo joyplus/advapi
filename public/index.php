@@ -65,6 +65,7 @@ try {
 	define('TUBE_REPORTING', BUSINESS_ID.$config->beanstalk->tube_reporting);
 	define('TUBE_VCLOG', BUSINESS_ID.$config->beanstalk->tube_vclog);
 	define('TUBE_APPLOG', BUSINESS_ID.$config->beanstalk->tube_applog);
+	define('TUBE_TRACKING_URL', BUSINESS_ID.$config->beanstalk->tube_tracking_url);
 	
 	
 	define("ENABLE_DEVICE_LOG", $config->application->enable_device_log);
