@@ -160,6 +160,7 @@ class MDRequestController extends RESTController{
         	if (!$this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
         		return $this->codeNoAds();
         	}
+        	$request_settings['active_campaign_type'] = 'normal';
         }else{
 	        $this->buildQuery($request_settings, $zone_detail);
 	
