@@ -295,6 +295,10 @@ try {
     	$queue->choose(TUBE_REQUEST_DEVICE_LOG);
     	return $queue;
     });
+    
+    $di->set('collections', function() use ($config) {
+    	return include(__DIR__ . '/../app/routes/routeLoader.php');
+    });
 
 	/**
 	 * inject Models
@@ -307,81 +311,17 @@ try {
      */
     $app = new Phalcon\Mvc\Micro();
     $app->setDI($di);
+    
+    foreach($di->get('collections') as $collection){
+    	$app->mount($collection);
+    }
 
-    //Mount MDRequest collection
-    $mdrequest = new MicroCollection();
-    //Set the main handler. ie. a controller instance
-    $mdrequest->setHandler(new MDRequestController());
-    //Set a common prefix for all routes
-    $mdrequest->setPrefix('/'.MAD_REQUEST_HANDLER);
-    //Use the method 'indexAction' in ProductsController
-    $mdrequest->get('/', 'get');
-    $app->mount($mdrequest);
+//     $mdrequest = new MicroCollection();
+//     $mdrequest->setHandler(new MDRequestController());
+//     $mdrequest->setPrefix('/'.MAD_REQUEST_HANDLER);
+//     $mdrequest->get('/', 'get');
+//     $app->mount($mdrequest);
     
-    //Mount MDRequestV2 collection
-    $mdrequestV2 = new MicroCollection();
-    $mdrequestV2->setHandler(new MDRequestV2Controller());
-    $mdrequestV2->setPrefix('/'.MAD_REQUEST_HANDLER_V2);
-    $mdrequestV2->get('/', 'get');
-    $app->mount($mdrequestV2);
-
-    //Mount MDRequest collection
-    $mdtrack = new MicroCollection();
-    //Set the main handler. ie. a controller instance
-    $mdtrack->setHandler(new MDTrackController());
-    //Set a common prefix for all routes
-    $mdtrack->setPrefix('/'.MAD_TRACK_HANDLER);
-    //Use the method 'indexAction' in ProductsController
-    $mdtrack->get('/', 'get');
-
-    $app->mount($mdtrack);
-    
-    //Mount MDRequest collection
-    $mdclick = new MicroCollection();
-    //Set the main handler. ie. a controller instance
-    $mdclick->setHandler(new MDClickController());
-    //Set a common prefix for all routes
-    $mdclick->setPrefix('/'.MAD_CLICK_HANDLER);
-    //Use the method 'indexAction' in ProductsController
-    $mdclick->get('/', 'get');
-    
-    $app->mount($mdclick);
-    
-    $mdnetworkbatch = new MicroCollection();
-    $mdnetworkbatch->setHandler(new MDNetworkBatchController());
-    $mdnetworkbatch->setPrefix('/'.MAD_NETWORK_BATCH_HANDLER);
-    $mdnetworkbatch->get('/', 'get');
-    $app->mount($mdnetworkbatch);
-    
-    $mdmonitor = new MicroCollection();
-    $mdmonitor->setHandler(new MDMonitorController());
-    $mdmonitor->setPrefix('/'.MAD_MONITOR_HANDLER);
-    $mdmonitor->get('/', 'get');
-    $app->mount($mdmonitor);
-    
-    $mdapplog = new MicroCollection();
-    $mdapplog->setHandler(new MDApplogController());
-    $mdapplog->setPrefix('/'.MAD_APPLOG_HANDLER);
-    $mdapplog->get('/', 'get');
-    $app->mount($mdapplog);
-    
-    $mdvclog = new MicroCollection();
-    $mdvclog->setHandler(new MDVclogController());
-    $mdvclog->setPrefix('/'.MAD_VCLOG_HANDLER);
-    $mdvclog->get('/', 'get');
-    $app->mount($mdvclog);
-    
-    $mdtopic = new MicroCollection();
-    $mdtopic->setHandler(new MDTopicController());
-    $mdtopic->setPrefix('/'.MAD_TOPIC_LIST_HANDLER);
-    $mdtopic->get('/', 'listTopic');
-    $app->mount($mdtopic);
-    
-    $mdtopicget = new MicroCollection();
-    $mdtopicget->setHandler(new MDTopicController());
-    $mdtopicget->setPrefix('/'.MAD_TOPIC_GET_HANDLER);
-    $mdtopicget->get('/', 'get');
-    $app->mount($mdtopicget);
     /**
      * After a route is run, usually when its Controller returns a final value,
      * the application runs the following function which actually sends the response to the client.
