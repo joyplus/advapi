@@ -251,14 +251,23 @@ class MDRequestController extends RESTController{
      * 获取设备信息
      */
     function getDevice($device_name, $device_movement) {
-    	if(empty($device_name) && empty($device_movement)) {
+    	if(empty($device_movement)) {
     		return false;
     	}
-    	$device = Devices::findFirst(array(
-    		"conditions"=>"device_movement= ?1 OR device_name= ?2",
-    		"bind"=>array(1=>$device_movement, 2=>$device_name),
-    		"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_".$device_movement.$device_name), "lifetime"=>MD_CACHE_TIME)
-    	));
+    	if(empty($device_name)) {
+    		$conditions = array(
+    			"conditions"=>"device_movement=:dm:",
+    			"bind"=>array("dm"=>$device_movement),
+    			"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_DM_".$device_movement), "lifetime"=>MD_CACHE_TIME)
+    		);
+    	}else{
+    		$conditions = array(
+    			"conditions"=>"device_movement=:dm: AND device_name=:ds:",
+    			"bind"=>array("dm"=>$device_movement, "ds"=>$device_name),
+    			"cache"=>array("key"=>md5(CACHE_PREFIX."_DEVICES_DM_DS_".$device_movement.$device_name), "lifetime"=>MD_CACHE_TIME)
+    		);
+    	}
+    	$device = Devices::findFirst($conditions);
     	return $device;
     }
 
