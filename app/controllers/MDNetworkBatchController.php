@@ -129,7 +129,7 @@ class MDNetworkBatchController extends RESTController{
     		$ad['adv_date'] = $date;
     		$limit = CampaignLimit::findByCampaignId($c->campaign_id);
     		if($limit){
-    			$ad['daliy_amount'] = $limit->total_amount;
+    			$ad['daily_amount'] = $limit->total_amount;
     		}
     		if(isset($a->adv_impression_tracking_url) && !empty($a->adv_impression_tracking_url))
     			$ad['adv_impression_tracking_url_miaozhen'] = $a->adv_impression_tracking_url;
