@@ -116,6 +116,10 @@ class MDRequestController extends RESTController{
             //TODO: Unchecked MD Functions
             return $this->codeInputError();
         }
+        
+        if($this->isMacAddressBlocked($request_settings['i'])) {
+        	return $this->codeNoAds();
+        }
 
         $request_data['ip']=$request_settings['ip_address'];
         if($this->isIpBlocked($request_data['ip'])) {
@@ -1167,5 +1171,14 @@ class MDRequestController extends RESTController{
     		$rows[] = $row->package_id;
     	}
     	return $rows;
+    }
+    
+    protected function isMacAddressBlocked($mac) {
+    	if(empty($mac)) {
+    		return false;
+    	}
+    	$key = CACHE_PREFIX."_MAC_MD5_".$mac;
+    	$cache = $this->getCacheAdData($key);
+		return $cache?true:false;    	
     }
 }
