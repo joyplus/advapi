@@ -29,6 +29,7 @@ class MDCreativeController extends RESTController{
     		$this->log("[process] find campaigns id->".$campaign->campaiagn_id);
     		$ad = $this->findAds($campaign, $zone, $date);
     		if($ad) {
+    			$this->sendBeanstalk($zone, $ad);
     			if($ad->creative_unit_type==='open') {
     				if(!empty($ad->adv_creative_url_2)) {
     					return $ad->adv_creative_url_2;
@@ -43,7 +44,24 @@ class MDCreativeController extends RESTController{
     	return false;
     }
     private function sendBeanstalk($zone, $ad) {
-    	
+    		$log['equipment_sn'] = '';
+        	$log['equipment_key'] = '';
+        	$log['device_name'] = '';
+        	$log['user_pattern'] = '';
+        	$log['date'] = date("Y-m-d H:i:s");;
+        	$log['operation_type'] = '004';
+        	$log['operation_extra'] = '';
+        	$log['publication_id'] = $zone->publication_id;
+        	$log['zone_id'] = $zone->entry_id;
+        	$log['campaign_id'] = $ad->campaign_id;
+        	$log['creative_id'] = $ad->adv_id;
+        	$log['client_ip'] = $this->request->getClientAddress(TRUE);
+        	$log['business_id'] = BUSINESS_ID;
+        	try{
+        		$queue = $this->getDi()->get('beanstalkRequestDeviceLog');
+        		$queue->put(serialize($log));
+        	}catch (Exception $e) {
+        	}
     }
     private function buildCampaignSql($zone, $date) {
     	$conditions .= "(c1.targeting_type='placement' AND c1.targeting_code=:entry_id:)";
