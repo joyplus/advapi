@@ -646,6 +646,34 @@ class RESTController extends BaseController{
     	$response->send();
     	exit();
     }
+    /**
+     * 渲染xml数据并输出
+     * @param unknown $template
+     * @param unknown $data
+     */
+    protected function executeXml($template, $data) {
+    	$html = $this->executeTemplate($template, $data);
+    	$this->outputXml($html);
+    }
+    /**
+     * 渲染模板
+     * @param unknown $template
+     */
+    protected function executeTemplate($template, $data) {
+    	return $this->view->render($template, $data);
+    }
+    /**
+     * 输出xml数据
+     * @param unknown $template
+     * @param unknown $data
+     */
+    protected function outputXml($data) {
+    	$response = $this->response;
+    	$response->setContentType('text/xml;charset=UTF-8');
+    	$response->setContent($data);
+    	$response->send();
+    	exit();
+    }
     
     /**
      * In-Place, recursive conversion of array keys in snake_Case to camelCase
