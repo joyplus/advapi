@@ -60,7 +60,7 @@ class XMLResponse extends Response{
                     $response.= "".$display_ad['final_impression_url']."";
                     $response.= "]]></impressionurl>";
                     if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
-                        $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
+                        $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'" hash="'.$display_ad['filehash_1'].'"></creative_res_url>';
                     }
                     $response.= "<trackingurl_miaozhen><![CDATA[";
                     $response.= "".$display_ad['trackingpixel']."";
@@ -106,7 +106,7 @@ class XMLResponse extends Response{
                     $response.= '<markup><![CDATA['.$display_ad['interstitial-content'].']]></markup>';
                 }
                 if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
-                    $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
+                    $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'" hash="'.$display_ad['filehash_1'].'"></creative_res_url>';
                 }
                 $response.= "<impressionurl><![CDATA[";
                 $response.= "".$display_ad['final_impression_url']."";
@@ -133,9 +133,9 @@ class XMLResponse extends Response{
             }
             if($display_ad['type']=='open') {
             	$response.= '<video orientation="'.$display_ad['video-orientation'].'" expiration="'.$display_ad['video-expiration'].'">';
-            	$response.= '<creative display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'"><![CDATA['.$display_ad['creative-url'].']]></creative>';
-            	$response.= '<creative2 display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'"><![CDATA['.$display_ad['creative-url_2'].']]></creative2>';
-            	$response.= '<creative3 display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'"><![CDATA['.$display_ad['creative-url_3'].']]></creative3>';
+            	$response.= '<creative display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'" hash=""><![CDATA['.$display_ad['creative-url'].']]></creative>';
+            	$response.= '<creative2 display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'" hash="'.$display_ad['filehash_1'].'"><![CDATA['.$display_ad['creative-url_2'].']]></creative2>';
+            	$response.= '<creative3 display="'.$display_ad['video-creative-display'].'" delivery="'.$display_ad['video-creative-delivery'].'" type="'.$display_ad['video-creative-type'].'" bitrate='.$display_ad['video-creative-bitrate'].'"" width="'.$display_ad['video-creative-width'].'" height="'.$display_ad['video-creative-height'].'" hash="'.$display_ad['filehash_2'].'"><![CDATA['.$display_ad['creative-url_3'].']]></creative3>';
             	$response.= "<impressionurl><![CDATA[";
             	$response.= "".$display_ad['final_impression_url']."";
             	$response.= "]]></impressionurl>";
@@ -166,7 +166,7 @@ class XMLResponse extends Response{
                 $response.= "".$display_ad['final_impression_url']."";
                 $response.= "]]></impressionurl>";
                 if(!is_null($display_ad['interstitial-creative_res_url']) && $display_ad['interstitial-creative_res_url']!=''){
-                    $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'"></creative_res_url>';
+                    $response.= '<creative_res_url src="'.$display_ad['interstitial-creative_res_url'].'" hash="'.$display_ad['filehash_1'].'"></creative_res_url>';
                 }
                 $response.= "<trackingurl_miaozhen><![CDATA[";
                 $response.= "".$display_ad['trackingpixel']."";
