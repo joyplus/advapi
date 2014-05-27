@@ -31,8 +31,8 @@ class AdUnits extends BaseModel
 	public $creative_weight;
 	public $adv_start;
 	public $adv_end;
-	public $filehash_1;
-	public $filehash_2;
+	public $file_hash_1;
+	public $file_hash_2;
 	
     public function getSource()
     {
