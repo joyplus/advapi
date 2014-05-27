@@ -803,8 +803,8 @@ class MDRequestController extends RESTController{
             $display_ad['ad_id']=$adUnit->adv_id;
             $display_ad['campaign_id']=$adUnit->campaign_id;
             $display_ad['refresh']=$zone_detail->zone_refresh;
-            $display_ad['filehash_1'] = $adUnit->fileHash_1;
-            $display_ad['filehash_2'] = $adUnit->fileHash_2;
+            $display_ad['filehash_1'] = $adUnit->filehash_1;
+            $display_ad['filehash_2'] = $adUnit->filehash_2;
 
             switch ($zone_detail->zone_type){
                 case 'banner':
