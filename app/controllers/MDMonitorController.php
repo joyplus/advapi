@@ -124,7 +124,6 @@ class MDMonitorController extends RESTController{
     }
     
     public function reportingDbUpdate($zone_detail, $ad, $data, $time) {
-    	$current_timestamp = time();
     	
     	$reporting['ip'] = $data['ip'];
     	$reporting['device_name'] = $data['device_name'];
