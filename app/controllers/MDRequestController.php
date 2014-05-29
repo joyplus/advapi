@@ -217,7 +217,7 @@ class MDRequestController extends RESTController{
         $result['zone_id'] = $zone_detail->entry_id;
         $result['available'] = $display_ad['available'];
         
-        $this->save_request_log('request', $result);
+        $this->save_request_log('request', $result, date("Y-m-d H:i:s"));
         return $display_ad;
     }
 
