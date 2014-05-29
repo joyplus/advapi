@@ -41,7 +41,9 @@ class MDTrackController extends RESTController{
         
         $left = $this->deduct_impression_num($ad->campaign_id, 1);
         
-        $current_timestamp = time();
+        $current_time = time();
+        $current_date = date('Y-m-d H:i:s', $current_time);
+        
 		$reporting['ip'] = $this->request->getClientAddress(TRUE);
 		$reporting['type'] = '1';
 		$reporting['publication_id'] = $zone->publication_id;
@@ -52,7 +54,7 @@ class MDTrackController extends RESTController{
 		$reporting['requests'] = 0;
 		$reporting['impressions'] = 1;
 		$reporting['clicks'] = 0;
-		$reporting['timestamp'] = $current_timestamp;
+		$reporting['timestamp'] = $current_time;
 			
 		$reporting['report_hash'] = md5(serialize($reporting));
 			
@@ -67,7 +69,7 @@ class MDTrackController extends RESTController{
 		}else{
 			$reporting['device_name'] = $ds;
 		}
-		$this->save_request_log('track', $reporting);
+		$this->save_request_log('track', $reporting, $current_date);
 
         return $this->codeSuccess();
     }

@@ -533,7 +533,7 @@ class RESTController extends BaseController{
     	}
     }
 
-    function save_request_log($type, $result){
+    function save_request_log($type, $result, $date){
     	
     	//不记录device_log
     	if(!ENABLE_DEVICE_LOG)
@@ -546,7 +546,7 @@ class RESTController extends BaseController{
         $zone_detail = null;
         $operation_type = null;
         
-        $devReqLog->date = date("Y-m-d H:i:s");
+        $devReqLog->date = $date;
         $devReqLog->business_id = BUSINESS_ID;
         if($type=="monitor") {
         	$devReqLog->client_ip = $result["monitor_ip"];
