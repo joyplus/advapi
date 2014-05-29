@@ -42,6 +42,9 @@ class MDMonitorController extends RESTController{
 				$data['ip'] = $data['origin_ip'];
 			}
 		}
+		
+		$current_time = time();
+		$current_date = date('Y-m-d H:i:s', $current_time);
 	
 		$zone_detail = $this->get_placement($data['zone_hash']);
 		if(!$zone_detail) {
@@ -59,7 +62,7 @@ class MDMonitorController extends RESTController{
 		}
 
 		
-		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data);
+		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data, $current_time);
 		$reporting['monitor_ip'] = $data['ip'];
 		if(empty($data['i'])) {
 			$reporting['ex'] = $this->request->getUserAgent();
@@ -75,7 +78,7 @@ class MDMonitorController extends RESTController{
 		}
 		
 		//记录device_log
-		$this->save_request_log('monitor', $reporting);
+		$this->save_request_log('monitor', $reporting, $current_date);
 		
 		$this->handleUrl($reporting);
 		$results['return_code'] = "00000";
@@ -120,8 +123,7 @@ class MDMonitorController extends RESTController{
     	return false;
     }
     
-    public function reportingDbUpdate($zone_detail, $ad, $data) {
-    	$current_timestamp = time();
+    public function reportingDbUpdate($zone_detail, $ad, $data, $time) {
     	
     	$reporting['ip'] = $data['ip'];
     	$reporting['device_name'] = $data['device_name'];
@@ -129,7 +131,7 @@ class MDMonitorController extends RESTController{
     	$reporting['zone_id'] = $zone_detail->entry_id;
     	$reporting['campaign_id'] = $ad->campaign_id;
     	$reporting['creative_id'] =$ad->adv_id;
-    	$reporting['timestamp'] = $current_timestamp;
+    	$reporting['timestamp'] = $time;
     	$reporting['requests'] = 1;
     	$reporting['clicks'] = 0;
     	$reporting['impressions'] = 1;
