@@ -383,12 +383,12 @@ class MDRequestController extends RESTController{
     	if($zone_detail->zone_type!='open'){
 	    	//广告类型
 	    	if(!empty($request_settings['adv_type'])) {
-	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+	    		$conditions .= " AND (ad.adv_type=:adv_type: AND ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
 	    		$params['adv_type'] = $request_settings['adv_type'];
 	    		$params['adv_start'] = date("Y-m-d");
 	    		$params['adv_end'] = date("Y-m-d");
 	    	}else{
-	    		$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
+	    		$conditions .= " AND (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: and  ad.adv_status=1";
 	    		$params['adv_start'] = date("Y-m-d");
 	    		$params['adv_end'] = date("Y-m-d");
 	    	}
@@ -397,7 +397,7 @@ class MDRequestController extends RESTController{
     	//广告位类型
     	switch ($zone_detail->zone_type){
     		case 'banner':
-    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:)";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
@@ -406,7 +406,7 @@ class MDRequestController extends RESTController{
     			$conditions .= " AND ad.creative_unit_type='interstitial'";
     			//尺寸匹配
     			if($request_settings['screen_size']) {
-    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    				$conditions .= " AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:)";
     				$params['adv_width'] = $request_settings['screen_size'][0];
     				$params['adv_height'] = $request_settings['screen_size'][1];
     			}else{
@@ -414,13 +414,13 @@ class MDRequestController extends RESTController{
     			}
     			break;
     		case 'mini_interstitial':
-    			$conditions .= " AND ad.creative_unit_type='mini_interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$conditions .= " AND ad.creative_unit_type='mini_interstitial' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:)";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			
     			break;
     		case 'open':
-    			$conditions .= " AND (Campaigns.campaign_type='network' OR (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: AND ad.adv_status=1 AND ad.creative_unit_type='open'";
+    			$conditions .= " AND (ad.adv_start<=:adv_start: AND ad.adv_end>=:adv_end: AND ad.adv_status=1 AND ad.creative_unit_type='open'";
     			$params['adv_start'] = date("Y-m-d");
     			$params['adv_end'] = date("Y-m-d");
     			switch($request_settings['adv_type']) {
@@ -445,23 +445,23 @@ class MDRequestController extends RESTController{
     			}
     			//尺寸匹配
     			if($request_settings['screen_size']) {
-    				$conditions .= " AND (ad.adv_width='' OR ad.adv_width=:adv_width:) AND (ad.adv_height='' OR ad.adv_height=:adv_height:)))";
+    				$conditions .= " AND (ad.adv_width='' OR ad.adv_width=:adv_width:) AND (ad.adv_height='' OR ad.adv_height=:adv_height:))";
     				$params['adv_width'] = $request_settings['screen_size'][0];
     				$params['adv_height'] = $request_settings['screen_size'][1];
     			}else{
-    				$conditions .= "))";
+    				$conditions .= ")";
     			}
     			break;
     		case 'previous':
-    			$conditions .= " AND ad.creative_unit_type='previous'))";
+    			$conditions .= " AND ad.creative_unit_type='previous')";
     			break;
     		case 'middle':
-    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:))";
+    			$conditions .= " AND ad.creative_unit_type='banner' AND ad.adv_width=:adv_width: AND ad.adv_height=:adv_height:)";
     			$params['adv_width'] = $zone_detail->zone_width;
     			$params['adv_height'] = $zone_detail->zone_height;
     			break;
     		case 'after':
-    			$conditions .= " AND ad.creative_unit_type='after'))";
+    			$conditions .= " AND ad.creative_unit_type='after')";
     			break;
     	}
     
