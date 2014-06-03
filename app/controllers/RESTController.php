@@ -209,6 +209,9 @@ class RESTController extends BaseController{
 		
 		$queue = $this->getDi()->get('beanstalkReporting');
 		$queue->put(serialize($reporting));
+		if(DEBUG_LOG_ENABLE) {
+			$this->di->get('logRequestReporting')->log("timestamp->$current_timestamp, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 		
 		$display_ad['rh'] = $reporting['report_hash'];
     }

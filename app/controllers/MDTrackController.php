@@ -60,6 +60,9 @@ class MDTrackController extends RESTController{
 			
 		$queue = $this->getDi()->get('beanstalkReporting');
 		$queue->put(serialize($reporting));
+		if(DEBUG_LOG_ENABLE) {
+			$this->di->get('logTrackReporting')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 		
 		
 		$reporting['equipment_key'] = $mac;
@@ -70,6 +73,9 @@ class MDTrackController extends RESTController{
 			$reporting['device_name'] = $ds;
 		}
 		$this->save_request_log('track', $reporting, $current_date);
+		if(DEBUG_LOG_ENABLE) {
+			$this->di->get('logTrackProcess')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 
         return $this->codeSuccess();
     }
