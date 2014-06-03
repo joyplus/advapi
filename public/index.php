@@ -67,7 +67,6 @@ try {
 	define('TUBE_APPLOG', BUSINESS_ID.$config->beanstalk->tube_applog);
 	define('TUBE_TRACKING_URL', BUSINESS_ID.$config->beanstalk->tube_tracking_url);
 	
-	
 	define("ENABLE_DEVICE_LOG", $config->application->enable_device_log);
 	
 	$loader = new \Phalcon\Loader();
@@ -101,7 +100,13 @@ try {
 		return $url;
 	});
 
-
+	$di->set('logMonitorReporting', function() use($config){
+		return new FileLogger($config->logger->monitorReporting);
+	});
+	$di->set('logMonitorProcess', function() use($config){
+		return new FileLogger($config->logger->monitorProcess);
+	});
+	
 	$logger = new FileLogger("../app/logs/sql.log");
 	/**
 	 * Database connection is created based in the parameters defined in the configuration file
