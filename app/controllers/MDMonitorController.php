@@ -7,6 +7,8 @@ use Phalcon\Mvc\Model\Resultset\Simple as Resultset,
 class MDMonitorController extends RESTController{
 
     public function get(){
+    	$logReporting = new Phalcon\Logger\Adapter\File(LOG_MONITOR_REPORTING_PATH);
+    	$logProcess = new Phalcon\Logger\Adapter\File(LOG_MONITOR_PROCESS_APTH);
     	$results['return_type'] = "json";
     	
 		$data['param_ip'] = $this->request->get("ip", null, '');
@@ -63,6 +65,9 @@ class MDMonitorController extends RESTController{
 
 		
 		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data, $current_time);
+		if(DEBUG_LOG_ENABLE) {
+			$logReporting->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 		$reporting['monitor_ip'] = $data['ip'];
 		if(empty($data['i'])) {
 			$reporting['ex'] = $this->request->getUserAgent();
@@ -79,7 +84,9 @@ class MDMonitorController extends RESTController{
 		
 		//记录device_log
 		$this->save_request_log('monitor', $reporting, $current_date);
-		
+		if(DEBUG_LOG_ENABLE) {
+			$logProcess->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 		$this->handleUrl($reporting);
 		$results['return_code'] = "00000";
 		$results['data']['status'] = "success";
