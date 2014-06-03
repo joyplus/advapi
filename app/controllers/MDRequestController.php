@@ -218,6 +218,9 @@ class MDRequestController extends RESTController{
         $result['available'] = $display_ad['available'];
         
         $this->save_request_log('request', $result, date("Y-m-d H:i:s"));
+        if(DEBUG_LOG_ENABLE) {
+        	$this->di->get('logRequestProcess')->log("timestamp->".time().", campaign_id->".$result['campaign_id'], Phalcon\Logger::DEBUG);
+        }
         return $display_ad;
     }
 

@@ -106,6 +106,18 @@ try {
 	$di->set('logMonitorProcess', function() use($config){
 		return new FileLogger($config->logger->monitorProcess);
 	});
+	$di->set('logTrackReporting', function() use($config){
+		return new FileLogger($config->logger->trackReporting);
+	});
+	$di->set('logTrackProcess', function() use($config){
+		return new FileLogger($config->logger->trackProcess);
+	});
+	$di->set('logRequestReporting', function() use($config){
+		return new FileLogger($config->logger->requestReporting);
+	});
+	$di->set('logRequestProcess', function() use($config){
+		return new FileLogger($config->logger->requestProcess);
+	});
 	
 	$logger = new FileLogger("../app/logs/sql.log");
 	/**
