@@ -63,6 +63,9 @@ class MDMonitorController extends RESTController{
 
 		
 		$reporting = $this->reportingDbUpdate($zone_detail, $ad, $data, $current_time);
+		if(DEBUG_LOG_ENABLE) {
+			$this->di->get('logMonitorReporting')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 		$reporting['monitor_ip'] = $data['ip'];
 		if(empty($data['i'])) {
 			$reporting['ex'] = $this->request->getUserAgent();
@@ -79,7 +82,9 @@ class MDMonitorController extends RESTController{
 		
 		//记录device_log
 		$this->save_request_log('monitor', $reporting, $current_date);
-		
+		if(DEBUG_LOG_ENABLE) {
+			$this->di->get('logMonitorProcess')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+		}
 		$this->handleUrl($reporting);
 		$results['return_code'] = "00000";
 		$results['data']['status'] = "success";
