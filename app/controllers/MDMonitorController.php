@@ -81,7 +81,7 @@ class MDMonitorController extends RESTController{
 		}
 		
 		//记录device_log
-		$this->save_request_log('monitor', $reporting, $current_date);
+		$this->save_request_log('monitor', $reporting, $current_time);
 		if(DEBUG_LOG_ENABLE) {
 			$this->di->get('logMonitorProcess')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
 		}

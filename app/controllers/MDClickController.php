@@ -82,19 +82,19 @@ class MDClickController extends RESTController {
 			return false;
 		}
 		
-		
+		$time = time();
 		switch($req->get('type')){
 		
 			case 'normal':
-				$this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_id, $req->get('campaign_id'), $req->get('ad_id'), '', 0, 0, 0, 1);
+				$this->reporting_db_update($time, $display_ad, $request_settings, $zone_detail->publication_id, $zone_id, $req->get('campaign_id'), $req->get('ad_id'), '', 0, 0, 0, 1);
 				break;
 		
 			case 'network':
-				$this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_id, $req->get('campaign_id'), '', $req->get('network_id'), 0, 0, 0, 1);
+				$this->reporting_db_update($time, $display_ad, $request_settings, $zone_detail->publication_id, $zone_id, $req->get('campaign_id'), '', $req->get('network_id'), 0, 0, 0, 1);
 				break;
 		
 			case 'backfill':
-				$this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_id, '', '', $req->get('network_id'), 0, 0, 0, 1);
+				$this->reporting_db_update($time, $display_ad, $request_settings, $zone_detail->publication_id, $zone_id, '', '', $req->get('network_id'), 0, 0, 0, 1);
 				break;
 		
 		}

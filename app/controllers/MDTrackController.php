@@ -72,7 +72,7 @@ class MDTrackController extends RESTController{
 		}else{
 			$reporting['device_name'] = $ds;
 		}
-		$this->save_request_log('track', $reporting, $current_date);
+		$this->save_request_log('track', $reporting, $current_time);
 		if(DEBUG_LOG_ENABLE) {
 			$this->di->get('logTrackProcess')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
 		}
