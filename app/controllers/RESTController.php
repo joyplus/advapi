@@ -178,7 +178,7 @@ class RESTController extends BaseController{
     }
     
 
-    public function reporting_db_update(&$display_ad, &$request_settings, $publication_id,
+    public function reporting_db_update($time, &$display_ad, &$request_settings, $publication_id,
                                         $zone_id, $campaign_id, $creative_id, $network_id,
                                         $add_request, $add_request_sec, $add_impression, $add_click){
         if (!is_numeric($publication_id)){$publication_id='';}
@@ -186,7 +186,6 @@ class RESTController extends BaseController{
         if (!is_numeric($campaign_id)){$campaign_id='';}
         if (!is_numeric($creative_id)){$creative_id='';}
 
-        $current_timestamp = time();
         $reporting['ip'] = $request_settings['ip_address'];
         
         if(empty($request_settings['device_name'])){
@@ -203,20 +202,20 @@ class RESTController extends BaseController{
 		$reporting['requests'] = $add_request;
 		$reporting['impressions'] = $add_impression;
 		$reporting['clicks'] = $add_click;
-		$reporting['timestamp'] = $current_timestamp;
+		$reporting['timestamp'] = $time;
 		
 		$reporting['report_hash'] = md5(serialize($reporting));
 		
 		$queue = $this->getDi()->get('beanstalkReporting');
 		$queue->put(serialize($reporting));
 		if(DEBUG_LOG_ENABLE) {
-			$this->di->get('logRequestReporting')->log("timestamp->$current_timestamp, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
+			$this->di->get('logRequestReporting')->log("timestamp->$time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
 		}
 		
 		$display_ad['rh'] = $reporting['report_hash'];
     }
 
-    function track_request(&$request_settings, $zone_detail, &$display_ad, $impression){
+    function track_request($time, &$request_settings, $zone_detail, &$display_ad, $impression){
 
         if (!isset($request_settings['active_campaign_type'])){$request_settings['active_campaign_type']='';}
         if($display_ad['add_impression']){
@@ -224,19 +223,19 @@ class RESTController extends BaseController{
         }
         switch ($request_settings['active_campaign_type']){
             case 'normal':
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $display_ad['campaign_id'], $display_ad['ad_id'], '', 1, 0, $impression, 0);
+                $this->reporting_db_update($time, $display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $display_ad['campaign_id'], $display_ad['ad_id'], '', 1, 0, $impression, 0);
                 break;
 
             case 'network':
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $request_settings['active_campaign'], '', $request_settings['network_id'], 1, 0, $impression, 0);
+                $this->reporting_db_update($time, $display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, $request_settings['active_campaign'], '', $request_settings['network_id'], 1, 0, $impression, 0);
                 break;
 
             case 'backfill':
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, '', '', $request_settings['network_id'], 1, 0, $impression, 0);
+                $this->reporting_db_update($time, $display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, '', '', $request_settings['network_id'], 1, 0, $impression, 0);
                 break;
 
             default:
-                $this->reporting_db_update($display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, '', '', '', 1, 0, $impression, 0);
+                $this->reporting_db_update($time, $display_ad, $request_settings,$zone_detail->publication_id, $zone_detail->entry_id, '', '', '', 1, 0, $impression, 0);
                 break;
         }
 

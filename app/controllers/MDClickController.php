@@ -10,103 +10,59 @@ class MDClickController extends RESTController {
 		return $this->respond($result);
 	}
 	
-	public function handleClick() {
-		$data_c = $this->request->get("c");
-		$data_type = $this->request->get("type");
-		$data_h = $this->request->get("h",null,"");
-		if(!isset($data_c) or empty($data_c) or !isset($data_type))
-			return $this->codeInputError(); 
-		
-		if (MAD_CLICK_IMMEDIATE_REDIRECT){
-			ob_start();
-			$size = ob_get_length();
-		
-			// send headers to tell the browser to close the connection
-			$this->redirect();
-			$response = $this->di->get('response');
-			$response->setHeader("Content-Length",$size);
-			$response->setHeader('Connection', 'close');
-		
-			// flush all output
-			ob_end_flush();
-			ob_flush();
-			flush();
-		
-			$this->track();
-		
+	private function handleClick(){
+	
+		$ad_hash = $this->request->get("ad", null, '');
+		$zone_hash = $this->request->get("zone", null, '');
+		$mac = $this->request->get("i", null, '');
+		$ds = $this->request->get("ds", null, '');
+		$dm = $this->request->get("dm", null, '');
+	
+	
+		$ad = AdUnits::findFirst(array(
+				"unit_hash = '".$ad_hash."'",
+				"cache"=>array("key"=>CACHE_PREFIX."_ADUNIT_HASH_".$ad_hash,"lifetime"=>MD_CACHE_TIME)
+		));
+		if(!$ad) {
+			return $this->codeInputError();
 		}
-		
-		else {
-		
-			$this->track();
-			$this->redirect();
-		
+	
+		$zone = $this->get_placement($zone_hash);
+		if(!$zone) {
+			return $this->codeInputError();
 		}
+	
+		$current_time = time();
+		$current_date = date('Y-m-d H:i:s', $current_time);
+	
+		$reporting['ip'] = $this->request->getClientAddress(TRUE);
+		$reporting['type'] = '1';
+		$reporting['publication_id'] = $zone->publication_id;
+		$reporting['zone_id'] = $zone->entry_id;
+		$reporting['campaign_id'] = $ad->campaign_id;
+			
+		$reporting['creative_id'] = $ad->adv_id;
+		$reporting['requests'] = 0;
+		$reporting['impressions'] = 0;
+		$reporting['clicks'] = 1;
+		$reporting['timestamp'] = $current_time;
+			
+		$reporting['report_hash'] = md5(serialize($reporting));
+			
+		$queue = $this->getDi()->get('beanstalkReporting');
+		$queue->put(serialize($reporting));
+	
+	
+		$reporting['equipment_key'] = $mac;
+	
+		if(empty($ds)) {
+			$reporting['device_name'] = $dm;
+		}else{
+			$reporting['device_name'] = $ds;
+		}
+		//$this->save_request_log('track', $reporting, $current_time);
+	
 		return $this->codeSuccess();
-	}
-
-	private function track(){
-		$req = $this->request;
-		$request_settings = array();
-		$display_ad = array();
-		$data_ds = $req->get('ds');
-		if (isset($data_ds)){
-			$request_settings['device_name']=$data_ds;
-		}
-		$request_settings['ip_origin']='fetch';
-		$this->prepare_ip($request_settings);
-		$this->setGeo($request_settings);
-		
-		$cache_key= CACHE_PREFIX.$data_h;
-		 if (MAD_TRACK_UNIQUE_CLICKS){
-		
-			$cache_result=$this->getCacheDataValue($cacheKey);
-		
-			if ($cache_result && $cache_result==1){
-				return $this->codeSuccess();
-			}
-			else {
-				$this->saveCacheDataValue($cacheKey, 1);
-			}
-		
-		} 
-		$zone_id = $req->get("zone_id");
-		if (!is_numeric($zone_id)){
-			return false;
-		}
-		
-		/* Get the Publication */
-		$zone_detail = Zones::findFirst("entry_id = '".$zone_id."'");
-		
-		if (!$zone_detail or $zone_detail->publication_id<1){
-			return false;
-		}
-		
-		
-		switch($req->get('type')){
-		
-			case 'normal':
-				$this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_id, $req->get('campaign_id'), $req->get('ad_id'), '', 0, 0, 0, 1);
-				break;
-		
-			case 'network':
-				$this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_id, $req->get('campaign_id'), '', $req->get('network_id'), 0, 0, 0, 1);
-				break;
-		
-			case 'backfill':
-				$this->reporting_db_update($display_ad, $request_settings, $zone_detail->publication_id, $zone_id, '', '', $req->get('network_id'), 0, 0, 0, 1);
-				break;
-		
-		}
-	}
-	
-	function prepare_click_url($input){
-		$output = base64_decode(strtr($input, '-_,', '+/='));
-		return $output;
-	}
-	
-	function redirect(){
-		header ("Location: ".$this->prepare_click_url($this->request->get("c").""));
 	}
 }
 ?>

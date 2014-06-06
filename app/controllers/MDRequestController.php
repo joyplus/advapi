@@ -183,8 +183,9 @@ class MDRequestController extends RESTController{
 	            //launch_backfill();
 	        }
         }
+        $time = time();
         if (isset($display_ad['available']) && $display_ad['available']==1){
-            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+            $this->track_request($time, $request_settings, $zone_detail, $display_ad, 0);
             //display_ad();
             $this->prepare_ad($display_ad, $request_settings, $zone_detail);
             $display_ad['response_type'] = $request_settings['response_type'];
@@ -192,9 +193,11 @@ class MDRequestController extends RESTController{
                 ."/".MAD_TRACK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
 
             $display_ad['final_impression_url']=$base_ctr;
+            $display_ad['final_click_url']="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+                ."/".MAD_CLICK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
         }
         else {
-            $this->track_request($request_settings, $zone_detail, $display_ad, 0);
+            $this->track_request($time, $request_settings, $zone_detail, $display_ad, 0);
             $display_ad['return_code'] = "20001";
         }
 
@@ -217,9 +220,9 @@ class MDRequestController extends RESTController{
         $result['zone_id'] = $zone_detail->entry_id;
         $result['available'] = $display_ad['available'];
         
-        $this->save_request_log('request', $result, date("Y-m-d H:i:s"));
+        $this->save_request_log('request', $result, $time);
         if(DEBUG_LOG_ENABLE) {
-        	$this->di->get('logRequestProcess')->log("timestamp->".time().", campaign_id->".$result['campaign_id'], Phalcon\Logger::DEBUG);
+        	$this->di->get('logRequestProcess')->log("timestamp->".$time.", campaign_id->".$result['campaign_id'], Phalcon\Logger::DEBUG);
         }
         return $display_ad;
     }
@@ -791,6 +794,8 @@ class MDRequestController extends RESTController{
     	
     	$display_ad['ad_hash'] = $adUnit->unit_hash;
     	$display_ad['zone_hash'] = $zone_detail->zone_hash;
+    	$display_ad['click_url']=$adUnit->adv_click_url;
+    	$display_ad['click_url_type']=$adUnit->adv_click_url_type;
     	if($adUnit->adv_type==3) {
     		$display_ad['add_impression'] = true;
     	} else {
@@ -831,7 +836,6 @@ class MDRequestController extends RESTController{
                     switch ($adUnit->adv_type){
                         case 1:
                             $display_ad['type']='hosted';
-                            $display_ad['click_url']=$adUnit->adv_click_url;
 
                             //$display_ad['image_url']=$this->get_creative_url($adUnit,"",$adUnit->adv_creative_extension);
                             $display_ad['image_url']=$adUnit->adv_creative_url;
@@ -852,7 +856,6 @@ class MDRequestController extends RESTController{
                             //$display_ad['image_url']=$adUnit->adv_bannerurl;
                             $display_ad['image_url']=$adUnit->adv_creative_url;
                             $display_ad['interstitial-creative_res_url']=$display_ad['image_url'];
-                            $display_ad['click_url']=$adUnit->adv_click_url;
                             break;
 
                         case 3:
