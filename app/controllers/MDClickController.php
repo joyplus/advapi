@@ -60,7 +60,7 @@ class MDClickController extends RESTController {
 		}else{
 			$reporting['device_name'] = $ds;
 		}
-		//$this->save_request_log('track', $reporting, $current_time);
+		$this->save_request_log('click', $reporting, $current_time);
 	
 		return $this->codeSuccess();
 	}

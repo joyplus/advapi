@@ -606,8 +606,18 @@ class RESTController extends BaseController{
         	$devReqLog->campaign_id = $result['campaign_id'];
         	$devReqLog->creative_id = $result['creative_id'];
 
-        }
-        else
+        }else if($type == 'click') {
+        	$devReqLog->equipment_sn = '';
+        	$devReqLog->equipment_key = $result['equipment_key'];
+        	$devReqLog->device_name = $result['device_name'];
+        	$devReqLog->user_pattern = '';
+        	$devReqLog->operation_type = '005';
+        	$devReqLog->operation_extra = '';
+        	$devReqLog->publication_id = $result['publication_id'];
+        	$devReqLog->zone_id = $result['zone_id'];
+        	$devReqLog->campaign_id = $result['campaign_id'];
+        	$devReqLog->creative_id = $result['creative_id'];
+        }else
             return false;
         
         if(MAD_USE_BEANSTALK) {
