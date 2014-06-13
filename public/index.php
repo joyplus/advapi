@@ -73,7 +73,6 @@ try {
 	define("QINIU_ACCESS_KEY", $config->qiniu->accessKey);
 	define("QINIU_SECRET_KEY", $config->qiniu->secretKey);
 	
-	require __DIR__ . '/../app/modules/qiniu/rs.php';
 	$loader = new \Phalcon\Loader();
 
 	/**
