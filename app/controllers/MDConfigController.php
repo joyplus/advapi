@@ -1,9 +1,7 @@
 <?php
 
 class MDConfigController extends RESTController{
-	public function timestamp() {
-		include_once __DIR__ . '/../modules/qiniu/rs.php';
-		
+	public function preupload() {
 		Qiniu_SetKeys(QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
 		$putPolicy = new Qiniu_RS_PutPolicy(QINIU_PREUPLOAD_BUKECT);
 		$upToken = $putPolicy->Token(null);

@@ -7,7 +7,7 @@ return call_user_func(function($config){
 	$collection->setHandler('MDConfigController')->setLazy(true);
 
     
-    $collection->get('/'.$config->application->mdtime, 'timestamp');
+    $collection->get('/'.$config->application->mdtime, 'preupload');
 
 	return $collection;
 }, $config);
