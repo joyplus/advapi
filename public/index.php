@@ -69,6 +69,10 @@ try {
 	
 	define("ENABLE_DEVICE_LOG", $config->application->enable_device_log);
 	
+	define("QINIU_PREUPLOAD_BUKECT", $config->qiniu->preUploadBucket);
+	define("QINIU_ACCESS_KEY", $config->qiniu->accessKey);
+	define("QINIU_SECRET_KEY", $config->qiniu->secretKey);
+	
 	$loader = new \Phalcon\Loader();
 
 	/**
