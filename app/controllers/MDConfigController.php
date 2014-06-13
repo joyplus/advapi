@@ -7,6 +7,7 @@ class MDConfigController extends RESTController{
 		$putPolicy = new Qiniu_RS_PutPolicy(QINIU_PREUPLOAD_BUKECT);
 		$upToken = $putPolicy->Token(null);
 		$data = "<preupload>";
+		$data .= "<ip>".$this->request->getClientAddress(TRUE)."</ip>";
 		$data .= "<timestamp>".time()."</timestamp>";
 		$data .= "<uptoken>".$upToken."</uptoken>";
 		$data .= "</preupload>";
