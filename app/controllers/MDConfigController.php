@@ -8,6 +8,10 @@ class MDConfigController extends RESTController{
 		$upToken = $putPolicy->Token(null);
 		$data = "<preupload>";
 		$data .= "<ip>".$this->request->getClientAddress(TRUE)."</ip>";
+		//文件上传大小限制 100KB
+		$data .= "<filemaxsize>100</filemaxsize>";
+		//上传频次 30min
+		$data .= "<filefrq>30</filefrq>";
 		$data .= "<timestamp>".time()."</timestamp>";
 		$data .= "<uptoken>".$upToken."</uptoken>";
 		$data .= "</preupload>";
