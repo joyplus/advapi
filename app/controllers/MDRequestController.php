@@ -794,6 +794,7 @@ class MDRequestController extends RESTController{
     	
     	$display_ad['ad_hash'] = $adUnit->unit_hash;
     	$display_ad['zone_hash'] = $zone_detail->zone_hash;
+        $display_ad['adv_type'] = $adUnit->adv_type;
     	$display_ad['click_url']=$adUnit->adv_click_url;
     	$display_ad['click_url_type']=$adUnit->adv_click_url_type;
     	if($adUnit->adv_type==3) {
