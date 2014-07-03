@@ -100,15 +100,15 @@ class MDRequestV3Controller extends MDRequestController{
 
     private function filterByBlock($ip,$mac_address){
         if($this->isMacAddressBlocked($mac_address) or $this->isIpBlocked($ip)) {
-            return false;
+            return true;
         }else{
-            return  true;
+            return  false;
         }
     }
 
     private function getZoneByHash($zone_hash){
 
-        $zone = Zones::findFirst(array(
+        $zone = VdZone::findFirst(array(
             "conditions" => "zone_hash=:zone_hash: ",
             "bind" => array("zone_hash" => $zone_hash)
         ));
@@ -144,7 +144,7 @@ class MDRequestV3Controller extends MDRequestController{
 //        //$cache_str = getCacheDataByZoneID();
 
 
-        $cache_str = $this->getCacheDataValue(CACHE_PREFIX."_TARGETING_ZONE_".$zone_id);
+        $cache_str = $this->getCacheAdData(CACHE_PREFIX."_TARGETING_ZONE_".$zone_id);
         if($cache_str){
             $data = json_decode($cache_str);
             //$campaigns = array();
@@ -162,7 +162,7 @@ class MDRequestV3Controller extends MDRequestController{
         foreach($campaigns as $campaign){
             //$isFrequencyOk = getFrequencyCacheByMacAndCampaigns()
             //if($isFrequencyOk){
-            $isFrequencyOk = $this->getCacheDataValue(CACHE_PREFIX."_CLIENT_FREQUENCY_".$campaign['$campaign_id'].$mac_address);
+            $isFrequencyOk = $this->getCacheAdData(CACHE_PREFIX."_CLIENT_FREQUENCY_".$campaign->campaign_id.$mac_address);
             if(false){
                 $campaigns_new[] =  $campaign;
             }
@@ -294,16 +294,21 @@ class MDRequestV3Controller extends MDRequestController{
 
         //addCampaignWithoutTarget();
         //getCampaignDetailFromTemp();
-        $sql = "select * from vd_campaign where campaign_target = 0";
+        $sql = "select * from vd_campaign_temp where campaign_target = 0";
         if(count($campaigns)>0){
+            $ids = "";
             foreach($campaigns as $campaign){
-                $ids.=$campaign->campaignId;
+                if($ids ===""){
+                    $ids =$campaign->campaign_id;
+                }else{
+                    $ids .=','.$campaign->campaign_id;
+                }
             }
             $sql = $sql." or id in($ids)";
         }
         $sql = $sql." order by campaign_priority,campaign_weights";
 //        $sql = "select * from vd_campaign where id in($ids) or campaign_target = 0 order by campaign_weights,campaign_priority";
-        echo($sql);
+       // echo($sql);
         $db = $this->di->get("dbMaster");
 //        //查询
         $results_temp = $db->query($sql);

@@ -62,7 +62,9 @@ try {
 	define('BEANSTALK_SERVER', $config->beanstalk->server);
 	define('BEANSTALK_PORT', $config->beanstalk->port);
 	define('TUBE_REQUEST_DEVICE_LOG', BUSINESS_ID.$config->beanstalk->tube_request_device_log);
+	define('TUBE_VD_REQUEST_LOG_INFO', BUSINESS_ID.$config->beanstalk->tube_vd_request_log_info);
 	define('TUBE_REPORTING', BUSINESS_ID.$config->beanstalk->tube_reporting);
+	define('TUBE_VD_REPORTING', BUSINESS_ID.$config->beanstalk->tube_vd_reporting);
 	define('TUBE_VCLOG', BUSINESS_ID.$config->beanstalk->tube_vclog);
 	define('TUBE_APPLOG', BUSINESS_ID.$config->beanstalk->tube_applog);
 	define('TUBE_TRACKING_URL', BUSINESS_ID.$config->beanstalk->tube_tracking_url);
@@ -306,6 +308,22 @@ try {
       	    'port'=>BEANSTALK_PORT
       	));
       	$queue->choose(TUBE_REPORTING);
+      	return $queue;
+    });
+    $di->set('beanstalkVdReporting', function() use ($config) {
+      	$queue = new Phalcon\Queue\Beanstalk(array(
+      	    'host'=>BEANSTALK_SERVER,
+      	    'port'=>BEANSTALK_PORT
+      	));
+      	$queue->choose(TUBE_VD_REPORTING);
+      	return $queue;
+    });
+    $di->set('beanstalkVdRequestLogInfo', function() use ($config) {
+      	$queue = new Phalcon\Queue\Beanstalk(array(
+      	    'host'=>BEANSTALK_SERVER,
+      	    'port'=>BEANSTALK_PORT
+      	));
+      	$queue->choose(TUBE_VD_REQUEST_LOG_INFO);
       	return $queue;
     });
     $di->set('beanstalkRequestDeviceLog', function() use ($config) {
