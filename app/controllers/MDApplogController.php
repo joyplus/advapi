@@ -26,6 +26,7 @@ class MDApplogController extends RESTController{
     	$params['dss'] = $this->request->get("dss", null, '');
     	$params['dsr'] = $this->request->get("dsr", null, '');
     	$params['i'] = $this->request->get("i", null, '');
+    	$params['timestamp'] = time();
     	foreach ($params as $key=>$value) {
     		$log.=$key."->".$value."\n";
     	}

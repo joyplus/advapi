@@ -29,7 +29,7 @@ class MDVclogController extends RESTController{
     	$params['i'] = $this->request->get("i", null, '');
     	$params['ip'] = $this->request->getClientAddress(TRUE);
     	
-    	$params['date'] = date("Y-m-d H:i:s");
+    	$params['timestamp'] = time();
     	foreach ($params as $key=>$value) {
     		$log.=$key."->".$value."\n";
     	}
