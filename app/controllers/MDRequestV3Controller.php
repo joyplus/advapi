@@ -10,7 +10,6 @@ class MDRequestV3Controller extends MDRequestController{
 
         $request_settings = array();
         $display_ad = array();
-        $errormessage = '';
 
         $this->prepare_r_hash($request_settings);
 
@@ -19,13 +18,65 @@ class MDRequestV3Controller extends MDRequestController{
             $param_rt='';
         }
 
+        switch ($param_rt){
+            case 'javascript':
+                $request_settings['response_type']='json';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            case 'json':
+                $request_settings['response_type']='json';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            case 'iphone_app':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            case 'android_app':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            case 'ios_app':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            case 'ipad_app':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            case 'xml':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='request';
+                break;
+
+            case 'api':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='request';
+                break;
+
+            case 'api-fetchip':
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='fetch';
+                break;
+
+            default:
+                $request_settings['response_type']='xml';
+                $request_settings['ip_origin']='request';
+                break;
+
+        }
         $request_settings['referer'] = $this->request->get("p", null, '');
         $request_settings['device_name'] = $this->request->get("ds", null, '');
         $request_settings['device_movement'] = $this->request->get("dm", null, '');
         $request_settings['longitude'] = $this->request->get("longitude", null, '');
         $request_settings['latitude'] = $this->request->get("latitude", null, '');
         $request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
-        $request_settings['md5_mac_address'] = $this->request->get("i", null, '');
+        $request_settings['i'] = $this->request->get("i", null, '');
         $request_settings['adv_type'] = $this->request->get("mt", null, null);
         $request_settings['screen'] = $this->request->get("screen", null, '');
         $request_settings['screen_size'] = Lov::getScreen($request_settings['screen']);
@@ -44,7 +95,7 @@ class MDRequestV3Controller extends MDRequestController{
             return $this->codeNoAds();
         }
 
-        if($this->filterByBlock($request_settings['ip_address'],$request_settings['md5_mac_address'])){
+        if($this->filterByBlock($request_settings['ip_address'],$request_settings['i'])){
             return $this->codeNoAds();
         }
 
@@ -52,8 +103,8 @@ class MDRequestV3Controller extends MDRequestController{
         if(!$zone){
             return $this->codeInputError();
         }
-        $campaigns = $this->getCampaignsByZoneId($zone->id);
-        //echo(count($campaigns));
+        $this->update_last_request($zone);
+        $campaigns = $this->getCampaignsByZoneId($zone->entry_id);
         if($campaigns){
             $device = $this->getDevice($request_settings['device_name'],$request_settings['device_movement']);
             $location = $this->getCodeFromIp($request_settings['ip_address']);
@@ -70,32 +121,48 @@ class MDRequestV3Controller extends MDRequestController{
                     $campaigns = $this->filterByContent($campaigns,$video);
                 }
             }
+        }else{
+            $this->updateRequsetLog(false,$zone,$display_ad,$request_settings);
         }
         $campaigns = $this->getCampaignFromTemp($campaigns);
         if($campaigns){
-            $campaigns = $this->filterByFrequency($campaigns,$request_settings['md5_mac_address']);
+            $campaigns = $this->filterByFrequency($campaigns,$request_settings['i']);
+        }else{
+            $this->updateRequsetLog(false,$zone,$display_ad,$request_settings);
+            return $this->codeNoAds();
         }
-
-
-        //var_dump($campaigns);
-
-
         //从符合条件的投放列表里面取出相关创意并按规定格式返回广告信息
-        if(count($campaigns)>0){
+        if($campaigns and count($campaigns)>0){
+//            foreach($campaigns as $campaign){
+//                $units = $this->getUnitByCampaign($campaign['id']);
+//                //var_dump($units);
+//            }
+            $units = $this->getUnitByCampaign($campaigns[0]->campaign_id);
+            if($units and count($units)>0){
+                $adUnit= $units[0];
+                $this->build_ad($display_ad,$zone,1,$adUnit);
+                //$this->build_display_ad($zone,$adUnit,$display_ad);
+                $display_ad['response_type'] = $request_settings['response_type'];
+                $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+                    ."/".MAD_TRACK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']
+                    ."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
 
-            foreach($campaigns as $campaign){
-                $units = $this->getUnitByCampaign($campaign->campaign_id);
-
+                $display_ad['final_impression_url']=$base_ctr;
+                $display_ad['final_click_url']="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+                    ."/".MAD_CLICK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']
+                    ."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
+                $this->updateRequsetLog(true,$zone,$display_ad,$request_settings);
+                return $display_ad;
             }
+
             //response
+            //return $display_ad;
         }else{
             //no ad
             //save md_device_request_log
-
+            $this->updateRequsetLog(false,$zone,$display_ad,$request_settings);
             return $this->codeNoAds();
         }
-
-        exit;
     }
 
     private function filterByBlock($ip,$mac_address){
@@ -128,22 +195,6 @@ class MDRequestV3Controller extends MDRequestController{
 
     private function getCampaignsByZoneId($zone_id){
 
-//        $a = array();
-//        $b->campaignId = 2;
-//        $b->province = "CN_09";
-//        $b->city = "CN_09";
-//        $b->channel = 2;
-//        $b->subject = 3;
-//        $b->fromRegion = 4;
-//        $b->album = "5,6,7";
-//        $b->devicePackage = 5;
-//        $a[]=$b;
-//        $obj->targeting = $a;
-//
-//        $cache_str = json_encode($obj);
-//        //$cache_str = getCacheDataByZoneID();
-
-
         $cache_str = $this->getCacheAdData(CACHE_PREFIX."_TARGETING_ZONE_".$zone_id);
         if($cache_str){
             $data = json_decode($cache_str);
@@ -163,7 +214,7 @@ class MDRequestV3Controller extends MDRequestController{
             //$isFrequencyOk = getFrequencyCacheByMacAndCampaigns()
             //if($isFrequencyOk){
             $isFrequencyOk = $this->getCacheAdData(CACHE_PREFIX."_CLIENT_FREQUENCY_".$campaign->campaign_id.$mac_address);
-            if(false){
+            if(!$isFrequencyOk){
                 $campaigns_new[] =  $campaign;
             }
         }
@@ -292,36 +343,62 @@ class MDRequestV3Controller extends MDRequestController{
 
     private function getCampaignFromTemp($campaigns){
 
-        //addCampaignWithoutTarget();
-        //getCampaignDetailFromTemp();
-        $sql = "select * from vd_campaign_temp where campaign_target = 0";
-        if(count($campaigns)>0){
-            $ids = "";
-            foreach($campaigns as $campaign){
-                if($ids ===""){
-                    $ids =$campaign->campaign_id;
-                }else{
-                    $ids .=','.$campaign->campaign_id;
-                }
+        $conditions = "campaign_target = :campaign_target:";
+        $ids = "";
+        foreach($campaigns as $campaign){
+            if($ids ===""){
+                $ids =$campaign->campaign_id;
+            }else{
+                $ids .=','.$campaign->campaign_id;
             }
-            $sql = $sql." or id in($ids)";
         }
-        $sql = $sql." order by campaign_priority,campaign_weights";
-//        $sql = "select * from vd_campaign where id in($ids) or campaign_target = 0 order by campaign_weights,campaign_priority";
-       // echo($sql);
-        $db = $this->di->get("dbMaster");
-//        //查询
-        $results_temp = $db->query($sql);
-        $results = $results_temp->fetchAll();
+        if($ids != ""){
+            $conditions = $conditions." or campaign_id in($ids)";
+        }
+        $results = VdCampaignTemp::find(array(
+            "conditions" => $conditions,
+            "bind" => array("campaign_target" => 0),
+            "order" => "campaign_priority,campaign_weights"
+        ));
         return $results;
     }
 
-
-    private function sortCampaigns($campaigns){
-
+    private function getUnitByCampaign($campaign_id){
+        return VdUnit::find(array(
+            "conditions" => "campaign_id=:campaign_id: ",
+            "bind" => array("campaign_id" => $campaign_id)
+        ));
     }
 
-    private function getUnitByCampaign($campain_id){
+    private function updateRequsetLog($hasAd,$zone,$display_ad,$request_settings){
+        //更新请求记录
+        $time = time();
+        if(empty($request_settings['device_name'])) {
+            $result['device_name'] = $request_settings['device_movement'];
+        }else{
+            $result['device_name'] = $request_settings['device_name'];
+        }
+
+        $result['equipment_sn'] = '';
+        $result['equipment_key'] = $request_settings['i'];
+        $result['screen'] = $request_settings['screen'];
+        $result['up'] = $request_settings['pattern'];
+
+        $result['campaign_id'] = $display_ad['campaign_id'];
+        $result['ad_id'] = $display_ad['ad_id'];
+        $result['publication_id'] = $zone->publication_id;
+        $result['zone_id'] = $zone->entry_id;
+        if($hasAd){
+            $result['available'] = 1;
+        }else{
+            $result['available'] = 0;
+        }
+        $this->save_request_log('request', $result, $time);
+        if(DEBUG_LOG_ENABLE) {
+            $this->di->get('logRequestProcess')->log("timestamp->".$time.", campaign_id->".$result['campaign_id'], Phalcon\Logger::DEBUG);
+        }
+
+        $this->track_request($time, $request_settings, $zone, $display_ad, 0);
 
     }
 }

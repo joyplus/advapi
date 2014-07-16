@@ -8,10 +8,9 @@
 
 class VdCampaignTemp extends BaseModel
 {
-
-    public $id;
+    public $campaign_id;
     public $campaign_name;
-    public $campaign_ower;
+    public $campaign_owner;
     public $campaign_priority;
     public $campaign_weights;
     public $campaign_start;
@@ -19,6 +18,13 @@ class VdCampaignTemp extends BaseModel
     public $time_create;
     public $total_amount;
     public $campaign_target;
+    public $campaign_status;
+    public $campaign_type;
+    public $creative_show_rule;
+    public $belong_to_advertiser;
+    public $campaign_class;
+    public $time_target;
+    public $del_flg;
 
     public function getSource()
     {

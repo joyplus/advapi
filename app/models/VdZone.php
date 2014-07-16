@@ -9,7 +9,7 @@
 class VdZone extends BaseModel
 {
 
-    public $id;
+    public $entry_id;
     public $tunnel_id;
     public $zone_name;
     public $zone_description;
@@ -18,6 +18,8 @@ class VdZone extends BaseModel
     public $zone_height;
     public $zone_type;
     public $count;
+    public $publication_id;
+    public $del_flg;
 
     public function getSource()
     {
