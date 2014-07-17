@@ -123,6 +123,7 @@ class MDRequestV3Controller extends MDRequestController{
             }
         }else{
             $this->updateRequsetLog(false,$zone,$display_ad,$request_settings);
+            return $this->codeNoAds();
         }
         $campaigns = $this->getCampaignFromTemp($campaigns);
         if($campaigns){
@@ -133,15 +134,10 @@ class MDRequestV3Controller extends MDRequestController{
         }
         //从符合条件的投放列表里面取出相关创意并按规定格式返回广告信息
         if($campaigns and count($campaigns)>0){
-//            foreach($campaigns as $campaign){
-//                $units = $this->getUnitByCampaign($campaign['id']);
-//                //var_dump($units);
-//            }
             $units = $this->getUnitByCampaign($campaigns[0]->campaign_id);
             if($units and count($units)>0){
                 $adUnit= $units[0];
                 $this->build_ad($display_ad,$zone,1,$adUnit);
-                //$this->build_display_ad($zone,$adUnit,$display_ad);
                 $display_ad['response_type'] = $request_settings['response_type'];
                 $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
                     ."/".MAD_TRACK_HANDLER_VD."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']
@@ -154,9 +150,6 @@ class MDRequestV3Controller extends MDRequestController{
                 $this->updateRequsetLog(true,$zone,$display_ad,$request_settings);
                 return $display_ad;
             }
-
-            //response
-            //return $display_ad;
         }else{
             //no ad
             //save md_device_request_log
