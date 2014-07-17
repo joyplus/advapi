@@ -31,6 +31,7 @@ try {
 	define('MAD_SERVER_HOST', $config->application->serverhost);//adkey.joyplus.tv
 	define('MAD_CLICK_HANDLER', $config->application->mdclick);
 	define('MAD_TRACK_HANDLER', $config->application->mdtrack);
+    define('MAD_TRACK_HANDLER_VD', $config->application->vdtrack);
 	define('MAD_REQUEST_HANDLER', $config->application->mdrequest);
 	define('MAD_REQUEST_HANDLER_V2', $config->application->mdrequestv2);
 	define('MAD_NETWORK_BATCH_HANDLER', $config->application->mdnetworkbatch);

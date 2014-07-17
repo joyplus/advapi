@@ -772,24 +772,24 @@ class MDRequestController extends RESTController{
     	//素材类型 1普通上传 3富媒体
     	$this->debugLog("[build_ad] adv_id->".$adUnit->adv_id
     			.", campaign_id->".$adUnit->campaign_id
-    			.", unit_hash->".$adUnit->unit_hash 
-    			.", adv_type->".$adUnit->adv_type 
-    			.", adv_click_url->".$adUnit->adv_click_url 
-    			.", adv_chtml->".$adUnit->adv_chtml 
-    			.", adv_mraid->".$adUnit->adv_mraid 
-    			.", adv_impression_tracking_url->".$adUnit->adv_impression_tracking_url 
-    			.", adv_impression_tracking_url_iresearch->".$adUnit->adv_impression_tracking_url_iresearch 
-    			.", adv_impression_tracking_url_admaster->".$adUnit->adv_impression_tracking_url_admaster 
-    			.", adv_impression_tracking_url_nielsen->".$adUnit->adv_impression_tracking_url_nielsen 
-    			.", adv_creative_extension->".$adUnit->adv_creative_extension 
-    			.", adv_creative_extension_2->".$adUnit->adv_creative_extension_2 
-    			.", adv_creative_extension_3->".$adUnit->adv_creative_extension_3 
-    			.", adv_height->".$adUnit->adv_height 
-    			.", adv_width->".$adUnit->adv_width 
-    			.", creative_unit_type->".$adUnit->creative_unit_type 
-    			.", creative_weight->".$adUnit->creative_weight 
-    			.", adv_start->".$adUnit->adv_start 
-    			.", adv_end->".$adUnit->adv_end 
+    			.", unit_hash->".$adUnit->unit_hash
+    			.", adv_type->".$adUnit->adv_type
+    			.", adv_click_url->".$adUnit->adv_click_url
+    			.", adv_chtml->".$adUnit->adv_chtml
+    			.", adv_mraid->".$adUnit->adv_mraid
+    			.", adv_impression_tracking_url->".$adUnit->adv_impression_tracking_url
+    			.", adv_impression_tracking_url_iresearch->".$adUnit->adv_impression_tracking_url_iresearch
+    			.", adv_impression_tracking_url_admaster->".$adUnit->adv_impression_tracking_url_admaster
+    			.", adv_impression_tracking_url_nielsen->".$adUnit->adv_impression_tracking_url_nielsen
+    			.", adv_creative_extension->".$adUnit->adv_creative_extension
+    			.", adv_creative_extension_2->".$adUnit->adv_creative_extension_2
+    			.", adv_creative_extension_3->".$adUnit->adv_creative_extension_3
+    			.", adv_height->".$adUnit->adv_height
+    			.", adv_width->".$adUnit->adv_width
+    			.", creative_unit_type->".$adUnit->creative_unit_type
+    			.", creative_weight->".$adUnit->creative_weight
+    			.", adv_start->".$adUnit->adv_start
+    			.", adv_end->".$adUnit->adv_end
     			);
     	
     	$display_ad['ad_hash'] = $adUnit->unit_hash;
