@@ -13,63 +13,8 @@ class MDRequestV3Controller extends MDRequestController{
 
         $this->prepare_r_hash($request_settings);
 
-        $param_rt = $this->request->get('rt');
-        if (!isset($param_rt)){
-            $param_rt='';
-        }
-
-        switch ($param_rt){
-            case 'javascript':
-                $request_settings['response_type']='json';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            case 'json':
-                $request_settings['response_type']='json';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            case 'iphone_app':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            case 'android_app':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            case 'ios_app':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            case 'ipad_app':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            case 'xml':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='request';
-                break;
-
-            case 'api':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='request';
-                break;
-
-            case 'api-fetchip':
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='fetch';
-                break;
-
-            default:
-                $request_settings['response_type']='xml';
-                $request_settings['ip_origin']='request';
-                break;
-
-        }
+        $request_settings['response_type']='xml';
+        $request_settings['ip_origin']='request';
         $request_settings['referer'] = $this->request->get("p", null, '');
         $request_settings['device_name'] = $this->request->get("ds", null, '');
         $request_settings['device_movement'] = $this->request->get("dm", null, '');
@@ -88,7 +33,7 @@ class MDRequestV3Controller extends MDRequestController{
         $request_settings['ip_address']=$this->request->getClientAddress(TRUE);
 
 
-        $param_sdk = $this->request->get("sdk");
+//        $param_sdk = $this->request->get("sdk");
 
 
         if (MAD_MAINTENANCE){
@@ -134,10 +79,9 @@ class MDRequestV3Controller extends MDRequestController{
         }
         //从符合条件的投放列表里面取出相关创意并按规定格式返回广告信息
         if($campaigns and count($campaigns)>0){
-            $units = $this->getUnitByCampaign($campaigns[0]->campaign_id);
-            if($units and count($units)>0){
-                $adUnit= $units[0];
-                $this->build_ad($display_ad,$zone,1,$adUnit);
+
+            $hasUnit = $this->select_ad_unit($display_ad,$zone,$request_settings,$campaigns[0]);
+            if($hasUnit){
                 $display_ad['response_type'] = $request_settings['response_type'];
                 $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
                     ."/".MAD_TRACK_HANDLER_VD."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']
@@ -149,7 +93,26 @@ class MDRequestV3Controller extends MDRequestController{
                     ."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
                 $this->updateRequsetLog(true,$zone,$display_ad,$request_settings);
                 return $display_ad;
+            }else{
+                $this->updateRequsetLog(false,$zone,$display_ad,$request_settings);
+                return $this->codeNoAds();
             }
+//            $units = $this->getUnitByCampaign($campaigns[0]->campaign_id);
+//            if($units and count($units)>0){
+//                $adUnit= $units[0];
+//                $this->build_ad($display_ad,$zone,1,$adUnit);
+//                $display_ad['response_type'] = $request_settings['response_type'];
+//                $base_ctr="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+//                    ."/".MAD_TRACK_HANDLER_VD."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']
+//                    ."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
+//
+//                $display_ad['final_impression_url']=$base_ctr;
+//                $display_ad['final_click_url']="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
+//                    ."/".MAD_CLICK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']
+//                    ."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
+//                $this->updateRequsetLog(true,$zone,$display_ad,$request_settings);
+//                return $display_ad;
+//            }
         }else{
             //no ad
             //save md_device_request_log
@@ -363,6 +326,13 @@ class MDRequestV3Controller extends MDRequestController{
         ));
     }
 
+    private function getUnitById($unit_id){
+        return VdUnit::findFirst(array(
+            "conditions" => "adv_id=1",
+            "bind" => array("a" => $unit_id)
+        ));
+    }
+
     private function updateRequsetLog($hasAd,$zone,$display_ad,$request_settings){
         //更新请求记录
         $time = time();
@@ -393,5 +363,133 @@ class MDRequestV3Controller extends MDRequestController{
 
         $this->track_request($time, $request_settings, $zone, $display_ad, 0);
 
+    }
+
+    protected function select_adunit_query($request_settings, $zone_detail, $campaign_detail){
+        $this->debugLog("[select_adunit_query] campaign_detail, id->".$campaign_detail->campaign_id);
+        $params = array();
+        $conditions = "campaign_id = :campaign_id:";
+        $params['campaign_id'] = $campaign_detail->campaign_id;
+
+        $conditions .= " AND adv_start<= :adv_start:";
+        $params['adv_start'] = date("Y-m-d");
+
+        $conditions .= " AND adv_end>= :adv_end:";
+        $params['adv_end'] = date("Y-m-d");
+
+        $conditions .= " AND adv_status = 1 AND del_flg<>1";
+
+        $zone_type = $zone_detail->zone_type;
+        //暂停同banner处理
+        if($zone_type=='middle'){
+            $zone_type = 'banner';
+        }
+
+        $conditions .= " AND creative_unit_type = :creative_unit_type:";
+        $params['creative_unit_type'] = $zone_type;
+        switch ($zone_type){
+            case 'banner':
+            case 'middle':
+            case 'mini_interstitial' :
+                $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
+                $params['adv_width'] = $zone_detail->zone_width;
+                $params['adv_height'] = $zone_detail->zone_height;
+                break;
+            case 'open':
+                if($request_settings['screen_size']) {
+                    $conditions .= " AND (adv_width='' OR adv_width = :adv_width:) AND (adv_height='' OR adv_height= :adv_height:)";
+                    $params['adv_width'] = $request_settings['screen_size'][0];
+                    $params['adv_height'] = $request_settings['screen_size'][1];
+                }
+                break;
+            case 'interstitial':
+                if($request_settings['screen_size']) {
+                    $conditions .= " AND adv_width = :adv_width: AND adv_height= :adv_height:";
+                    $params['adv_width'] = $request_settings['screen_size'][0];
+                    $params['adv_height'] = $request_settings['screen_size'][1];
+                }
+                break;
+        }
+        //创意顺序排序
+        $order = "adv_id";
+        if($campaign_detail->creative_show_rule==3){ //创意权重排序
+            $order = "creative_weight DESC";
+        }
+        $query_param = array(
+            "conditions" => $conditions,
+            "bind" => $params,
+            "order"=>$order,
+            "cache"=>array("key"=>CACHE_PREFIX."_VDUNITS_".md5(serialize($params)), "lifetime"=>MD_CACHE_TIME)
+        );
+
+        //global $repdb_connected,$display_ad;
+        $adUnits = VdUnit::find($query_param);
+
+        //$query="SELECT adv_id, adv_height, adv_width FROM md_ad_units WHERE campaign_id='".$campaign_id."' and adv_start<='".date("Y-m-d")."' AND adv_end>='".date("Y-m-d")."' AND adv_status=1 ".$query_part['size']." ORDER BY adv_width DESC, adv_height DESC";
+
+
+        $adarray = array();
+
+        foreach ($adUnits as $item) {
+            $add = array('ad_id'=>$item->adv_id,
+                'width'=>$item->adv_width,
+                'height'=>$item->adv_height,
+                'weight'=>$item->creative_weight
+            );
+            $adarray[] = $add;
+        }
+
+        if ($total_ads_inarray=count($adarray)<1){
+            return false;
+        }
+        $this->debugLog("[select_adunit_query] found ad_units, num->".count($adarray));
+        return $adarray;
+
+    }
+
+    protected function select_ad_unit(&$display_ad, $zone_detail, &$request_settings, $campaign_detail){
+
+        if (!$ad_unit_array = $this->select_adunit_query($request_settings, $zone_detail, $campaign_detail)){
+            return false;
+        }
+
+        if($campaign_detail->creative_show_rule==1){ //创意随机排序
+            shuffle($ad_unit_array);
+            $ad_id = $ad_unit_array[0]['ad_id'];
+        }else{
+            $ad_id = $ad_unit_array[0]['ad_id'];
+        }
+
+        if (!$final_ad = $this->get_ad_unit($ad_id)){
+            return false;
+        }
+
+        if ($this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function get_ad_unit($id){
+
+        $ad_detail = VdUnit::findFirst(array(
+            "adv_id = '".$id."'",
+            "cache"=>array("key"=>CACHE_PREFIX."_ADUNITS_".$id, "lifetime"=>MD_CACHE_TIME)
+        ));
+        if (!$ad_detail){
+            return false;
+        }
+
+        $this->debugLog("[get_ad_unit] found ad_unit, id->".$id);
+        if (is_null($ad_detail->adv_creative_extension) || $ad_detail->adv_creative_extension==''){
+            $bannerUrl=$ad_detail->adv_bannerurl;
+            if(is_null($bannerUrl)){
+                $bannerUrl='';
+            }
+            $tempArray= explode(".", $bannerUrl);
+            $ad_detail->adv_creative_extension=$tempArray[count($tempArray)-1];
+        }
+        return $ad_detail;
     }
 }
