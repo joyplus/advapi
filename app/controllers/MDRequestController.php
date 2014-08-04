@@ -602,6 +602,10 @@ class MDRequestController extends RESTController{
 
         foreach($result as $key=>$campaign_detail)
         {
+            //频次超了，投放作废
+            if($this->getCacheAdData(CACHE_PREFIX."_CLIENT_FREQUENCY_".$campaign_detail['campaign_id'].$request_settings['i'])){
+                break;
+            }
             if ($campaign_detail['type']=='network'){
                 //TODO: Unchecked MD functions
 //                $mdManager->reporting_db_update($display_ad, $request_settings, $zone_detail['publication_id'], $zone_detail['entry_id'], $campaign_detail['campaign_id'], '', $campaign_detail['network_id'], 0, 1, 0, 0);
