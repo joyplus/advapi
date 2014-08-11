@@ -195,6 +195,7 @@ class MDRequestController extends RESTController{
             $display_ad['final_impression_url']=$base_ctr;
             $display_ad['final_click_url']="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
                 ."/".MAD_CLICK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
+            $this->completionParams($request_settings,$display_ad);
         }
         else {
             $this->track_request($time, $request_settings, $zone_detail, $display_ad, 0);
@@ -227,6 +228,16 @@ class MDRequestController extends RESTController{
         return $display_ad;
     }
 
+    function completionParams(&$request_settings, &$display_ad){
+        $this->replaceParams($request_settings,$display_ad['tracking_iresearch']);
+        $this->replaceParams($request_settings,$display_ad['tracking_nielsen']);
+    }
+
+    function replaceParams(&$request_settings, &$url){
+        $url = str_ireplace("%mac%",$request_settings['i'],$url);
+        $url = str_ireplace("%dm%",$request_settings['device_movement'],$url);
+//        return $url;
+    }
 
     function check_input(&$request_settings, &$errormessage){
 
