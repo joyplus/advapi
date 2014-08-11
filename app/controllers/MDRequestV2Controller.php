@@ -183,8 +183,9 @@ class MDRequestV2Controller extends MDRequestController{
     
     
     public function launch_campaign_query($request_settings, $conditions, $params){
-    
-    	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)));
+
+        $key_by_params = md5(serialize($params));
+    	$resultData = $this->getCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".$key_by_params);
     	if($resultData){
     		return $resultData;
     	}
@@ -253,7 +254,7 @@ class MDRequestV2Controller extends MDRequestController{
     			array_push($final_ads, $value);
     		}
     	}
-    	$this->saveCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".md5(serialize($params)), $final_ads);
+    	$this->saveCacheDataValue(CACHE_PREFIX."_CAMPAIGNS_".$key_by_params, $final_ads);
     	return $final_ads;
     }
     
