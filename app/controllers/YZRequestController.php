@@ -28,6 +28,9 @@ class YZRequestController extends MDRequestV2Controller{
         //echo("abcdefg".$request_data);
 
         $request_data_client = simplexml_load_string($request_data_xml);
+        if(!$request_data_client){
+            return $this->codeNoAds();
+        }
 //        var_dump($request_data_client);
 //        return exit;
 
