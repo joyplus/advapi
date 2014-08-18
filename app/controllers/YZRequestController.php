@@ -41,7 +41,8 @@ class YZRequestController extends MDRequestV2Controller{
         //$request_settings['latitude'] = $this->request->get("latitude", null, '');
         //$request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
         $request_settings['i'] = $request_data_client->parameters->chipId->__toString();
-        $request_settings['placement_hash'] = $request_data_client->parameters->adtype->__toString();
+        $request_settings['placement_hash'] = ZONE_HASH_YANGZHI;
+        //$request_settings['placement_hash'] = $request_data_client->parameters->adtype->__toString();
         //$request_settings['adv_type'] = $this->request->get("mt", null, null);
         //$request_settings['screen'] = $this->request->get("screen", null, '');
         //$request_settings['screen_size'] = Lov::getScreen($request_settings['screen']);
@@ -184,21 +185,22 @@ class YZRequestController extends MDRequestV2Controller{
     }
 
     function handleImpression($request_data , $request_settings){
-        $records = $request_data->parameters->records->record;
-        if($records){
-            foreach($records as $record){
-                $data = explode("|",$record->__toString());
-                if(count($data)>=3){
-                    $adv_hash = $data[0];
-                    $impression = $data[1];
-                    $zone_hash = $data[2];
-                    for($i=0; $i<$impression; $i++){
-                        $this->saveImpression($adv_hash,$zone_hash,$request_settings);
+        if($request_data->parameters->records){
+            $records = $request_data->parameters->records->record;
+            if($records){
+                foreach($records as $record){
+                    $data = explode("|",$record->__toString());
+                    if(count($data)>=3){
+                        $adv_hash = $data[0];
+                        $impression = $data[1];
+                        $zone_hash = $data[2];
+                        for($i=0; $i<$impression; $i++){
+                            $this->saveImpression($adv_hash,$zone_hash,$request_settings);
+                        }
                     }
                 }
             }
         }
-
     }
 
     function saveImpression($ad_hash,$zone_hash,$request_settings){

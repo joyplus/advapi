@@ -45,7 +45,7 @@ class YZXMLResponse extends Response{
             $response.="<adtype>".$display_ad['zone_hash']."</adtype>";
             $response.="<adcategory>".$display_ad['adv_type']."</adcategory>";
             $response.="<adid>".$display_ad['ad_hash']."</adid>";
-            $response.="<adtext>".$display_ad['interstitial-creative_res_url']."</adtext>";
+            $response.="<adtext>".$display_ad['creative-url_3']."</adtext>";
             $response.="</ads>";
         }
         $response.="</attributes></response>";
