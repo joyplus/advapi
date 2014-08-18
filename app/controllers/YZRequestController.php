@@ -31,7 +31,6 @@ class YZRequestController extends MDRequestV2Controller{
         if(!$request_data_client){
             return $this->codeNoAds();
         }
-        $this->save_yangzhi_request_date($request_data_xml);
 //        var_dump($request_data_client);
 //        return exit;
 
@@ -65,8 +64,9 @@ class YZRequestController extends MDRequestV2Controller{
             //global $errormessage;
             //print_error(1, $errormessage, $request_settings['sdk'], 1);
             //TODO: Unchecked MD Functions
-            echo($errormessage);
-            var_dump($request_settings);
+            $this->debugLog($errormessage);
+//            echo($errormessage);
+//            var_dump($request_settings);
             return $this->codeInputError();
         }
 
@@ -182,12 +182,14 @@ class YZRequestController extends MDRequestV2Controller{
             $this->di->get('logRequestProcess')->log("timestamp->".$time.", campaign_id->".$result['campaign_id'], Phalcon\Logger::DEBUG);
         }
         $display_ad['return_type']='yzxml';
+
         return $display_ad;
     }
 
     function handleImpression($request_data , $request_settings){
         if($request_data->parameters->records){
             $records = $request_data->parameters->records->record;
+            $impression_callback_data='';
             if($records){
                 foreach($records as $record){
                     $data = explode("|",$record->__toString());
@@ -195,11 +197,21 @@ class YZRequestController extends MDRequestV2Controller{
                         $adv_hash = $data[0];
                         $impression = $data[1];
                         $zone_hash = $data[2];
+                        if(!empty($impression_callback_data)){
+                            $impression_callback_data.="|";
+                        }
+                        $impression_callback_data.=($zone_hash.",");
+                        $impression_callback_data.=($impression.",");
+                        $impression_callback_data.=$adv_hash;
                         for($i=0; $i<$impression; $i++){
                             $this->saveImpression($adv_hash,$zone_hash,$request_settings);
                         }
                     }
                 }
+                $callbackDate['chipId']=$request_settings['i'];
+                $callbackDate['ip']=$request_settings['ip_address'];
+                $callbackDate['ad']=$impression_callback_data;
+                $this->save_yangzhi_request_date($callbackDate);
             }
         }
     }
@@ -257,7 +269,7 @@ class YZRequestController extends MDRequestV2Controller{
 
     function save_yangzhi_request_date($date){
         $queue = $this->getDi()->get('yangzhiCallback');
-        $queue->put($date);
+        $queue->put(serialize($date));
     }
 
 } 
