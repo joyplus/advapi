@@ -362,6 +362,10 @@ try {
 				$response = new JSONResponse();
 				$response->send($records['return_code'], $records['data']);
 				break;
+            case 'yzxml':
+                $response = new YZXMLResponse();
+                $response->send($records);
+                break;
 			case 'xml' :
 			default:
 				$response = new XMLResponse();

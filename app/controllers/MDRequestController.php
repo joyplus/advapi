@@ -44,6 +44,8 @@ class MDRequestController extends RESTController{
         $request_settings['pattern'] = $this->request->get("up",null,'');
         $request_settings['video_type'] = $this->request->get("vc",null,'');
 
+        $request_settings['placement_hash'] = $this->request->get('s');
+
         $param_sdk = $this->request->get("sdk");
         if (!isset($param_sdk) or ($param_sdk!='banner' && $param_sdk!='vad')){
             $request_settings['sdk']='banner';
@@ -250,13 +252,12 @@ class MDRequestController extends RESTController{
             return false;
         }
 
-        $param_s = $this->request->get('s');
+        $param_s = $request_settings['placement_hash'];
         if (!isset($param_s) or empty($param_s) or !$this->validate_md5($param_s)){
             $errormessage='No valid Integration Placement ID supplied. (Variable "s")';
             return false;
         }
 
-        $request_settings['placement_hash']=$param_s;
 		$this->debugLog("[check_input] s->".$param_s);
         $this->prepare_ua($request_settings);
 
