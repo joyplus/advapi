@@ -31,6 +31,7 @@ class YZRequestController extends MDRequestV2Controller{
         if(!$request_data_client){
             return $this->codeNoAds();
         }
+        $this->save_yangzhi_request_date($request_data_xml);
 //        var_dump($request_data_client);
 //        return exit;
 
@@ -251,6 +252,12 @@ class YZRequestController extends MDRequestV2Controller{
         if(DEBUG_LOG_ENABLE) {
             $this->di->get('logTrackProcess')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
         }
+    }
+
+
+    function save_yangzhi_request_date($date){
+        $queue = $this->getDi()->get('yangzhiCallback');
+        $queue->put($date);
     }
 
 } 

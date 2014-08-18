@@ -74,6 +74,7 @@ try {
 	define("QINIU_SECRET_KEY", $config->qiniu->secretKey);
 
     define("ZONE_HASH_YANGZHI", $config->application->zone_hash_yangzhi);
+    define('TUBE_YANGZHI_CALLBACK', BUSINESS_ID.$config->beanstalk->tube_yangzhi_callback);
 
 	$loader = new \Phalcon\Loader();
 
@@ -317,6 +318,14 @@ try {
     	));
     	$queue->choose(TUBE_REQUEST_DEVICE_LOG);
     	return $queue;
+    });
+    $di->set('yangzhiCallback', function() use ($config) {
+        $queue = new Phalcon\Queue\Beanstalk(array(
+            'host'=>BEANSTALK_SERVER,
+            'port'=>BEANSTALK_PORT
+        ));
+        $queue->choose(TUBE_YANGZHI_CALLBACK);
+        return $queue;
     });
     
     $di->set('collections', function() use ($config) {
