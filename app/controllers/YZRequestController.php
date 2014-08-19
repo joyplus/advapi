@@ -200,32 +200,37 @@ class YZRequestController extends MDRequestV2Controller{
                         if(!empty($impression_callback_data)){
                             $impression_callback_data.="|";
                         }
-                        $impression_callback_data.=($zone_hash.",");
-                        $impression_callback_data.=($impression.",");
-                        $impression_callback_data.=$adv_hash;
+                        if($impression){
+                            $impression_callback_data.=($zone_hash.",");
+                            $impression_callback_data.=($impression.",");
+                            $impression_callback_data.=$adv_hash;
+                        }
+
                         for($i=0; $i<$impression; $i++){
                             $this->saveImpression($adv_hash,$zone_hash,$request_settings);
                         }
                     }
                 }
-                $callbackDate['chipId']=$request_settings['i'];
-                $callbackDate['ip']=$request_settings['ip_address'];
-                $callbackDate['ad']=$impression_callback_data;
-                $this->save_yangzhi_request_date($callbackDate);
+                if($impression_callback_data){
+                    $callbackDate['chipId']=$request_settings['i'];
+                    $callbackDate['ip']=$request_settings['ip_address'];
+                    $callbackDate['ad']=$impression_callback_data;
+                    $this->save_yangzhi_request_date($callbackDate);
+                }
             }
         }
     }
 
-    function saveImpression($ad_hash,$zone_hash,$request_settings){
+    function saveImpression($ad_id,$zone_hash,$request_settings){
         $ad = AdUnits::findFirst(array(
-            "unit_hash = '".$ad_hash."'",
-            "cache"=>array("key"=>CACHE_PREFIX."_ADUNIT_HASH_".$ad_hash,"lifetime"=>MD_CACHE_TIME)
+            "adv_id = '".$ad_id."'",
+            "cache"=>array("key"=>CACHE_PREFIX."_ADUNIT_ID_".$ad_id,"lifetime"=>MD_CACHE_TIME)
         ));
         if(!$ad) {
             return $this->codeInputError();
         }
 
-        $zone = $this->get_placement($zone_hash);
+        $zone = $this->get_placement(ZONE_HASH_YANGZHI);
         if(!$zone) {
             return $this->codeInputError();
         }
@@ -270,6 +275,35 @@ class YZRequestController extends MDRequestV2Controller{
     function save_yangzhi_request_date($date){
         $queue = $this->getDi()->get('yangzhiCallback');
         $queue->put(serialize($date));
+    }
+
+
+    function check_input(&$request_settings, &$errormessage){
+
+
+        $this->prepare_ip($request_settings);
+
+
+        if (!isset($request_settings['ip_address']) or !$this->is_valid_ip($request_settings['ip_address'])){
+            $errormessage='Invalid IP Address';
+            return false;
+        }
+
+        $param_s = $request_settings['placement_hash'];
+        if (!isset($param_s) or empty($param_s) or !$this->validate_md5($param_s)){
+            $errormessage='No valid Integration Placement ID supplied. (Variable "s")';
+            return false;
+        }
+
+        $this->debugLog("[check_input] s->".$param_s);
+        $this->prepare_ua($request_settings);
+
+        if (!isset($request_settings['user_agent']) or empty($request_settings['user_agent'])){
+            $errormessage='No User Agent supplied. (Variable "u")';
+            //return false;
+        }
+
+        return true;
     }
 
 } 
