@@ -41,7 +41,8 @@ class YZRequestController extends MDRequestV2Controller{
         //$request_settings['latitude'] = $this->request->get("latitude", null, '');
         //$request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
         $request_settings['i'] = $request_data_client->parameters->chipId->__toString();
-        $request_settings['placement_hash'] = $request_data_client->parameters->adtype->__toString();
+        $request_settings['placement_hash'] = ZONE_HASH_YANGZHI;
+        //$request_settings['placement_hash'] = $request_data_client->parameters->adtype->__toString();
         //$request_settings['adv_type'] = $this->request->get("mt", null, null);
         //$request_settings['screen'] = $this->request->get("screen", null, '');
         //$request_settings['screen_size'] = Lov::getScreen($request_settings['screen']);
@@ -63,8 +64,9 @@ class YZRequestController extends MDRequestV2Controller{
             //global $errormessage;
             //print_error(1, $errormessage, $request_settings['sdk'], 1);
             //TODO: Unchecked MD Functions
-            echo($errormessage);
-            var_dump($request_settings);
+            $this->debugLog($errormessage);
+//            echo($errormessage);
+//            var_dump($request_settings);
             return $this->codeInputError();
         }
 
@@ -180,25 +182,38 @@ class YZRequestController extends MDRequestV2Controller{
             $this->di->get('logRequestProcess')->log("timestamp->".$time.", campaign_id->".$result['campaign_id'], Phalcon\Logger::DEBUG);
         }
         $display_ad['return_type']='yzxml';
+
         return $display_ad;
     }
 
     function handleImpression($request_data , $request_settings){
-        $records = $request_data->parameters->records->record;
-        if($records){
-            foreach($records as $record){
-                $data = explode("|",$record->__toString());
-                if(count($data)>=3){
-                    $adv_hash = $data[0];
-                    $impression = $data[1];
-                    $zone_hash = $data[2];
-                    for($i=0; $i<$impression; $i++){
-                        $this->saveImpression($adv_hash,$zone_hash,$request_settings);
+        if($request_data->parameters->records){
+            $records = $request_data->parameters->records->record;
+            $impression_callback_data='';
+            if($records){
+                foreach($records as $record){
+                    $data = explode("|",$record->__toString());
+                    if(count($data)>=3){
+                        $adv_hash = $data[0];
+                        $impression = $data[1];
+                        $zone_hash = $data[2];
+                        if(!empty($impression_callback_data)){
+                            $impression_callback_data.="|";
+                        }
+                        $impression_callback_data.=($zone_hash.",");
+                        $impression_callback_data.=($impression.",");
+                        $impression_callback_data.=$adv_hash;
+                        for($i=0; $i<$impression; $i++){
+                            $this->saveImpression($adv_hash,$zone_hash,$request_settings);
+                        }
                     }
                 }
+                $callbackDate['chipId']=$request_settings['i'];
+                $callbackDate['ip']=$request_settings['ip_address'];
+                $callbackDate['ad']=$impression_callback_data;
+                $this->save_yangzhi_request_date($callbackDate);
             }
         }
-
     }
 
     function saveImpression($ad_hash,$zone_hash,$request_settings){
@@ -249,6 +264,12 @@ class YZRequestController extends MDRequestV2Controller{
         if(DEBUG_LOG_ENABLE) {
             $this->di->get('logTrackProcess')->log("timestamp->$current_time, campaign_id->".$reporting['campaign_id'], Phalcon\Logger::DEBUG);
         }
+    }
+
+
+    function save_yangzhi_request_date($date){
+        $queue = $this->getDi()->get('yangzhiCallback');
+        $queue->put(serialize($date));
     }
 
 } 
