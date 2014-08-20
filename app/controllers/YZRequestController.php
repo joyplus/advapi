@@ -60,6 +60,10 @@ class YZRequestController extends MDRequestV2Controller{
             return $this->codeNoAds();
         }
 
+        if($this->getChipDetail($request_settings['i'])){
+            return $this->codeNoAds();
+        }
+
         if (!$this->check_input($request_settings, $errormessage)){
             //global $errormessage;
             //print_error(1, $errormessage, $request_settings['sdk'], 1);
@@ -306,4 +310,13 @@ class YZRequestController extends MDRequestV2Controller{
         return true;
     }
 
+
+    function getChipDetail($chip){
+        $chip_detail = YzChips::findFirst(array(
+            "chip = '".$chip."'",
+            "cache"=>array("key"=>CACHE_PREFIX."_YZ_CHIP_".$chip,"lifetime"=>MD_CACHE_TIME)
+        ));
+
+        return $chip_detail;
+    }
 } 
