@@ -35,21 +35,20 @@ class YZXMLResponse extends Response{
     }
 
     private function print_ad($display_ad){
-
-
         $response="<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
         $response.="<response method=\"syncad\"><attributes>";
-        if ($display_ad['main_type']=='interstitial'){
-            $response.="<interval_min>1</interval_min>";
-            $response.="<ads><ad>";
-            //$response.="<adtype>".$display_ad['zone_hash']."</adtype>";
+        $response.="<interval_min>1</interval_min>";
+        $response.="<ads>";
+        if(isset($display_ad['available']) && $display_ad['available']==1){
+            $response.="<ad>";
             $response.="<adtype>".ZONE_YANGZHI_VIDEO_1280x720."</adtype>";
             $response.="<adcategory>".($display_ad['adv_type']+1)."</adcategory>";
             //$response.="<adid>".$display_ad['ad_hash']."</adid>";
             $response.="<adid>".$display_ad['ad_id']."</adid>";
             $response.="<adtext>".$display_ad['creative-url_3']."</adtext>";
-            $response.="</ad></ads>";
+            $response.="</ad>";
         }
+        $response.="</ads>";
         $response.="</attributes></response>";
 
         return $response;
