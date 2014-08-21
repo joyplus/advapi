@@ -20,7 +20,7 @@ class YZRequestController extends MDRequestV2Controller{
 
     protected function handleAdRequest(){
         $request_settings = array();
-        $request_data = array();
+        //$request_data = array();
         $display_ad = array();
 
         $request_data_xml = $this->request->getRawBody();
@@ -60,84 +60,75 @@ class YZRequestController extends MDRequestV2Controller{
             return $this->codeNoAds();
         }
 
-        if (!$this->check_input($request_settings, $errormessage)){
-            //global $errormessage;
-            //print_error(1, $errormessage, $request_settings['sdk'], 1);
-            //TODO: Unchecked MD Functions
-            $this->debugLog($errormessage);
-//            echo($errormessage);
-//            var_dump($request_settings);
-            return $this->codeInputError();
-        }
+        if($this->getChipDetail($request_settings['i'])
+            and $this->check_input($request_settings,$error)
+            and !$this->isMacAddressBlocked($request_settings['i'])
+            and !$this->isIpBlocked($request_settings['ip_address'])){
 
-        $this->handleImpression($request_data_client,$request_settings);
-
-        if($this->isMacAddressBlocked($request_settings['i'])) {
-            return $this->codeNoAds();
-        }
-
-        $request_data['ip']=$request_settings['ip_address'];
-        if($this->isIpBlocked($request_data['ip'])) {
-            return $this->codeNoAds();
-        }
-
-        $device_detail = $this->getDevice($request_settings['device_name'], $request_settings['device_movement']);
-        if($device_detail) {
-            $request_settings['device_type'] = $device_detail->device_type;
-            $request_settings['device_brand'] = $device_detail->device_brands;
-            $request_settings['device_quality']= $this->getDeviceQuality($device_detail->device_id);
-            $this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
-        }
-
-        $zone_detail=$this->get_placement($request_settings['placement_hash']);
-
-        if (!$zone_detail){
-            return $this->codeInputError();
-        }
-
-        $this->debugLog("[handleAdRequest] found zone, id->".$zone_detail->entry_id);
-
-        $request_settings['adspace_width']=$zone_detail->zone_width;
-        $request_settings['adspace_height']=$zone_detail->zone_height;
-
-        //$request_settings['channel']=$this->getchannel($zone_detail);
-
-        $this->update_last_request($zone_detail);
-
-        $this->setGeo($request_settings);
-
-        //处理试投放
-        $this->debugLog("[handleAdRequest] i->".$request_settings['i']);
-        $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
-        $this->debugLog("[handleAdRequest] cacheKey->".$cacheKey);
-        $adv_id = $this->getCacheAdData($cacheKey);
-        if($adv_id){
-            $this->debugLog("[handleAdRequest] 找到试投放,key->".$cacheKey.", id->".$adv_id);
-            if (!$final_ad = $this->get_ad_unit($adv_id)){
-                return $this->codeNoAds();
+            $this->handleImpression($request_data_client,$request_settings);
+            $device_detail = $this->getDevice($request_settings['device_name'], $request_settings['device_movement']);
+            if($device_detail) {
+                $request_settings['device_type'] = $device_detail->device_type;
+                $request_settings['device_brand'] = $device_detail->device_brands;
+                $request_settings['device_quality']= $this->getDeviceQuality($device_detail->device_id);
+                $this->debugLog("[handleAdRequest] found device,quality->".$request_settings['device_quality']);
             }
-            if (!$this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
-                return $this->codeNoAds();
+
+            $zone_detail=$this->get_placement($request_settings['placement_hash']);
+
+            if (!$zone_detail){
+                return $this->codeInputError();
             }
-            $request_settings['active_campaign_type'] = 'normal';
+
+            $this->debugLog("[handleAdRequest] found zone, id->".$zone_detail->entry_id);
+
+            $request_settings['adspace_width']=$zone_detail->zone_width;
+            $request_settings['adspace_height']=$zone_detail->zone_height;
+
+            //$request_settings['channel']=$this->getchannel($zone_detail);
+
+            $this->update_last_request($zone_detail);
+
+            $this->setGeo($request_settings);
+
+            //处理试投放
+            $this->debugLog("[handleAdRequest] i->".$request_settings['i']);
+            $cacheKey = CACHE_PREFIX.'UNIT_DEVICE'.$request_settings['i'].$request_settings['placement_hash'];
+            $this->debugLog("[handleAdRequest] cacheKey->".$cacheKey);
+            $adv_id = $this->getCacheAdData($cacheKey);
+            if($adv_id){
+                $this->debugLog("[handleAdRequest] 找到试投放,key->".$cacheKey.", id->".$adv_id);
+                if (!$final_ad = $this->get_ad_unit($adv_id)){
+                    return $this->codeNoAds();
+                }
+                if (!$this->build_ad($display_ad, $zone_detail, 1, $final_ad)){
+                    return $this->codeNoAds();
+                }
+                $request_settings['active_campaign_type'] = 'normal';
+            }else{
+                $this->buildQuery($request_settings, $zone_detail);
+
+                if ($campaign_query_result=$this->launch_campaign_query($request_settings, $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
+
+                    $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
+
+                    //TODO: Unchecked MD functions
+                    //            if (!$this->process_campaignquery_result($campaign_query_result, $zone_detail, $request_settings)){
+                    //
+                    //                launch_backfill();
+                    //            }
+                }
+                else {
+                    //TODO: Unchecked MD functions
+                    //launch_backfill();
+                    $display_ad['available'] = 0;
+                }
+            }
         }else{
-            $this->buildQuery($request_settings, $zone_detail);
-
-            if ($campaign_query_result=$this->launch_campaign_query($request_settings, $request_settings['campaign_conditions'], $request_settings['campaign_params'])){
-
-                $this->process_campaignquery_result($zone_detail, $request_settings, $display_ad, $campaign_query_result);
-
-                //TODO: Unchecked MD functions
-                //            if (!$this->process_campaignquery_result($campaign_query_result, $zone_detail, $request_settings)){
-                //
-                //                launch_backfill();
-                //            }
-            }
-            else {
-                //TODO: Unchecked MD functions
-                //launch_backfill();
-            }
+            $display_ad['available'] = 0;
         }
+
+
         $time = time();
         if (isset($display_ad['available']) && $display_ad['available']==1){
             $this->track_request($time, $request_settings, $zone_detail, $display_ad, 0);
@@ -155,7 +146,7 @@ class YZRequestController extends MDRequestV2Controller{
         else {
             $this->track_request($time, $request_settings, $zone_detail, $display_ad, 0);
             //$display_ad['return_code'] = "20001";
-            return $this->codeNoAds();
+            //return $this->codeNoAds();
         }
 
 
@@ -306,4 +297,13 @@ class YZRequestController extends MDRequestV2Controller{
         return true;
     }
 
+
+    function getChipDetail($chip){
+        $chip_detail = YzChips::findFirst(array(
+            "chip = '".$chip."'",
+            "cache"=>array("key"=>CACHE_PREFIX."_YZ_CHIP_".$chip,"lifetime"=>MD_CACHE_TIME)
+        ));
+
+        return $chip_detail;
+    }
 } 
