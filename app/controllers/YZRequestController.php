@@ -40,7 +40,7 @@ class YZRequestController extends MDRequestV2Controller{
         //$request_settings['longitude'] = $this->request->get("longitude", null, '');
         //$request_settings['latitude'] = $this->request->get("latitude", null, '');
         //$request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
-        $request_settings['i'] = $request_data_client->parameters->chipId->__toString();
+        $request_settings['i'] = strtoupper($request_data_client->parameters->chipId->__toString());
         $request_settings['placement_hash'] = ZONE_HASH_YANGZHI;
         //$request_settings['placement_hash'] = $request_data_client->parameters->adtype->__toString();
         //$request_settings['adv_type'] = $this->request->get("mt", null, null);
