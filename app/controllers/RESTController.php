@@ -127,6 +127,8 @@ class RESTController extends BaseController{
         }
         else if ($this->request->has('u')){
             $request_settings['user_agent']=$this->request->get('u');
+        }else {
+            $request_settings['user_agent']=$this->request->getUserAgent();
         }
     }
 

@@ -44,6 +44,8 @@ class MDRequestController extends RESTController{
         $request_settings['pattern'] = $this->request->get("up",null,'');
         $request_settings['video_type'] = $this->request->get("vc",null,'');
 
+        $request_settings['placement_hash'] = $this->request->get('s');
+
         $param_sdk = $this->request->get("sdk");
         if (!isset($param_sdk) or ($param_sdk!='banner' && $param_sdk!='vad')){
             $request_settings['sdk']='banner';
@@ -195,6 +197,7 @@ class MDRequestController extends RESTController{
             $display_ad['final_impression_url']=$base_ctr;
             $display_ad['final_click_url']="".MAD_ADSERVING_PROTOCOL . MAD_SERVER_HOST
                 ."/".MAD_CLICK_HANDLER."?ad=".$display_ad['ad_hash']."&zone=".$display_ad['zone_hash']."&ds=".$request_settings['device_name']."&dm=".$request_settings['device_movement']."&i=".$request_settings['i'];
+            $this->completionParams($request_settings,$display_ad);
         }
         else {
             $this->track_request($time, $request_settings, $zone_detail, $display_ad, 0);
@@ -227,6 +230,16 @@ class MDRequestController extends RESTController{
         return $display_ad;
     }
 
+    function completionParams(&$request_settings, &$display_ad){
+        $this->replaceParams($request_settings,$display_ad['tracking_iresearch']);
+        $this->replaceParams($request_settings,$display_ad['tracking_nielsen']);
+    }
+
+    function replaceParams(&$request_settings, &$url){
+        $url = str_ireplace("%mac%",$request_settings['i'],$url);
+        $url = str_ireplace("%dm%",$request_settings['device_movement'],$url);
+//        return $url;
+    }
 
     function check_input(&$request_settings, &$errormessage){
 
@@ -239,13 +252,12 @@ class MDRequestController extends RESTController{
             return false;
         }
 
-        $param_s = $this->request->get('s');
+        $param_s = $request_settings['placement_hash'];
         if (!isset($param_s) or empty($param_s) or !$this->validate_md5($param_s)){
             $errormessage='No valid Integration Placement ID supplied. (Variable "s")';
             return false;
         }
 
-        $request_settings['placement_hash']=$param_s;
 		$this->debugLog("[check_input] s->".$param_s);
         $this->prepare_ua($request_settings);
 
@@ -602,6 +614,10 @@ class MDRequestController extends RESTController{
 
         foreach($result as $key=>$campaign_detail)
         {
+            //频次超了，投放作废
+            if($this->getCacheAdData(CACHE_PREFIX."_CLIENT_FREQUENCY_".$campaign_detail['campaign_id'].$request_settings['i'])){
+                break;
+            }
             if ($campaign_detail['type']=='network'){
                 //TODO: Unchecked MD functions
 //                $mdManager->reporting_db_update($display_ad, $request_settings, $zone_detail['publication_id'], $zone_detail['entry_id'], $campaign_detail['campaign_id'], '', $campaign_detail['network_id'], 0, 1, 0, 0);

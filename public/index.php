@@ -72,7 +72,11 @@ try {
 	define("QINIU_PREUPLOAD_BUKECT", $config->qiniu->preUploadBucket);
 	define("QINIU_ACCESS_KEY", $config->qiniu->accessKey);
 	define("QINIU_SECRET_KEY", $config->qiniu->secretKey);
-	
+
+    define("ZONE_HASH_YANGZHI", $config->application->zone_hash_yangzhi);
+    define('TUBE_YANGZHI_CALLBACK', BUSINESS_ID.$config->beanstalk->tube_yangzhi_callback);
+    define("ZONE_YANGZHI_VIDEO_1280x720", $config->application->zone_yangzhi_video_1280X720);
+
 	$loader = new \Phalcon\Loader();
 
 	/**
@@ -316,6 +320,14 @@ try {
     	$queue->choose(TUBE_REQUEST_DEVICE_LOG);
     	return $queue;
     });
+    $di->set('yangzhiCallback', function() use ($config) {
+        $queue = new Phalcon\Queue\Beanstalk(array(
+            'host'=>BEANSTALK_SERVER,
+            'port'=>BEANSTALK_PORT
+        ));
+        $queue->choose(TUBE_YANGZHI_CALLBACK);
+        return $queue;
+    });
     
     $di->set('collections', function() use ($config) {
     	return include(__DIR__ . '/../app/routes/routeLoader.php');
@@ -362,6 +374,10 @@ try {
 				$response = new JSONResponse();
 				$response->send($records['return_code'], $records['data']);
 				break;
+            case 'yzxml':
+                $response = new YZXMLResponse();
+                $response->send($records);
+                break;
 			case 'xml' :
 			default:
 				$response = new XMLResponse();
