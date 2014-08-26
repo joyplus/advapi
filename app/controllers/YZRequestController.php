@@ -40,7 +40,7 @@ class YZRequestController extends MDRequestV2Controller{
         //$request_settings['longitude'] = $this->request->get("longitude", null, '');
         //$request_settings['latitude'] = $this->request->get("latitude", null, '');
         //$request_settings['iphone_osversion'] = $this->request->get("iphone_osversion", null, '');
-        $request_settings['i'] = $request_data_client->parameters->chipId->__toString();
+        $request_settings['i'] = strtoupper($request_data_client->parameters->chipId->__toString());
         $request_settings['placement_hash'] = ZONE_HASH_YANGZHI;
         //$request_settings['placement_hash'] = $request_data_client->parameters->adtype->__toString();
         //$request_settings['adv_type'] = $this->request->get("mt", null, null);
@@ -299,9 +299,15 @@ class YZRequestController extends MDRequestV2Controller{
 
 
     function getChipDetail($chip){
+        $hour = date('H',time());
+        if($hour>=3){
+            $cache_time = strtotime(date('Y-m-d',strtotime('+1 day'))) + 10800 -time();
+        }else{
+            $cache_time =  strtotime(date('Y-m-d')) + 10800 -time();
+        }
         $chip_detail = YzChips::findFirst(array(
             "chip = '".$chip."'",
-            "cache"=>array("key"=>CACHE_PREFIX."_YZ_CHIP_".$chip,"lifetime"=>MD_CACHE_TIME)
+            "cache"=>array("key"=>CACHE_PREFIX."_YZ_CHIP_".$chip,"lifetime"=>$cache_time)
         ));
 
         return $chip_detail;
