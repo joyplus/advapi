@@ -299,9 +299,15 @@ class YZRequestController extends MDRequestV2Controller{
 
 
     function getChipDetail($chip){
+        $hour = date('H',time());
+        if($hour>=3){
+            $cache_time = strtotime(date('Y-m-d',strtotime('+1 day'))) + 10800 -time();
+        }else{
+            $cache_time =  strtotime(date('Y-m-d')) + 10800 -time();
+        }
         $chip_detail = YzChips::findFirst(array(
             "chip = '".$chip."'",
-            "cache"=>array("key"=>CACHE_PREFIX."_YZ_CHIP_".$chip,"lifetime"=>MD_CACHE_TIME)
+            "cache"=>array("key"=>CACHE_PREFIX."_YZ_CHIP_".$chip,"lifetime"=>$cache_time)
         ));
 
         return $chip_detail;
