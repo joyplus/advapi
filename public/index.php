@@ -76,6 +76,7 @@ try {
     define("ZONE_HASH_YANGZHI", $config->application->zone_hash_yangzhi);
     define('TUBE_YANGZHI_CALLBACK', BUSINESS_ID.$config->beanstalk->tube_yangzhi_callback);
     define("ZONE_YANGZHI_VIDEO_1280x720", $config->application->zone_yangzhi_video_1280X720);
+    define("TIME_YANGZHI_REQUEST", $config->application->time_yangzhi_request);
 
 	$loader = new \Phalcon\Loader();
 
