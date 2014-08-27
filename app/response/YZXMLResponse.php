@@ -37,7 +37,7 @@ class YZXMLResponse extends Response{
     private function print_ad($display_ad){
         $response="<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
         $response.="<response method=\"syncad\"><attributes>";
-        $response.="<interval_min>1</interval_min>";
+        $response.="<interval_min>".TIME_YANGZHI_REQUEST."</interval_min>";
         $response.="<ads>";
         if(isset($display_ad['available']) && $display_ad['available']==1){
             $response.="<ad>";
