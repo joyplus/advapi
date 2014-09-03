@@ -86,6 +86,15 @@ class RESTController extends BaseController{
             filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
     }
 
+    function get_ip(){
+
+        if ($this->request->has('p')){
+            return $this->request->get('p', null, '');
+        }else{
+            return $this->request->getClientAddress(TRUE);
+        }
+    }
+
     function prepare_ip(&$request_settings){
 
         switch ($request_settings['ip_origin']){
@@ -554,6 +563,8 @@ class RESTController extends BaseController{
         $devReqLog->business_id = BUSINESS_ID;
         if($type=="monitor") {
         	$devReqLog->client_ip = $result["monitor_ip"];
+        }else if($type=="track"){
+            $devReqLog->client_ip = $this->get_ip();
         }else{
         	$devReqLog->client_ip = $this->request->getClientAddress(TRUE);
         }
