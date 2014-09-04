@@ -16,7 +16,7 @@ class MDRequestV2Controller extends MDRequestController{
     	
     	$provinceTarget = $this->existTargeting("geo", $request_settings['province_code']);
     	$cityTarget = $this->existTargeting("geo", $request_settings['city_code']);
-    	if($geoTarget || $cityTarget) {
+    	if($provinceTarget || $cityTarget) {
     		$request_settings['left_geo'] = true;
 	    	$conditions = ' (Campaigns.country_target=1';
 	    	if (isset($request_settings['province_code']) && !empty($request_settings['province_code']) && isset($request_settings['city_code']) && !empty($request_settings['city_code'])){
@@ -33,7 +33,7 @@ class MDRequestV2Controller extends MDRequestController{
 	    	}
     	}else{
     		$request_settings['left_geo'] = false;
-    		$conditions .= "(Campaigns.country_target=1)";
+    		$conditions = "(Campaigns.country_target=1)";
     	}
     	 
     	 
